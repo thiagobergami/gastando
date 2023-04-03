@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./api
+    container_name: api
+    restart: always
+    ports:
+      - "3030:3030"
+    networks:
+      - gastando-networks
+    depends_on:
+      - database
+  
+  page:
+    build: ./page
+    container_name: page
+    restart: always
+    ports:
+      - 5173
+    networks:
+      - gastando-networks
+    depends_on:
+      - api
+  
+  database:
+    image: postgres
+    container_name: database
+    restart: always
+    environment:
+      POSTGRES_USER: development
+      POSTGRES_PASSWORD: development
+      POSTGRES_DB: development
+    ports:
+      - "5432:5432"
+    networks:
+      - gastando-networks
+
+networks:
+  gastando-networks:
+    driver: bridge
