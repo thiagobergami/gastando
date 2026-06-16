@@ -20,7 +20,8 @@ module.exports = (db) => {
   });
 
   router.put('/:id', (req, res) => {
-    const { group_id, name, examples = '', sort_order = 0, active = 1 } = req.body;
+    const { group_id, name, examples = '', sort_order = 0 } = req.body;
+    const active = req.body.active ?? 1;
     if (!name) fail(400, 'name is required');
     if (!db.prepare('SELECT id FROM groups WHERE id=?').get(group_id)) fail(400, 'group_id does not exist');
     const r = db.prepare(

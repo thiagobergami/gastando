@@ -71,3 +71,26 @@ test('categories: create requires a real group and supports soft-delete', async 
   const found = after.body.find(x => x.id === c.body.id);
   assert.equal(found.active, 0);
 });
+
+test('groups: delete non-existent returns 404', async () => {
+  const { app } = appWith();
+  await request(app).delete('/api/groups/99999').expect(404);
+});
+
+test('groups: post without name returns 400', async () => {
+  const { app } = appWith();
+  await request(app).post('/api/groups').send({ color: 'sage' }).expect(400);
+});
+
+test('categories: put updates name and examples', async () => {
+  const { app, ctx } = appWith();
+  const res = await request(app).put(`/api/categories/${ctx.categoryId}`)
+    .send({ group_id: ctx.groupId, name: 'Updated', examples: 'test', sort_order: 0, active: 1 }).expect(200);
+  assert.equal(res.body.name, 'Updated');
+});
+
+test('categories: put with invalid group_id returns 400', async () => {
+  const { app, ctx } = appWith();
+  await request(app).put(`/api/categories/${ctx.categoryId}`)
+    .send({ group_id: 99999, name: 'Updated', examples: '' }).expect(400);
+});

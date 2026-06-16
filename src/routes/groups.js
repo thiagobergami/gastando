@@ -28,6 +28,8 @@ module.exports = (db) => {
   });
 
   router.delete('/:id', (req, res) => {
+    const count = db.prepare('SELECT COUNT(*) AS n FROM categories WHERE group_id=?').get(req.params.id).n;
+    if (count > 0) fail(409, 'group has categories; remove them first');
     const r = db.prepare('DELETE FROM groups WHERE id=?').run(req.params.id);
     if (r.changes === 0) fail(404, 'group not found');
     res.status(204).end();
