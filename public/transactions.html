@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gastando — Transactions</title>
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+  <div class="wrap">
+    <nav class="nav">
+      <a href="/">Dashboard</a>
+      <a href="/transactions.html" class="active">Transactions</a>
+      <a href="/settings.html">Settings</a>
+      <a href="/bi.html">BI</a>
+      <input type="month" id="month" style="margin-left:auto" />
+    </nav>
+    <form id="form" class="card">
+      <input type="date" id="date" required />
+      <select id="category"></select>
+      <select id="card"></select>
+      <input type="number" id="amount" step="0.01" min="0" placeholder="Amount (R$)" />
+      <input type="text" id="description" placeholder="Description" />
+      <label><input type="checkbox" id="isInstallment" /> Installment</label>
+      <span id="installmentFields" style="display:none">
+        <input type="number" id="count" min="1" placeholder="# parcelas" />
+        <input type="month" id="firstMonth" />
+      </span>
+      <button type="submit">Add</button>
+    </form>
+    <table id="list"></table>
+  </div>
+  <script type="module" src="/js/transactions.js"></script>
+</body>
+</html>
