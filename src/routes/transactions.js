@@ -1,5 +1,6 @@
 const express = require('express');
 const { isDate, isMonth, isPositiveInt, fail } = require('../validate');
+const { createInstallmentPurchase } = require('../services/installments');
 
 module.exports = (db) => {
   const router = express.Router();
@@ -20,6 +21,25 @@ module.exports = (db) => {
 
   router.post('/', (req, res) => {
     const { date, category_id, card_id, amount_cents, description = '' } = req.body;
+
+    // Installment purchase path.
+    if (req.body.installment_count !== undefined || req.body.installment_total_cents !== undefined) {
+      const { installment_total_cents, installment_count, first_month } = req.body;
+      if (!isPositiveInt(installment_total_cents)) fail(400, 'installment_total_cents must be a positive integer');
+      if (!isPositiveInt(installment_count)) fail(400, 'installment_count must be a positive integer');
+      if (!isMonth(first_month)) fail(400, 'first_month must be YYYY-MM');
+      if (!db.prepare('SELECT id FROM categories WHERE id=?').get(category_id)) fail(400, 'category_id does not exist');
+      if (!db.prepare('SELECT id FROM cards WHERE id=?').get(card_id)) fail(400, 'card_id does not exist');
+      const groupId = createInstallmentPurchase(db, {
+        category_id, card_id, description,
+        total_cents: installment_total_cents, count: installment_count, first_month,
+      });
+      const first = db.prepare(
+        'SELECT * FROM transactions WHERE installment_group_id=? ORDER BY date LIMIT 1').get(groupId);
+      return res.status(201).json({ ...first, installment_group_id: groupId });
+    }
+
+    // Single-shot transaction path.
     if (!isDate(date)) fail(400, 'date must be YYYY-MM-DD');
     if (!isPositiveInt(amount_cents)) fail(400, 'amount_cents must be a positive integer');
     if (!db.prepare('SELECT id FROM categories WHERE id=?').get(category_id)) fail(400, 'category_id does not exist');
