@@ -94,3 +94,21 @@ test('categories: put with invalid group_id returns 400', async () => {
   await request(app).put(`/api/categories/${ctx.categoryId}`)
     .send({ group_id: 99999, name: 'Updated', examples: '' }).expect(400);
 });
+
+test('cards: create, list, soft-delete', async () => {
+  const { app } = appWith();
+  const c = await request(app).post('/api/cards').send({ name: 'Itaú' }).expect(201);
+  assert.equal(c.body.active, 1);
+  await request(app).delete(`/api/cards/${c.body.id}`).expect(204);
+  const list = await request(app).get('/api/cards').expect(200);
+  assert.equal(list.body.find(x => x.id === c.body.id).active, 0);
+});
+
+test('cards: put updates name, post without name returns 400, delete 404', async () => {
+  const { app, ctx } = appWith();
+  await request(app).post('/api/cards').send({}).expect(400);
+  const put = await request(app).put(`/api/cards/${ctx.cardId}`)
+    .send({ name: 'Updated Card', active: 1 }).expect(200);
+  assert.equal(put.body.name, 'Updated Card');
+  await request(app).delete('/api/cards/99999').expect(404);
+});

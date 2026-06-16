@@ -10,6 +10,7 @@ function createApp(db) {
 
   app.use('/api/groups', require('./routes/groups')(db));
   app.use('/api/categories', require('./routes/categories')(db));
+  app.use('/api/cards', require('./routes/cards')(db));
 
   app.use(express.static(path.join(__dirname, '..', 'public')));
   app.use(errorHandler);
