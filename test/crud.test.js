@@ -112,3 +112,35 @@ test('cards: put updates name, post without name returns 400, delete 404', async
   assert.equal(put.body.name, 'Updated Card');
   await request(app).delete('/api/cards/99999').expect(404);
 });
+
+test('limits: set per month and read with carry-forward', async () => {
+  const { app, ctx } = appWith();
+  await request(app).put('/api/limits')
+    .send({ category_id: ctx.categoryId, month: '2026-06', limit_cents: 85000 }).expect(200);
+
+  // Same month returns explicit value.
+  const june = await request(app).get('/api/limits?month=2026-06').expect(200);
+  assert.equal(june.body.find(l => l.category_id === ctx.categoryId).limit_cents, 85000);
+
+  // Later month with no explicit row carries forward June's limit.
+  const aug = await request(app).get('/api/limits?month=2026-08').expect(200);
+  assert.equal(aug.body.find(l => l.category_id === ctx.categoryId).limit_cents, 85000);
+
+  // Upsert replaces the value for the same (category, month).
+  await request(app).put('/api/limits')
+    .send({ category_id: ctx.categoryId, month: '2026-06', limit_cents: 90000 }).expect(200);
+  const june2 = await request(app).get('/api/limits?month=2026-06').expect(200);
+  assert.equal(june2.body.find(l => l.category_id === ctx.categoryId).limit_cents, 90000);
+
+  await request(app).get('/api/limits?month=bad').expect(400);
+});
+
+test('limits: put validates category_id and limit_cents', async () => {
+  const { app, ctx } = appWith();
+  await request(app).put('/api/limits')
+    .send({ category_id: 99999, month: '2026-06', limit_cents: 1000 }).expect(400);
+  await request(app).put('/api/limits')
+    .send({ category_id: ctx.categoryId, month: 'bad', limit_cents: 1000 }).expect(400);
+  await request(app).put('/api/limits')
+    .send({ category_id: ctx.categoryId, month: '2026-06', limit_cents: -1 }).expect(400);
+});
