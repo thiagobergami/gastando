@@ -8,9 +8,8 @@ function createApp(db) {
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
 
-  // Routes mounted in later tasks:
-  // app.use('/api/groups', require('./routes/groups')(db));
-  // ...
+  app.use('/api/groups', require('./routes/groups')(db));
+  app.use('/api/categories', require('./routes/categories')(db));
 
   app.use(express.static(path.join(__dirname, '..', 'public')));
   app.use(errorHandler);
