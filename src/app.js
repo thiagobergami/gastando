@@ -14,6 +14,8 @@ function createApp(db) {
   app.use('/api/limits', require('./routes/limits')(db));
   app.use('/api/transactions', require('./routes/transactions')(db));
   app.use('/api/installment-groups', require('./routes/installmentGroups')(db));
+  app.use('/api/settings', require('./routes/settings')(db));
+  app.use('/api/dashboard', require('./routes/dashboard')(db));
 
   app.use(express.static(path.join(__dirname, '..', 'public')));
   app.use(errorHandler);
