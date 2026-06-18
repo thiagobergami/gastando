@@ -15,7 +15,23 @@ module.exports = (db) => {
     }
     if (category_id !== undefined) { where.push('category_id = ?'); args.push(Number(category_id)); }
     if (card_id !== undefined) { where.push('card_id = ?'); args.push(Number(card_id)); }
-    const sql = `SELECT * FROM transactions ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY date DESC, id DESC`;
+
+    let limit = null, offset = 0;
+    if (req.query.limit !== undefined) {
+      limit = Number(req.query.limit);
+      if (!Number.isInteger(limit) || limit < 1) fail(400, 'limit must be a positive integer');
+    }
+    if (req.query.offset !== undefined) {
+      offset = Number(req.query.offset);
+      if (!Number.isInteger(offset) || offset < 0) fail(400, 'offset must be a non-negative integer');
+    }
+
+    const clause = where.length ? 'WHERE ' + where.join(' AND ') : '';
+    const total = db.prepare(`SELECT COUNT(*) AS n FROM transactions ${clause}`).get(...args).n;
+    res.set('X-Total-Count', String(total));
+
+    let sql = `SELECT * FROM transactions ${clause} ORDER BY date DESC, id DESC`;
+    if (limit !== null) { sql += ' LIMIT ? OFFSET ?'; args.push(limit, offset); }
     res.json(db.prepare(sql).all(...args));
   });
 

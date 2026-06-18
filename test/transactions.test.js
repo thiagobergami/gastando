@@ -37,6 +37,34 @@ test('transactions: validation', async () => {
     .send({ date: '2026-06-10', category_id: 99999, card_id: ctx.cardId, amount_cents: 100 }).expect(400);
 });
 
+test('transactions: pagination with limit/offset and X-Total-Count', async () => {
+  const { app, ctx } = appWith();
+  for (let i = 1; i <= 5; i++) {
+    await request(app).post('/api/transactions').send({
+      date: `2026-06-0${i}`, category_id: ctx.categoryId, card_id: ctx.cardId, amount_cents: i * 100,
+    }).expect(201);
+  }
+  const p1 = await request(app).get('/api/transactions?month=2026-06&limit=2&offset=0').expect(200);
+  assert.equal(p1.body.length, 2);
+  assert.equal(p1.headers['x-total-count'], '5');
+
+  const last = await request(app).get('/api/transactions?month=2026-06&limit=2&offset=4').expect(200);
+  assert.equal(last.body.length, 1);
+  assert.equal(last.headers['x-total-count'], '5');
+
+  // Total count reflects filters, not the page size.
+  const all = await request(app).get('/api/transactions?month=2026-06').expect(200);
+  assert.equal(all.body.length, 5);
+  assert.equal(all.headers['x-total-count'], '5');
+});
+
+test('transactions: pagination validation', async () => {
+  const { app } = appWith();
+  await request(app).get('/api/transactions?limit=0').expect(400);
+  await request(app).get('/api/transactions?limit=bad').expect(400);
+  await request(app).get('/api/transactions?offset=-1').expect(400);
+});
+
 test('transactions: get filters and delete 404', async () => {
   const { app, ctx } = appWith();
   await request(app).get('/api/transactions?month=bad').expect(400);

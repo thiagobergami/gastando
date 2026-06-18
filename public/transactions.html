@@ -26,9 +26,23 @@
         <input type="number" id="count" min="1" placeholder="# parcelas" />
         <input type="month" id="firstMonth" />
       </span>
-      <button type="submit">Add</button>
+      <button type="submit" id="submitBtn">Add</button>
+      <button type="button" id="cancelEdit" style="display:none">Cancel</button>
     </form>
     <table id="list"></table>
+    <div id="pager" class="pager">
+      <button type="button" id="prevPage">‹ Prev</button>
+      <span id="pageInfo"></span>
+      <button type="button" id="nextPage">Next ›</button>
+      <label style="margin-left:auto">Per page
+        <select id="perPage">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </label>
+    </div>
   </div>
   <script type="module" src="/js/transactions.js"></script>
 </body>

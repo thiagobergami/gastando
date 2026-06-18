@@ -157,3 +157,9 @@
 .toast{position:fixed;bottom:20px;right:20px;background:var(--clay-bg);color:var(--clay);
   padding:12px 16px;border-radius:10px;display:none}
 .toast.show{display:block}
+.pager{display:flex;align-items:center;gap:12px;margin-top:16px;font-size:13.5px;color:var(--ink-mut)}
+.pager button{font-family:inherit;font-size:13px;font-weight:600;color:var(--sage-deep);
+  background:var(--sage-bg);border:1px solid transparent;border-radius:9px;padding:7px 13px;cursor:pointer;transition:.15s}
+.pager button:hover:not(:disabled){background:#cfe0c6}
+.pager button:disabled{opacity:.45;cursor:default}
+.pager select{font-family:inherit;font-size:13px;padding:5px 8px;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink)}

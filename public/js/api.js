@@ -13,6 +13,14 @@ export const api = {
   put: (u, b) => req('PUT', u, b),
   del: (u) => req('DELETE', u),
 };
+// GET that also exposes the X-Total-Count header for pagination.
+export async function getPage(url) {
+  const res = await fetch(url);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  const header = res.headers.get('X-Total-Count');
+  return { items: data, total: header !== null ? Number(header) : data.length };
+}
 export function showError(msg) {
   let t = document.querySelector('.toast');
   if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }

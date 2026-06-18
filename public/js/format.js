@@ -6,4 +6,5 @@ export function formatBRL(cents) {
   return `${neg ? '-' : ''}R$ ${reais},${c}`;
 }
 export function reaisToCents(reais) { return Math.round(Number(reais) * 100); }
+export function centsToReais(cents) { return (cents / 100).toFixed(2); }
 export function currentMonth() { return new Date().toISOString().slice(0, 7); }
