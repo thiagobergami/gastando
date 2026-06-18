@@ -39,3 +39,27 @@ test('simulate returns null for an unknown category', () => {
   const { db } = makeTestDb();
   assert.equal(simulatePurchase(db, { category_id: 9999, total_cents: 1000, count: 1, first_month: '2026-06' }), null);
 });
+
+const request = require('supertest');
+const { createApp } = require('../src/app');
+
+test('GET /api/simulate returns a timeline and validates inputs', async () => {
+  const { db, categoryId } = makeTestDb();
+  const app = createApp(db);
+
+  const ok = await request(app)
+    .get(`/api/simulate?category_id=${categoryId}&total_cents=30000&count=3&first_month=2026-06`).expect(200);
+  assert.equal(ok.body.months.length, 3);
+
+  // count defaults to 1 when omitted
+  const one = await request(app)
+    .get(`/api/simulate?category_id=${categoryId}&total_cents=30000&first_month=2026-06`).expect(200);
+  assert.equal(one.body.months.length, 1);
+
+  await request(app)
+    .get(`/api/simulate?category_id=${categoryId}&total_cents=30000&count=3&first_month=bad`).expect(400);
+  await request(app)
+    .get(`/api/simulate?category_id=${categoryId}&total_cents=0&count=3&first_month=2026-06`).expect(400);
+  await request(app)
+    .get(`/api/simulate?category_id=99999&total_cents=30000&count=1&first_month=2026-06`).expect(404);
+});
