@@ -11,6 +11,7 @@ module.exports = (db) => {
     const count = req.query.count === undefined ? 1 : Number(req.query.count);
     const { first_month } = req.query;
 
+    if (!isPositiveInt(category_id)) fail(400, 'category_id must be a positive integer');
     if (!isMonth(first_month)) fail(400, 'first_month must be YYYY-MM');
     if (!isPositiveInt(total_cents)) fail(400, 'total_cents must be a positive integer');
     if (!isPositiveInt(count)) fail(400, 'count must be a positive integer');
