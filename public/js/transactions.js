@@ -1,21 +1,24 @@
 import { api, getPage, showError } from './api.js';
 import { formatBRL, reaisToCents, centsToReais, currentMonth } from './format.js';
+import { mountChrome } from './chrome.js';
 
 const $ = id => document.getElementById(id);
-let editingId = null; // null = add mode; otherwise the transaction id being edited
+let editingId = null;
 let page = 1;
 
-$('month').value = currentMonth();
-$('isInstallment').addEventListener('change', e => {
-  $('installmentFields').style.display = e.target.checked ? 'inline' : 'none';
-  $('amount').disabled = e.target.checked;
-});
-$('month').addEventListener('change', () => { page = 1; loadList(); });
-$('perPage').addEventListener('change', () => { page = 1; loadList(); });
-$('prevPage').addEventListener('click', () => { if (page > 1) { page--; loadList(); } });
-$('nextPage').addEventListener('click', () => { page++; loadList(); });
-$('form').addEventListener('submit', onSubmit);
-$('cancelEdit').addEventListener('click', resetForm);
+export function renderRows(rows) {
+  return rows.map(r => `
+    <tr class="border-b border-line">
+      <td class="py-3 font-mono text-sm text-ink-mut">${r.date}</td>
+      <td class="py-3">${r.description}
+        ${r.installment_no ? `<span class="tag tag-gold ml-2">${r.installment_no}/${r.installment_total}</span>` : ''}</td>
+      <td class="py-3 text-right font-mono">${formatBRL(r.amount_cents)}</td>
+      <td class="py-3 text-right">
+        <button data-edit="${r.id}" class="text-sage text-sm mr-2">Edit</button>
+        <button data-del="${r.id}" data-group="${r.installment_group_id || ''}" class="text-clay text-sm">Delete</button>
+      </td>
+    </tr>`).join('');
+}
 
 async function loadSelectors() {
   const [cats, cards] = await Promise.all([api.get('/api/categories'), api.get('/api/cards')]);
@@ -29,22 +32,10 @@ async function loadList() {
     const offset = (page - 1) * perPage;
     const { items: rows, total } = await getPage(
       `/api/transactions?month=${$('month').value}&limit=${perPage}&offset=${offset}`);
-
     const totalPages = Math.max(1, Math.ceil(total / perPage));
     if (page > totalPages) { page = totalPages; return loadList(); }
     updatePager(total, perPage, totalPages);
-
-    $('list').innerHTML = rows.map(r => `
-      <tr>
-        <td>${r.date}</td>
-        <td>${r.description}</td>
-        <td class="mono">${formatBRL(r.amount_cents)}</td>
-        <td>${r.installment_no ? r.installment_no + '/' + r.installment_total : ''}</td>
-        <td>
-          <button data-edit="${r.id}">Edit</button>
-          <button data-del="${r.id}" data-group="${r.installment_group_id || ''}">Delete</button>
-        </td>
-      </tr>`).join('');
+    $('list').innerHTML = renderRows(rows);
     $('list').querySelectorAll('button[data-edit]').forEach(b =>
       b.addEventListener('click', () => startEdit(rows.find(r => r.id === Number(b.dataset.edit)))));
     $('list').querySelectorAll('button[data-del]').forEach(b =>
@@ -74,7 +65,7 @@ function startEdit(r) {
   $('description').value = r.description;
   $('submitBtn').textContent = 'Save';
   $('cancelEdit').style.display = 'inline';
-  $('date').scrollIntoView({ block: 'center' });
+  $('formCard').scrollIntoView({ block: 'center' });
 }
 
 function resetForm() {
@@ -105,24 +96,37 @@ async function onSubmit(e) {
   try {
     const base = { category_id: Number($('category').value), card_id: Number($('card').value),
       description: $('description').value };
-
     if (editingId !== null) {
       await api.put(`/api/transactions/${editingId}`, { ...base,
         date: $('date').value, amount_cents: reaisToCents($('amount').value) });
-      resetForm();
     } else if ($('isInstallment').checked) {
       await api.post('/api/transactions', { ...base,
-        installment_total_cents: reaisToCents($('amount').value || prompt('Total amount (R$)')),
+        installment_total_cents: reaisToCents($('amount').value),
         installment_count: Number($('count').value),
         first_month: $('firstMonth').value });
-      resetForm();
     } else {
       await api.post('/api/transactions', { ...base,
         date: $('date').value, amount_cents: reaisToCents($('amount').value) });
-      resetForm();
     }
+    resetForm();
     loadList();
   } catch (err) { showError(err.message); }
 }
 
-loadSelectors().then(loadList);
+if (typeof document !== 'undefined' && document.getElementById('list')) {
+  mountChrome('/transactions.html');
+  $('month').value = currentMonth();
+  $('isInstallment').addEventListener('change', e => {
+    $('installmentFields').style.display = e.target.checked ? 'flex' : 'none';
+    $('amount').disabled = e.target.checked;
+  });
+  $('month').addEventListener('change', () => { page = 1; loadList(); });
+  $('perPage').addEventListener('change', () => { page = 1; loadList(); });
+  $('prevPage').addEventListener('click', () => { if (page > 1) { page--; loadList(); } });
+  $('nextPage').addEventListener('click', () => { page++; loadList(); });
+  $('form').addEventListener('submit', onSubmit);
+  $('cancelEdit').addEventListener('click', resetForm);
+  const fab = document.getElementById('fab');
+  if (fab) fab.addEventListener('click', () => $('formCard').scrollIntoView({ block: 'start' }));
+  loadSelectors().then(loadList);
+}
