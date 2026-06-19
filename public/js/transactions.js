@@ -117,7 +117,7 @@ if (typeof document !== 'undefined' && document.getElementById('list')) {
   mountChrome('/transactions.html');
   $('month').value = currentMonth();
   $('isInstallment').addEventListener('change', e => {
-    $('installmentFields').style.display = e.target.checked ? 'flex' : 'none';
+    $('installmentFields').style.display = e.target.checked ? 'contents' : 'none';
     $('amount').disabled = e.target.checked;
   });
   $('month').addEventListener('change', () => { page = 1; loadList(); });
