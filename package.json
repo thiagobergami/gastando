@@ -11,7 +11,21 @@
     "test": "node --test \"test/**/*.test.js\"",
     "coverage": "c8 node --test \"test/**/*.test.js\"",
     "build:css": "tailwindcss -i public/css/tailwind.src.css -o public/css/app.css --minify",
-    "watch:css": "tailwindcss -i public/css/tailwind.src.css -o public/css/app.css --watch"
+    "watch:css": "tailwindcss -i public/css/tailwind.src.css -o public/css/app.css --watch",
+    "build:binaries": "npm run build:css && pkg --config package.json src/server.js"
+  },
+  "pkg": {
+    "assets": [
+      "public/**/*",
+      "migrations/**/*"
+    ],
+    "targets": [
+      "node20-win-x64",
+      "node20-linux-x64",
+      "node20-macos-x64",
+      "node20-macos-arm64"
+    ],
+    "outputPath": "dist"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +36,7 @@
     "express": "^5.2.1"
   },
   "devDependencies": {
+    "@yao-pkg/pkg": "^6.19.0",
     "c8": "^11.0.0",
     "supertest": "^7.2.2",
     "tailwindcss": "^3.4.19"
