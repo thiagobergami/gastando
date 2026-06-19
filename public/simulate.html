@@ -4,28 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gastando — Simulate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/app.css" />
 </head>
-<body>
-  <div class="wrap">
-    <nav class="nav">
-      <a href="/">Dashboard</a>
-      <a href="/transactions.html">Transactions</a>
-      <a href="/settings.html">Settings</a>
-      <a href="/bi.html">BI</a>
-      <a href="/simulate.html" class="active">Simulate</a>
-    </nav>
-    <div class="card">
-      <h2>Simulate a purchase</h2>
-      <p class="sub">See how a purchase (or installment plan) would affect a category over the coming months. Nothing is saved.</p>
-      <select id="category"></select>
-      <input type="number" id="amount" step="0.01" min="0" placeholder="Total (R$)" />
-      <input type="number" id="count" min="1" value="1" placeholder="# parcelas" />
-      <input type="month" id="firstMonth" />
-      <button id="run" class="btn">Simulate</button>
-    </div>
-    <table id="result"></table>
-  </div>
+<body class="pb-24 md:pb-0">
+  <div id="nav"></div>
+  <main class="max-w-5xl mx-auto px-6 pt-2 space-y-6">
+    <section class="paper-card">
+      <h1 class="font-display text-2xl mb-1">Simulate a purchase</h1>
+      <p class="text-sm text-ink-mut mb-4">See how a purchase (or installment plan) would affect a category over the coming months. Nothing is saved.</p>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <label class="field"><span>Category</span><select id="category"></select></label>
+        <label class="field"><span>Total (R$)</span><input type="number" id="amount" step="0.01" min="0" /></label>
+        <label class="field"><span># parcelas</span><input type="number" id="count" min="1" value="1" /></label>
+        <label class="field"><span>First month</span><input type="month" id="firstMonth" /></label>
+      </div>
+      <button id="run" class="btn-primary mt-4">Simulate</button>
+    </section>
+    <div id="result"></div>
+  </main>
   <script type="module" src="/js/simulate.js"></script>
 </body>
 </html>
