@@ -8,8 +8,8 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test",
-    "coverage": "c8 node --test",
+    "test": "node --test 'test/**/*.test.js'",
+    "coverage": "c8 node --test 'test/**/*.test.js'",
     "build:css": "tailwindcss -i public/css/tailwind.src.css -o public/css/app.css --minify",
     "watch:css": "tailwindcss -i public/css/tailwind.src.css -o public/css/app.css --watch"
   },
