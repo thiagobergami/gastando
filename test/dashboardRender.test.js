@@ -30,3 +30,37 @@ test('renderGroups shows examples, group tag, and over meter', async () => {
   assert.match(html, /meter-fill over/);   // Transporte over limit
   assert.match(html, /Essenciais/);        // group header
 });
+
+test('renderGroups shows carryover badge and effective group total', async () => {
+  const { renderGroups } = await import('../public/js/dashboard.js');
+  const d = {
+    categories: [
+      { category_id: 1, name: 'Games', examples: '', group_id: 1,
+        group_name: 'Estilo de vida', limit_cents: 10000, spent_cents: 8000,
+        carry_in_cents: 3000, effective_spent_cents: 11000, status: 'over' },
+    ],
+    groups: [{ group_id: 1, name: 'Estilo de vida', limit_cents: 10000,
+      spent_cents: 8000, effective_spent_cents: 11000 }],
+    totals: {},
+  };
+  const html = renderGroups(d);
+  assert.match(html, /carryover/);          // badge present when carrying
+  assert.match(html, /R\$ 30,00/);          // the carried amount is shown
+  assert.match(html, /meter-fill over/);    // meter driven by effective spend
+});
+
+test('renderGroups omits carryover badge when not carrying', async () => {
+  const { renderGroups } = await import('../public/js/dashboard.js');
+  const d = {
+    categories: [
+      { category_id: 1, name: 'Games', examples: '', group_id: 1,
+        group_name: 'Estilo de vida', limit_cents: 10000, spent_cents: 5000,
+        carry_in_cents: 0, effective_spent_cents: 5000, status: 'ok' },
+    ],
+    groups: [{ group_id: 1, name: 'Estilo de vida', limit_cents: 10000,
+      spent_cents: 5000, effective_spent_cents: 5000 }],
+    totals: {},
+  };
+  const html = renderGroups(d);
+  assert.doesNotMatch(html, /carryover/);
+});

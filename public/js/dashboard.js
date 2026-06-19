@@ -34,10 +34,13 @@ export function renderGroups(d) {
       <div class="flex items-center gap-3 mb-3">
         <h2 class="text-xs font-bold uppercase tracking-wider text-ink-mut">${g.name}</h2>
         <span class="flex-1 h-px bg-line"></span>
-        <span class="font-mono text-sm text-ink-mut">${formatBRL(g.spent_cents)} / ${formatBRL(g.limit_cents)}</span>
+        <span class="font-mono text-sm text-ink-mut">${formatBRL(g.effective_spent_cents ?? g.spent_cents)} / ${formatBRL(g.limit_cents)}</span>
       </div>
       <div class="space-y-3">
-        ${g.cats.map(c => `
+        ${g.cats.map(c => {
+          const carry = c.carry_in_cents || 0;
+          const eff = c.effective_spent_cents ?? c.spent_cents;
+          return `
           <div class="paper-card">
             <div class="flex items-start justify-between gap-4">
               <div>
@@ -50,10 +53,12 @@ export function renderGroups(d) {
               </div>
             </div>
             <div class="mt-3 flex items-center gap-3">
-              <div class="flex-1">${meterBar(c.spent_cents, c.limit_cents, c.status)}</div>
+              <div class="flex-1">${meterBar(eff, c.limit_cents, c.status)}</div>
+              ${carry > 0 ? `<span class="pill pill-over">+${formatBRL(carry)} carryover</span>` : ''}
               ${statusPill(c.status)}
             </div>
-          </div>`).join('')}
+          </div>`;
+        }).join('')}
       </div>
     </section>`).join('');
 }
