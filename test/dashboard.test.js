@@ -76,9 +76,9 @@ test('dashboard carries overage forward and self-corrects', async () => {
       date: `${month}-10`, category_id: ctx.categoryId, card_id: ctx.cardId, amount_cents: cents,
     }).expect(201);
   };
-  await spend('2026-01', 13000); // over by 30
-  await spend('2026-02', 8000);  // 30 + 80 = 120 -> over by 20
-  await spend('2026-03', 5000);  // 20 + 50 = 70  -> under, clears
+  await spend('2026-01', 13000); // 130 vs 100 -> over by 30
+  await spend('2026-02', 8000);  // 30 + 80 = 110 -> over by 10
+  await spend('2026-03', 5000);  // 10 + 50 = 60  -> under, clears
   await spend('2026-04', 5000);  // 0 + 50 = 50   -> under
 
   const catFor = async (month) => {

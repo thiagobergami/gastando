@@ -1,8 +1,7 @@
 const { addMonths } = require('./dates');
 
-function computeCarryIn(db, categoryId, month, pickLimit, sumSpend) {
-  const first = db.prepare(
-    `SELECT MIN(strftime('%Y-%m', date)) AS m FROM transactions WHERE category_id=?`).get(categoryId);
+function computeCarryIn(db, categoryId, month, pickLimit, sumSpend, firstTxMonth) {
+  const first = firstTxMonth.get(categoryId);
   if (!first || !first.m || first.m >= month) return 0;
   let carry = 0;
   for (let m = first.m; m < month; m = addMonths(m, 1)) {
@@ -24,12 +23,14 @@ function buildDashboard(db, month) {
     `SELECT limit_cents FROM category_limits WHERE category_id=? AND month<=? ORDER BY month DESC LIMIT 1`);
   const sumSpend = db.prepare(
     `SELECT COALESCE(SUM(amount_cents),0) AS s FROM transactions WHERE category_id=? AND strftime('%Y-%m', date)=?`);
+  const firstTxMonth = db.prepare(
+    `SELECT MIN(strftime('%Y-%m', date)) AS m FROM transactions WHERE category_id=?`);
 
   const categories = cats.map(c => {
     const limit = pickLimit.get(c.id, month);
     const limit_cents = limit ? limit.limit_cents : 0;
     const spent_cents = sumSpend.get(c.id, month).s;
-    const carry_in_cents = computeCarryIn(db, c.id, month, pickLimit, sumSpend);
+    const carry_in_cents = computeCarryIn(db, c.id, month, pickLimit, sumSpend, firstTxMonth);
     const effective_spent_cents = spent_cents + carry_in_cents;
     return {
       category_id: c.id, name: c.name, examples: c.examples,
