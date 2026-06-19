@@ -4,35 +4,42 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gastando — Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/app.css" />
 </head>
-<body>
-  <div class="wrap">
-    <nav class="nav">
-      <a href="/">Dashboard</a>
-      <a href="/transactions.html">Transactions</a>
-      <a href="/settings.html" class="active">Settings</a>
-      <a href="/bi.html">BI</a>
-      <a href="/simulate.html">Simulate</a>
-      <input type="month" id="month" style="margin-left:auto" />
-    </nav>
-    <section class="card">
-      <h2 class="serif">Savings model</h2>
-      <label>Monthly income (R$) <input type="number" id="monthly_income" step="0.01" /></label>
-      <label>Fixed costs (R$) <input type="number" id="fixed_costs" step="0.01" /></label>
-      <label>Savings goal (R$) <input type="number" id="savings_goal" step="0.01" /></label>
-      <button id="saveSettings">Save</button>
+<body class="pb-24 md:pb-0">
+  <div id="nav"></div>
+  <main class="max-w-5xl mx-auto px-6 pt-2 space-y-6">
+    <div class="flex items-center gap-3">
+      <h1 class="font-display text-2xl">Settings</h1>
+      <input type="month" id="month" class="ml-auto rounded border border-line bg-card px-3 py-2" />
+    </div>
+    <section class="paper-card">
+      <h2 class="font-display text-xl mb-4">Savings model</h2>
+      <div class="grid sm:grid-cols-3 gap-3">
+        <label class="field"><span>Monthly income (R$)</span><input type="number" id="monthly_income" step="0.01" /></label>
+        <label class="field"><span>Fixed costs (R$)</span><input type="number" id="fixed_costs" step="0.01" /></label>
+        <label class="field"><span>Savings goal (R$)</span><input type="number" id="savings_goal" step="0.01" /></label>
+      </div>
+      <div class="flex items-center gap-3 mt-4">
+        <span id="ceiling" class="pill pill-ok"></span>
+        <button id="saveSettings" class="btn-primary ml-auto">Save</button>
+      </div>
     </section>
-    <section class="card">
-      <h2 class="serif">Limits for <span id="monthLabel"></span></h2>
-      <table id="limits"></table>
+    <section class="paper-card">
+      <h2 class="font-display text-xl mb-4">Limits for <span id="monthLabel" class="font-mono text-base"></span></h2>
+      <table class="w-full text-left"><tbody id="limits"></tbody></table>
     </section>
-    <section class="card">
-      <h2 class="serif">Cards</h2>
+    <section class="paper-card">
+      <h2 class="font-display text-xl mb-4">Cards</h2>
       <div id="cards"></div>
-      <input id="newCard" placeholder="New card name" /><button id="addCard">Add</button>
+      <div class="flex gap-2 mt-4">
+        <input id="newCard" placeholder="New card name" class="flex-1 rounded border border-line bg-card px-3 py-2" />
+        <button id="addCard" class="btn-primary">Add</button>
+      </div>
     </section>
-  </div>
+  </main>
   <script type="module" src="/js/settings.js"></script>
 </body>
 </html>
