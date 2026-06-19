@@ -1,11 +1,10 @@
 import { api, showError } from './api.js';
 import { formatBRL, currentMonth } from './format.js';
 import { mountChrome } from './chrome.js';
-import { currency, meterBar, groupTag, statusPill } from './ui.js';
+import { meterBar, groupTag, statusPill } from './ui.js';
 
 export function renderHero(t) {
   const ok = t.projected_savings_cents >= t.savings_goal_cents;
-  const pct = t.teto_cents > 0 ? Math.min(100, Math.round((t.spent_cents / t.teto_cents) * 100)) : 0;
   const vs = t.vs_goal_cents >= 0
     ? `+${formatBRL(t.vs_goal_cents)} above goal`
     : `${formatBRL(t.vs_goal_cents)} vs goal`;
