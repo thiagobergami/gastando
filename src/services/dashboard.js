@@ -1,6 +1,6 @@
 const { addMonths } = require('./dates');
 
-function computeCarryIn(db, categoryId, month, pickLimit, sumSpend, firstTxMonth) {
+function computeCarryIn(categoryId, month, pickLimit, sumSpend, firstTxMonth) {
   const first = firstTxMonth.get(categoryId);
   if (!first || !first.m || first.m >= month) return 0;
   let carry = 0;
@@ -30,7 +30,7 @@ function buildDashboard(db, month) {
     const limit = pickLimit.get(c.id, month);
     const limit_cents = limit ? limit.limit_cents : 0;
     const spent_cents = sumSpend.get(c.id, month).s;
-    const carry_in_cents = computeCarryIn(db, c.id, month, pickLimit, sumSpend, firstTxMonth);
+    const carry_in_cents = computeCarryIn(c.id, month, pickLimit, sumSpend, firstTxMonth);
     const effective_spent_cents = spent_cents + carry_in_cents;
     return {
       category_id: c.id, name: c.name, examples: c.examples,

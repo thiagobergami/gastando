@@ -112,6 +112,23 @@ test('dashboard carries overage forward and self-corrects', async () => {
   assert.equal(apr.cat.status, 'ok');
 });
 
+test('dashboard: carry keeps accumulating when debt never clears', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  await request(app).put('/api/limits')
+    .send({ category_id: ctx.categoryId, month: '2026-01', limit_cents: 10000 }).expect(200);
+  for (const month of ['2026-01', '2026-02', '2026-03']) {
+    await request(app).post('/api/transactions').send({
+      date: `${month}-10`, category_id: ctx.categoryId, card_id: ctx.cardId, amount_cents: 13000,
+    }).expect(201); // 130 vs 100 -> +30 carry each month
+  }
+  const d = await request(app).get('/api/dashboard?month=2026-03').expect(200);
+  const cat = d.body.categories.find(c => c.category_id === ctx.categoryId);
+  assert.equal(cat.carry_in_cents, 6000);          // 3000 (Jan) + 3000 (Feb)
+  assert.equal(cat.effective_spent_cents, 19000);  // 13000 actual + 6000 carry
+  assert.equal(cat.status, 'over');
+});
+
 test('dashboard: no carry for a category without a limit', async () => {
   const ctx = makeTestDb(); // default category has no limit row
   const app = createApp(ctx.db);
