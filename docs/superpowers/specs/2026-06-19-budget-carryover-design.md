@@ -31,8 +31,8 @@ carry_in(M) = max(0, actual_spent(M-1) + carry_in(M-1) - limit(M-1))
 | Month | carry_in | actual | effective spent | over limit? | carry_out |
 |-------|----------|--------|-----------------|-------------|-----------|
 | Jan   | 0        | 130    | 130             | yes (+30)   | 30        |
-| Feb   | 30       | 80     | 120             | yes (+20)   | 20        |
-| Mar   | 20       | 50     | 70              | no          | 0         |
+| Feb   | 30       | 80     | 110             | yes (+10)   | 10        |
+| Mar   | 10       | 50     | 60              | no          | 0         |
 | Apr   | 0        | 50     | 50              | no          | 0         |
 
 ## Computation
