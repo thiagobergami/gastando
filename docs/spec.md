@@ -43,7 +43,7 @@ Concretely, the system must:
 | Installments | Modeled: a parcelado purchase expands into N monthly transactions |
 | Financial scope | Full savings model (income, fixed costs, savings goal, teto, projected savings) |
 | Stack | Node + Express + SQLite, Dockerized |
-| Frontend | Vanilla HTML/CSS/JS reusing the `card.html` design system; no build step |
+| Frontend | Vanilla HTML/JS rendering DOM, styled with Tailwind CSS compiled to a single static `public/css/app.css` via the Tailwind CLI (`npm run build:css`). Visual system: "Serene Ledger" (warm-paper sage/gold/terracotta; Playfair Display + Inter + JetBrains Mono). |
 | UI language | English |
 | Data/content language | pt-BR (category names, examples, currency R$) |
 | Spec location | `docs/spec.md` |
@@ -54,8 +54,10 @@ Concretely, the system must:
 
 Single Docker container running a Node + Express server that:
 
-- Serves a static vanilla HTML/CSS/JS frontend (reusing the `card.html` design system:
-  sage/gold/clay palette, Fraunces/Hanken/Spline Sans Mono fonts, meter bars).
+- Serves a static vanilla HTML/JS frontend styled with Tailwind CSS compiled to
+  `public/css/app.css` via `npm run build:css` (Tailwind CLI). Visual system:
+  "Serene Ledger" — warm-paper sage/gold/terracotta palette; Playfair Display +
+  Inter + JetBrains Mono fonts.
 - Exposes a JSON REST API.
 - Persists to a SQLite file on a Docker volume so data survives container rebuilds and
   can be backed up by copying one file.
@@ -218,16 +220,24 @@ errors return appropriate HTTP status with `{ "error": "message" }`.
 
 ---
 
-## 7. Frontend (vanilla, reuses `card.html` design)
+## 7. Frontend (Tailwind CSS, "Serene Ledger" design system)
 
-Shared `css/app.css` lifts the `card.html` design tokens and components (palette,
-fonts, hero, meters, cards). A small `js/api.js` wraps `fetch`. A month selector in
-the header is shared across pages.
+Each page is one responsive HTML file. On desktop it renders a top navigation bar;
+on mobile (`< md` breakpoint) it collapses to a bottom tab bar with a floating action
+button (FAB) on Dashboard and Transactions. Shared nav/render helpers live in
+`public/js/chrome.js` (navigation chrome, bottom tab bar, FAB) and `public/js/ui.js`
+(shared UI utilities). A small `public/js/api.js` wraps `fetch`.
+
+Visual source of truth: Stitch project `projects/12854342184843741473`.
+
+The compiled stylesheet `public/css/app.css` is produced by the Tailwind CLI
+(`npm run build:css`) from `public/css/tailwind.src.css`. The build artifact is
+gitignored and must be regenerated after checkout.
 
 - **Dashboard (`index.html`)** — month selector; the savings hero (income → teto →
   projected savings, with meter and ok/under pill); category cards grouped by group,
-  each showing limit / spent / remaining and a colored meter (green normally, clay when
-  over). Mirrors `card.html` layout.
+  each showing limit / spent / remaining and a colored meter (green normally, terracotta
+  when over).
 - **Transactions (`transactions.html`)** — filterable list (month / category / card);
   add & edit form with an "installment?" toggle (when on: total amount + number of
   parcelas + first month); rows from an installment group are visually marked
@@ -235,10 +245,12 @@ the header is shared across pages.
 - **Settings (`settings.html`)** — manage groups, categories (name, examples, group,
   active), per-month limits, cards, and the savings-model values (income, fixed costs,
   savings goal).
-- **BI (`bi.html`)** — Chart.js charts styled to the palette: spend per category across
-  months (line/stacked bar), over/under-limit history, biggest categories.
+- **BI (`bi.html`)** — Chart.js charts restyled to the Serene Ledger palette: spend per
+  category across months (line/stacked bar), over/under-limit history, biggest categories.
+- **Simulate (`simulate.html`)** — what-if simulator: pick a category and amount to see
+  projected spend vs limit for the current month.
 
-Errors from the API are shown inline / via a small toast; no silent failures.
+Errors from the API are shown inline / via a small toast (`showError`); no silent failures.
 
 ---
 
