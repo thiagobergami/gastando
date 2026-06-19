@@ -29,6 +29,7 @@ test('renderGroups shows examples, group tag, and over meter', async () => {
   assert.match(html, /tag-sage/);          // group chip
   assert.match(html, /meter-fill over/);   // Transporte over limit
   assert.match(html, /Essenciais/);        // group header
+  assert.doesNotMatch(html, /carryover/); // no badge when payload lacks carry_in_cents
 });
 
 test('renderGroups shows carryover badge and effective group total', async () => {
@@ -47,6 +48,7 @@ test('renderGroups shows carryover badge and effective group total', async () =>
   assert.match(html, /carryover/);          // badge present when carrying
   assert.match(html, /R\$ 30,00/);          // the carried amount is shown
   assert.match(html, /meter-fill over/);    // meter driven by effective spend
+  assert.match(html, /R\$ 110,00/);         // group header shows effective total, not actual 80,00
 });
 
 test('renderGroups omits carryover badge when not carrying', async () => {
