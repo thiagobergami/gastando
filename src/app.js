@@ -17,6 +17,7 @@ function createApp(db) {
   app.use('/api/settings', require('./routes/settings')(db));
   app.use('/api/dashboard', require('./routes/dashboard')(db));
   app.use('/api/bi', require('./routes/bi')(db));
+  app.use('/api/simulate', require('./routes/simulate')(db));
 
   app.use(express.static(path.join(__dirname, '..', 'public')));
   app.use(errorHandler);

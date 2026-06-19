@@ -5,21 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gastando — Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/app.css" />
 </head>
-<body>
-  <div class="wrap">
-    <nav class="nav">
-      <a href="/" class="active">Dashboard</a>
-      <a href="/transactions.html">Transactions</a>
-      <a href="/settings.html">Settings</a>
-      <a href="/bi.html">BI</a>
-      <input type="month" id="month" style="margin-left:auto" />
-    </nav>
+<body class="pb-24 md:pb-0">
+  <div id="nav"></div>
+  <main class="max-w-5xl mx-auto px-6 pt-2">
+    <div class="flex justify-end mb-4">
+      <input type="month" id="month" class="rounded border border-line bg-card px-3 py-2" />
+    </div>
     <div id="hero"></div>
     <div id="groups"></div>
-  </div>
+  </main>
   <script type="module" src="/js/dashboard.js"></script>
 </body>
 </html>

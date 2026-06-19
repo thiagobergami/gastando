@@ -4,24 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gastando — BI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/app.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 </head>
-<body>
-  <div class="wrap">
-    <nav class="nav">
-      <a href="/">Dashboard</a>
-      <a href="/transactions.html">Transactions</a>
-      <a href="/settings.html">Settings</a>
-      <a href="/bi.html" class="active">BI</a>
-    </nav>
-    <div class="card">
-      <label>From <input type="month" id="from" /></label>
-      <label>To <input type="month" id="to" /></label>
-      <button id="run">Update</button>
+<body class="pb-24 md:pb-0">
+  <div id="nav"></div>
+  <main class="max-w-5xl mx-auto px-6 pt-2 space-y-6">
+    <h1 class="font-display text-2xl">BI</h1>
+    <div class="paper-card flex flex-wrap items-end gap-3">
+      <label class="field"><span>From</span><input type="month" id="from" /></label>
+      <label class="field"><span>To</span><input type="month" id="to" /></label>
+      <button id="run" class="btn-primary">Update</button>
     </div>
-    <canvas id="chart" height="120"></canvas>
-  </div>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div class="paper-card lg:col-span-2"><h2 class="font-display text-lg mb-2">Spending by category</h2><canvas id="chart" height="120"></canvas></div>
+      <div class="paper-card"><h2 class="font-display text-lg mb-2">Spending by card</h2><canvas id="byCard" height="140"></canvas></div>
+      <div class="paper-card"><h2 class="font-display text-lg mb-2">Spending by group</h2><canvas id="byGroup" height="140"></canvas></div>
+      <div class="paper-card"><h2 class="font-display text-lg mb-2">Budget vs actual</h2><canvas id="budgetVsActual" height="140"></canvas></div>
+      <div class="paper-card"><h2 class="font-display text-lg mb-2">Committed installment forecast</h2><canvas id="installmentForecast" height="140"></canvas></div>
+    </div>
+  </main>
   <script type="module" src="/js/bi.js"></script>
 </body>
 </html>

@@ -4,46 +4,51 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gastando — Transactions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/app.css" />
 </head>
-<body>
-  <div class="wrap">
-    <nav class="nav">
-      <a href="/">Dashboard</a>
-      <a href="/transactions.html" class="active">Transactions</a>
-      <a href="/settings.html">Settings</a>
-      <a href="/bi.html">BI</a>
-      <input type="month" id="month" style="margin-left:auto" />
-    </nav>
-    <form id="form" class="card">
-      <input type="date" id="date" required />
-      <select id="category"></select>
-      <select id="card"></select>
-      <input type="number" id="amount" step="0.01" min="0" placeholder="Amount (R$)" />
-      <input type="text" id="description" placeholder="Description" />
-      <label><input type="checkbox" id="isInstallment" /> Installment</label>
-      <span id="installmentFields" style="display:none">
-        <input type="number" id="count" min="1" placeholder="# parcelas" />
-        <input type="month" id="firstMonth" />
-      </span>
-      <button type="submit" id="submitBtn">Add</button>
-      <button type="button" id="cancelEdit" style="display:none">Cancel</button>
-    </form>
-    <table id="list"></table>
-    <div id="pager" class="pager">
-      <button type="button" id="prevPage">‹ Prev</button>
-      <span id="pageInfo"></span>
-      <button type="button" id="nextPage">Next ›</button>
-      <label style="margin-left:auto">Per page
-        <select id="perPage">
-          <option value="10">10</option>
-          <option value="20" selected>20</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-        </select>
-      </label>
+<body class="pb-24 md:pb-0">
+  <div id="nav"></div>
+  <main class="max-w-5xl mx-auto px-6 pt-2">
+    <div class="flex items-center gap-3 mb-4">
+      <h1 class="font-display text-2xl">Transactions</h1>
+      <input type="month" id="month" class="ml-auto rounded border border-line bg-card px-3 py-2" />
     </div>
-  </div>
+    <div id="formCard">
+      <form id="form" class="paper-card grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+        <label class="field"><span>Date</span><input type="date" id="date" required /></label>
+        <label class="field"><span>Category</span><select id="category"></select></label>
+        <label class="field"><span>Card</span><select id="card"></select></label>
+        <label class="field"><span>Amount (R$)</span><input type="number" id="amount" step="0.01" min="0" /></label>
+        <label class="field"><span>Description</span><input type="text" id="description" /></label>
+        <label class="flex items-center gap-2 text-sm self-end"><input type="checkbox" id="isInstallment" /> Installment</label>
+        <span id="installmentFields" class="contents" style="display:none">
+          <label class="field"><span># parcelas</span><input type="number" id="count" min="1" /></label>
+          <label class="field"><span>First month</span><input type="month" id="firstMonth" /></label>
+        </span>
+        <div class="flex gap-2 self-end">
+          <button type="submit" id="submitBtn" class="btn-primary">Add</button>
+          <button type="button" id="cancelEdit" class="btn-ghost" style="display:none">Cancel</button>
+        </div>
+      </form>
+    </div>
+    <div class="paper-card overflow-x-auto">
+      <table class="w-full text-left"><tbody id="list"></tbody></table>
+      <div id="pager" class="flex items-center gap-3 mt-4 text-sm text-ink-mut">
+        <button type="button" id="prevPage" class="btn-ghost py-1.5">‹ Prev</button>
+        <span id="pageInfo"></span>
+        <button type="button" id="nextPage" class="btn-ghost py-1.5">Next ›</button>
+        <label class="ml-auto">Per page
+          <select id="perPage" class="rounded border border-line bg-card px-2 py-1">
+            <option value="10">10</option><option value="20" selected>20</option>
+            <option value="50">50</option><option value="100">100</option>
+          </select>
+        </label>
+      </div>
+    </div>
+  </main>
+  <button id="fab" class="fab" aria-label="Add transaction">+</button>
   <script type="module" src="/js/transactions.js"></script>
 </body>
 </html>
