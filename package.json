@@ -17,7 +17,8 @@
   "pkg": {
     "assets": [
       "public/**/*",
-      "migrations/**/*"
+      "migrations/**/*",
+      "node_modules/better-sqlite3/build/Release/better_sqlite3.node"
     ],
     "targets": [
       "node22-win-x64",
