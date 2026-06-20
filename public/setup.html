@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gastando — Welcome</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+  <main class="min-h-screen grid md:grid-cols-2">
+    <!-- Presentation -->
+    <section class="flex flex-col justify-between gap-8 px-8 py-10 md:px-12 md:py-14 bg-paper">
+      <div>
+        <a href="/" class="font-display text-3xl text-ink">Gastando</a>
+        <h1 class="font-display text-4xl md:text-5xl text-ink mt-8 leading-tight">Spend with intention.</h1>
+        <ul class="mt-8 space-y-4 text-ink-mut">
+          <li class="flex items-start gap-3"><span class="step-no mt-0.5">✓</span>Track every card purchase by category</li>
+          <li class="flex items-start gap-3"><span class="step-no mt-0.5">✓</span>Stay under editable monthly limits</li>
+          <li class="flex items-start gap-3"><span class="step-no mt-0.5">✓</span>Simulate a purchase before you commit</li>
+        </ul>
+      </div>
+      <p class="text-sm text-ink-mut">Runs entirely on your machine. No account, no cloud sync.</p>
+    </section>
+
+    <!-- Setup wizard -->
+    <section class="flex items-center justify-center px-6 py-10 md:px-12 bg-card">
+      <div id="setup" class="paper-card w-full max-w-md">
+        <h2 class="font-display text-2xl mb-1">Let's set up your budget</h2>
+        <div id="indicator"></div>
+
+        <div data-step="0" class="mt-6 space-y-4">
+          <h3 class="font-display text-xl">Your monthly income</h3>
+          <label class="field"><span>Monthly income (R$)</span>
+            <input type="number" id="monthly_income" step="0.01" inputmode="decimal" /></label>
+        </div>
+
+        <div data-step="1" class="mt-6 space-y-4" hidden>
+          <h3 class="font-display text-xl">Fixed costs</h3>
+          <p class="text-sm text-ink-mut">Rent, utilities and other bills that don't go on a card.</p>
+          <label class="field"><span>Fixed costs (R$)</span>
+            <input type="number" id="fixed_costs" step="0.01" inputmode="decimal" /></label>
+        </div>
+
+        <div data-step="2" class="mt-6 space-y-4" hidden>
+          <h3 class="font-display text-xl">Savings goal</h3>
+          <p class="text-sm text-ink-mut">How much you want to set aside each month.</p>
+          <label class="field"><span>Savings goal (R$)</span>
+            <input type="number" id="savings_goal" step="0.01" inputmode="decimal" /></label>
+        </div>
+
+        <div data-step="3" class="mt-6 space-y-4" hidden>
+          <h3 class="font-display text-xl">Category limits for <span id="limitsMonth" class="font-mono text-base"></span></h3>
+          <p class="text-sm text-ink-mut">A monthly ceiling per category. You can change these any time in Settings.</p>
+          <table class="w-full text-left"><tbody id="limits"></tbody></table>
+        </div>
+
+        <div class="mt-6 rounded-lg bg-paper border border-line px-4 py-3">
+          <span id="ceiling" class="pill pill-ok"></span>
+        </div>
+
+        <div class="flex items-center gap-3 mt-6">
+          <button id="back" class="btn-ghost">Back</button>
+          <button id="continue" class="btn-primary ml-auto">Continue</button>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/js/setup.js"></script>
+</body>
+</html>

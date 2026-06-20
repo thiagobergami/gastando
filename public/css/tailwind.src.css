@@ -19,6 +19,13 @@
   .pill { @apply inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full; }
   .pill-ok { @apply bg-sage-soft/20 text-sage; }
   .pill-over { @apply bg-clay-soft/20 text-clay; }
+  .label-caps { @apply text-xs font-semibold uppercase tracking-wide; }
+  .step-indicator { @apply flex flex-wrap gap-x-4 gap-y-2 my-3; }
+  .step { @apply flex items-center gap-2 text-sm text-ink-mut; }
+  .step-no { @apply w-6 h-6 rounded-full bg-line text-ink-mut text-xs font-semibold flex items-center justify-center; }
+  .step-active { @apply text-ink font-semibold; }
+  .step-active .step-no { @apply bg-sage text-white; }
+  .step-done .step-no { @apply bg-sage-soft text-white; }
   .field { @apply flex flex-col gap-1 text-sm; }
   .field > span { @apply text-xs font-semibold uppercase tracking-wide text-ink-mut; }
   .field input, .field select { @apply rounded border border-line bg-card px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-sage; }
