@@ -39,6 +39,22 @@ jobs:
         if: matrix.target != 'node22-macos-x64'
         shell: bash
         run: node test/smoke.js dist/${{ matrix.artifact }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+          if-no-files-found: error
+
+  # Single job publishes the release once all binaries are built, so the
+  # matrix jobs don't race to create the same release (which dropped assets).
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
       - uses: softprops/action-gh-release@v2
         with:
-          files: dist/${{ matrix.artifact }}
+          files: dist/*
