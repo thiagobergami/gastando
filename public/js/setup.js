@@ -1,6 +1,6 @@
 import { api, showError } from './api.js';
 import { reaisToCents, currentMonth } from './format.js';
-import { ceilingText, renderLimitRows } from './budget.js';
+import { renderLimitRows, allocationStatus, allocationText, allocationPillClass } from './budget.js';
 
 export const SETUP_STEPS = ['Income', 'Fixed costs', 'Savings goal', 'Limits'];
 
@@ -37,11 +37,20 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
   let step = 0;
   let cats = [];
 
-  function updateCeiling() {
-    $('ceiling').textContent = ceilingText(
+  function readLimitCents() {
+    return [...document.querySelectorAll('#limits input[data-cat]')]
+      .map(inp => reaisToCents(inp.value || 0));
+  }
+
+  function updateAllocation() {
+    const status = allocationStatus(
+      readLimitCents(),
       reaisToCents($('monthly_income').value || 0),
       reaisToCents($('fixed_costs').value || 0),
       reaisToCents($('savings_goal').value || 0));
+    const el = $('ceiling');
+    el.textContent = allocationText(status);
+    el.className = allocationPillClass(status);
   }
 
   function render() {
@@ -85,14 +94,16 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
       $('savings_goal').value = s.savings_goal / 100;
       const byCat = new Map(limits.map(l => [l.category_id, l.limit_cents]));
       $('limits').innerHTML = renderLimitRows(cats, byCat);
+      $('limits').querySelectorAll('input[data-cat]').forEach(inp =>
+        inp.addEventListener('input', updateAllocation));
       $('limitsMonth').textContent = month;
-      updateCeiling();
+      updateAllocation();
       render();
     } catch (e) { showError(e.message); }
   }
 
   ['monthly_income', 'fixed_costs', 'savings_goal'].forEach(id =>
-    $(id).addEventListener('input', updateCeiling));
+    $(id).addEventListener('input', updateAllocation));
   $('back').addEventListener('click', () => { if (step > 0) { step--; render(); } });
   $('continue').addEventListener('click', () => {
     if (isLastStep(step, SETUP_STEPS.length)) finish();
