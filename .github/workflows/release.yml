@@ -1,0 +1,44 @@
+# .github/workflows/release.yml
+name: Release binaries
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: node20-win-x64
+            artifact: gastando-win-x64.exe
+          - os: ubuntu-latest
+            target: node20-linux-x64
+            artifact: gastando-linux-x64
+          - os: macos-latest
+            target: node20-macos-arm64
+            artifact: gastando-macos-arm64
+          - os: macos-latest
+            target: node20-macos-x64
+            artifact: gastando-macos-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build:css
+      - run: npx pkg --config package.json src/server.js --targets ${{ matrix.target }} --output dist/${{ matrix.artifact }}
+      - name: Smoke test
+        if: matrix.target != 'node20-macos-x64'
+        shell: bash
+        run: node test/smoke.js dist/${{ matrix.artifact }}
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/${{ matrix.artifact }}
