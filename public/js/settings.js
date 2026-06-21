@@ -1,7 +1,7 @@
 import { api, showError } from './api.js';
 import { reaisToCents, currentMonth } from './format.js';
 import { mountChrome } from './chrome.js';
-import { ceilingText, renderLimitRows } from './budget.js';
+import { ceilingText, renderLimitRows, allocationStatus, allocationText, allocationPillClass } from './budget.js';
 
 // Re-exported so existing importers (and tests) can keep reaching them here.
 export { ceilingText, renderLimitRows };
@@ -14,15 +14,24 @@ async function loadSettings() {
     $('monthly_income').value = s.monthly_income / 100;
     $('fixed_costs').value = s.fixed_costs / 100;
     $('savings_goal').value = s.savings_goal / 100;
-    updateCeiling();
+    updateAllocation();
   } catch (e) { showError(e.message); }
 }
 
-function updateCeiling() {
-  $('ceiling').textContent = ceilingText(
+function readLimitCents() {
+  return [...document.querySelectorAll('#limits input[data-cat]')]
+    .map(inp => reaisToCents(inp.value || 0));
+}
+
+function updateAllocation() {
+  const status = allocationStatus(
+    readLimitCents(),
     reaisToCents($('monthly_income').value || 0),
     reaisToCents($('fixed_costs').value || 0),
     reaisToCents($('savings_goal').value || 0));
+  const el = $('ceiling');
+  el.textContent = allocationText(status);
+  el.className = allocationPillClass(status);
 }
 
 async function loadLimits() {
@@ -31,13 +40,16 @@ async function loadLimits() {
       api.get('/api/categories'), api.get(`/api/limits?month=${$('month').value}`)]);
     const byCat = new Map(limits.map(l => [l.category_id, l.limit_cents]));
     $('limits').innerHTML = renderLimitRows(cats, byCat);
-    $('limits').querySelectorAll('input[data-cat]').forEach(inp =>
+    $('limits').querySelectorAll('input[data-cat]').forEach(inp => {
+      inp.addEventListener('input', updateAllocation);
       inp.addEventListener('change', async () => {
         try {
           await api.put('/api/limits', { category_id: Number(inp.dataset.cat),
             month: $('month').value, limit_cents: reaisToCents(inp.value) });
         } catch (e) { showError(e.message); }
-      }));
+      });
+    });
+    updateAllocation();
   } catch (e) { showError(e.message); }
 }
 
@@ -61,7 +73,7 @@ if (typeof document !== 'undefined' && document.getElementById('limits')) {
   $('month').value = currentMonth();
   $('monthLabel').textContent = $('month').value;
   $('month').addEventListener('change', () => { $('monthLabel').textContent = $('month').value; loadLimits(); });
-  ['monthly_income', 'fixed_costs', 'savings_goal'].forEach(id => $(id).addEventListener('input', updateCeiling));
+  ['monthly_income', 'fixed_costs', 'savings_goal'].forEach(id => $(id).addEventListener('input', updateAllocation));
   $('saveSettings').addEventListener('click', async () => {
     try {
       await api.put('/api/settings', {

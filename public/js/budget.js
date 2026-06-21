@@ -17,3 +17,23 @@ export function renderLimitRows(cats, byCat) {
       </td>
     </tr>`).join('');
 }
+
+// --- Allocation reconciliation: do the category limits fit under the ceiling? ---
+
+export function allocationStatus(limitCentsList, income, fixed, goal) {
+  const ceiling = income - fixed - goal;
+  const allocated = limitCentsList.reduce((sum, n) => sum + (n || 0), 0);
+  const remaining = ceiling - allocated;
+  return { ceiling, allocated, remaining, over: remaining < 0 };
+}
+
+export function allocationText(status) {
+  const head = `Allocated ${formatBRL(status.allocated)} of ${formatBRL(status.ceiling)}`;
+  return status.over
+    ? `${head} · ${formatBRL(-status.remaining)} over ceiling`
+    : `${head} · ${formatBRL(status.remaining)} left`;
+}
+
+export function allocationPillClass(status) {
+  return status.over ? 'pill pill-over' : 'pill pill-ok';
+}
