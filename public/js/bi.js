@@ -1,5 +1,5 @@
 import { api, showError } from './api.js';
-import { currentMonth } from './format.js';
+import { currentMonth, addMonths } from './format.js';
 import { mountChrome } from './chrome.js';
 
 export const PALETTE = ['#4c6455', '#d4af37', '#c27d60', '#5c7c84', '#8fa998', '#735c00'];
@@ -51,8 +51,8 @@ async function run() {
 
 if (typeof document !== 'undefined' && document.getElementById('chart')) {
   mountChrome('/bi.html');
-  document.getElementById('to').value = currentMonth();
-  document.getElementById('from').value = currentMonth().slice(0, 5) + '01';
+  document.getElementById('from').value = currentMonth();
+  document.getElementById('to').value = addMonths(currentMonth(), 6);
   document.getElementById('run').addEventListener('click', run);
   run();
 }
