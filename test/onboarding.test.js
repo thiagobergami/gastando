@@ -52,6 +52,15 @@ test('POST /api/onboarding/template is blocked once transactions exist', async (
     .send({ template: 'blank' }).expect(409);
 });
 
+test('POST /api/onboarding/template is blocked once installment groups exist', async () => {
+  const { db, categoryId, cardId } = makeTestDb();
+  db.prepare(`INSERT INTO installment_groups
+    (description, total_cents, total_count, first_month, category_id, card_id)
+    VALUES (?,?,?,?,?,?)`).run('TV', 120000, 12, '2026-06', categoryId, cardId);
+  await request(createApp(db)).post('/api/onboarding/template')
+    .send({ template: 'blank' }).expect(409);
+});
+
 test('POST /api/onboarding/template is blocked once onboarding is complete', async () => {
   const { db } = makeTestDb();
   const app = createApp(db);

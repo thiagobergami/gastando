@@ -24,14 +24,16 @@ module.exports = (db) => {
 
   router.post('/template', (req, res) => {
     if (isComplete(db)) fail(409, 'onboarding already complete');
+    const { template } = req.body;
+    if (template !== 'suggested' && template !== 'blank') fail(400, 'invalid template');
     const txCount = db.prepare('SELECT COUNT(*) AS n FROM transactions').get().n;
     const igCount = db.prepare('SELECT COUNT(*) AS n FROM installment_groups').get().n;
     if (txCount > 0 || igCount > 0) fail(409, 'cannot reset after data exists');
-    const { template } = req.body;
-    if (template !== 'suggested' && template !== 'blank') fail(400, 'invalid template');
     if (template === 'blank') {
       db.transaction(() => {
-        db.exec('DELETE FROM category_limits; DELETE FROM categories; DELETE FROM groups;');
+        db.prepare('DELETE FROM category_limits').run();
+        db.prepare('DELETE FROM categories').run();
+        db.prepare('DELETE FROM groups').run();
       })();
     }
     res.json({ template });
