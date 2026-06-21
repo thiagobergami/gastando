@@ -81,7 +81,8 @@ async function renameGroup(id) {
 async function recolorGroup(id) {
   const g = state.groups.find(x => x.id === id);
   const color = prompt(`Color (${COLORS.join(', ')})`, g.color);
-  if (!color || color === g.color || !COLORS.includes(color)) return;
+  if (!color || color === g.color) return;
+  if (!COLORS.includes(color)) { showError(`Color must be one of: ${COLORS.join(', ')}`); return; }
   await api.put(`/api/groups/${id}`, { ...g, color });
   await loadLimits();
 }

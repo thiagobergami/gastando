@@ -32,3 +32,13 @@ test('renderGroupedLimitRows groups categories under their group with controls',
   assert.match(html, /data-group-rename="7"/);
   assert.match(html, /data-group-recolor="7"/);
 });
+
+test('renderGroupedLimitRows escapes HTML in names', async () => {
+  const { renderGroupedLimitRows } = await import('../public/js/settings.js');
+  const groups = [{ id: 1, name: '<b>G</b>', color: 'sage', active: 1 }];
+  const cats = [{ id: 2, name: '<img src=x onerror=alert(1)>', group_id: 1, active: 1 }];
+  const html = renderGroupedLimitRows(groups, cats, new Map());
+  assert.ok(!html.includes('<img src=x'), 'category name not escaped');
+  assert.ok(html.includes('&lt;img src=x'), 'expected escaped category name');
+  assert.ok(html.includes('&lt;b&gt;G&lt;/b&gt;'), 'expected escaped group name');
+});
