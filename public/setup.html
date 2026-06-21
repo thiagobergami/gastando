@@ -31,29 +31,43 @@
         <div id="indicator"></div>
 
         <div data-step="0" class="mt-6 space-y-4">
+          <h3 class="font-display text-xl">Choose a starting point</h3>
+          <p class="text-sm text-ink-mut">You can add, rename and remove categories any time in Settings.</p>
+          <div class="grid gap-3">
+            <button type="button" data-template="suggested" class="btn-primary text-left">
+              Suggested — start with ready-made categories you can tweak later
+            </button>
+            <button type="button" data-template="blank" class="btn-ghost text-left">
+              Blank — start from scratch and build your own in Settings
+            </button>
+          </div>
+        </div>
+
+        <div data-step="1" class="mt-6 space-y-4" hidden>
           <h3 class="font-display text-xl">Your monthly income</h3>
           <label class="field"><span>Monthly income (R$)</span>
             <input type="number" id="monthly_income" step="0.01" inputmode="decimal" /></label>
         </div>
 
-        <div data-step="1" class="mt-6 space-y-4" hidden>
+        <div data-step="2" class="mt-6 space-y-4" hidden>
           <h3 class="font-display text-xl">Fixed costs</h3>
           <p class="text-sm text-ink-mut">Rent, utilities and other bills that don't go on a card.</p>
           <label class="field"><span>Fixed costs (R$)</span>
             <input type="number" id="fixed_costs" step="0.01" inputmode="decimal" /></label>
         </div>
 
-        <div data-step="2" class="mt-6 space-y-4" hidden>
+        <div data-step="3" class="mt-6 space-y-4" hidden>
           <h3 class="font-display text-xl">Savings goal</h3>
           <p class="text-sm text-ink-mut">How much you want to set aside each month.</p>
           <label class="field"><span>Savings goal (R$)</span>
             <input type="number" id="savings_goal" step="0.01" inputmode="decimal" /></label>
         </div>
 
-        <div data-step="3" class="mt-6 space-y-4" hidden>
+        <div data-step="4" class="mt-6 space-y-4" hidden>
           <h3 class="font-display text-xl">Category limits for <span id="limitsMonth" class="font-mono text-base"></span></h3>
           <p class="text-sm text-ink-mut">A monthly ceiling per category. You can change these any time in Settings.</p>
           <table class="w-full text-left"><tbody id="limits"></tbody></table>
+          <p id="limitsEmpty" class="text-sm text-ink-mut" hidden>No categories yet — you can add them anytime in Settings.</p>
         </div>
 
         <div class="mt-6 rounded-lg bg-paper border border-line px-4 py-3">
