@@ -590,26 +590,14 @@ export interface ReportRepository {
 }
 ```
 
-- [ ] **Step 3: Add a structural smoke test `test/ports.types.test.ts`**
+- [ ] **Step 3: Run tests + typecheck**
 
-```ts
-import { test } from 'node:test';
-import assert from 'node:assert';
-import type { TransactionRepository } from '../src/domain/ports';
-
-test('ports module is importable and shaped', () => {
-  // Pure type module: assert a no-op so the test file type-checks the imports.
-  const noop: Partial<TransactionRepository> = {};
-  assert.equal(typeof noop, 'object');
-});
-```
-
-- [ ] **Step 4: Run tests + typecheck**
+`ports` and `entities` are pure type modules — there is no runtime behavior to unit-test, so no test file is added. `tsc --noEmit` is the guarantee that the interfaces are well-formed and that later tasks conform to them.
 
 Run: `NO_OPEN=1 npm test && npm run typecheck`
-Expected: PASS.
+Expected: PASS (typecheck compiles the new type modules).
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add -A
