@@ -2,7 +2,7 @@ import { api, showError } from './api.js';
 import { reaisToCents, currentMonth } from './format.js';
 import { renderLimitRows, allocationStatus, allocationText, allocationPillClass } from './budget.js';
 
-export const SETUP_STEPS = ['Income', 'Fixed costs', 'Savings goal', 'Limits'];
+export const SETUP_STEPS = ['Start', 'Income', 'Fixed costs', 'Savings goal', 'Limits'];
 
 export function progressPct(stepIndex, total) {
   return Math.round(((stepIndex + 1) / total) * 100);
@@ -31,11 +31,14 @@ export function renderStepIndicator(activeIndex) {
 
 // ---- DOM bootstrap (browser only) ----
 const $ = id => document.getElementById(id);
+const LIMITS_STEP = SETUP_STEPS.length - 1;
 
 if (typeof document !== 'undefined' && document.getElementById('setup')) {
   const month = currentMonth();
   let step = 0;
-  let cats = [];
+  let template = 'suggested';
+  let seededCats = [];
+  let byCat = new Map();
 
   function readLimitCents() {
     return [...document.querySelectorAll('#limits input[data-cat]')]
@@ -53,6 +56,25 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
     el.className = allocationPillClass(status);
   }
 
+  function paintTemplate() {
+    document.querySelectorAll('[data-template]').forEach(b => {
+      b.className = (b.dataset.template === template ? 'btn-primary' : 'btn-ghost') + ' text-left';
+    });
+  }
+
+  function renderLimitsStep() {
+    if (template === 'blank') {
+      $('limits').innerHTML = '';
+      $('limitsEmpty').hidden = false;
+    } else {
+      $('limits').innerHTML = renderLimitRows(seededCats, byCat);
+      $('limitsEmpty').hidden = true;
+      $('limits').querySelectorAll('input[data-cat]').forEach(inp =>
+        inp.addEventListener('input', updateAllocation));
+    }
+    updateAllocation();
+  }
+
   function render() {
     $('indicator').innerHTML = renderStepIndicator(step);
     document.querySelectorAll('[data-step]').forEach(el => {
@@ -60,6 +82,7 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
     });
     $('back').disabled = step === 0;
     $('continue').textContent = continueLabel(step, SETUP_STEPS.length);
+    if (step === LIMITS_STEP) renderLimitsStep();
   }
 
   async function finish() {
@@ -69,13 +92,16 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
         fixed_costs: reaisToCents($('fixed_costs').value),
         savings_goal: reaisToCents($('savings_goal').value),
       });
-      const puts = cats.filter(c => c.active).map(c => {
-        const inp = $('limits').querySelector(`input[data-cat="${c.id}"]`);
-        return api.put('/api/limits', {
-          category_id: c.id, month, limit_cents: reaisToCents(inp.value || 0),
+      await api.post('/api/onboarding/template', { template });
+      if (template !== 'blank') {
+        const puts = seededCats.map(c => {
+          const inp = $('limits').querySelector(`input[data-cat="${c.id}"]`);
+          return api.put('/api/limits', {
+            category_id: c.id, month, limit_cents: reaisToCents(inp.value || 0),
+          });
         });
-      });
-      await Promise.all(puts);
+        await Promise.all(puts);
+      }
       await api.post('/api/onboarding/complete');
       location.replace('/');
     } catch (e) { showError(e.message); }
@@ -88,20 +114,19 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
         api.get('/api/categories'),
         api.get(`/api/limits?month=${month}`),
       ]);
-      cats = categories;
+      seededCats = categories.filter(c => c.active);
+      byCat = new Map(limits.map(l => [l.category_id, l.limit_cents]));
       $('monthly_income').value = s.monthly_income / 100;
       $('fixed_costs').value = s.fixed_costs / 100;
       $('savings_goal').value = s.savings_goal / 100;
-      const byCat = new Map(limits.map(l => [l.category_id, l.limit_cents]));
-      $('limits').innerHTML = renderLimitRows(cats, byCat);
-      $('limits').querySelectorAll('input[data-cat]').forEach(inp =>
-        inp.addEventListener('input', updateAllocation));
       $('limitsMonth').textContent = month;
-      updateAllocation();
+      paintTemplate();
       render();
     } catch (e) { showError(e.message); }
   }
 
+  document.querySelectorAll('[data-template]').forEach(btn =>
+    btn.addEventListener('click', () => { template = btn.dataset.template; paintTemplate(); }));
   ['monthly_income', 'fixed_costs', 'savings_goal'].forEach(id =>
     $(id).addEventListener('input', updateAllocation));
   $('back').addEventListener('click', () => { if (step > 0) { step--; render(); } });

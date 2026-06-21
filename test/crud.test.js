@@ -77,6 +77,22 @@ test('groups: delete non-existent returns 404', async () => {
   await request(app).delete('/api/groups/99999').expect(404);
 });
 
+test('groups: delete is a soft-delete and hides the group from listing', async () => {
+  const { app } = appWith();
+  const g = await request(app).post('/api/groups')
+    .send({ name: 'Temp', color: 'gold' }).expect(201);
+  await request(app).delete(`/api/groups/${g.body.id}`).expect(204);
+  const list = await request(app).get('/api/groups').expect(200);
+  assert.ok(!list.body.some(x => x.id === g.body.id), 'soft-deleted group still listed');
+});
+
+test('groups: delete is blocked while it has active categories', async () => {
+  const { app, ctx } = appWith();
+  // ctx.groupId has the seeded-in-helper active category "Supermercado".
+  const res = await request(app).delete(`/api/groups/${ctx.groupId}`).expect(409);
+  assert.equal(res.body.error, 'group has categories; remove them first');
+});
+
 test('groups: post without name returns 400', async () => {
   const { app } = appWith();
   await request(app).post('/api/groups').send({ color: 'sage' }).expect(400);
@@ -93,6 +109,24 @@ test('categories: put with invalid group_id returns 400', async () => {
   const { app, ctx } = appWith();
   await request(app).put(`/api/categories/${ctx.categoryId}`)
     .send({ group_id: 99999, name: 'Updated', examples: '' }).expect(400);
+});
+
+test('categories: create appends sort_order after existing categories', async () => {
+  const { app, ctx } = appWith();
+  const a = await request(app).post('/api/categories')
+    .send({ group_id: ctx.groupId, name: 'Alpha' }).expect(201);
+  const b = await request(app).post('/api/categories')
+    .send({ group_id: ctx.groupId, name: 'Beta' }).expect(201);
+  assert.ok(b.body.sort_order > a.body.sort_order, 'second category did not append after first');
+});
+
+test('categories: create rejects an inactive group', async () => {
+  const { app } = appWith();
+  const g = await request(app).post('/api/groups').send({ name: 'Soon Gone' }).expect(201);
+  await request(app).delete(`/api/groups/${g.body.id}`).expect(204); // now inactive
+  const res = await request(app).post('/api/categories')
+    .send({ group_id: g.body.id, name: 'Orphan' }).expect(400);
+  assert.equal(res.body.error, 'group_id does not exist');
 });
 
 test('cards: create, list, soft-delete', async () => {
