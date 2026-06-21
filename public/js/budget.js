@@ -18,6 +18,42 @@ export function renderLimitRows(cats, byCat) {
     </tr>`).join('');
 }
 
+export function renderGroupedLimitRows(groups, cats, byCat) {
+  const groupBlock = (g) => {
+    const rows = cats.filter(c => c.active && c.group_id === g.id).map(c => `
+      <tr class="border-b border-line">
+        <td class="py-2">${c.name}</td>
+        <td class="py-2 text-right">
+          <input type="number" step="0.01" data-cat="${c.id}" value="${(byCat.get(c.id) || 0) / 100}"
+            class="w-32 rounded border border-line bg-card px-2 py-1 text-right font-mono" />
+        </td>
+        <td class="py-2 text-right">
+          <button data-cat-rename="${c.id}" class="text-sage text-sm mr-2">Rename</button>
+          <button data-cat-del="${c.id}" class="text-clay text-sm">Remove</button>
+        </td>
+      </tr>`).join('');
+    return `
+      <tr class="bg-paper">
+        <td class="py-2" colspan="2"><span class="tag tag-${g.color}">${g.name}</span></td>
+        <td class="py-2 text-right">
+          <button data-group-rename="${g.id}" class="text-sage text-sm mr-2">Rename</button>
+          <button data-group-recolor="${g.id}" class="text-sage text-sm mr-2">Color</button>
+          <button data-group-del="${g.id}" class="text-clay text-sm">Remove</button>
+        </td>
+      </tr>
+      ${rows}
+      <tr>
+        <td class="py-2" colspan="3">
+          <button data-add-cat="${g.id}" class="text-sage text-sm">+ Add category</button>
+        </td>
+      </tr>`;
+  };
+  return groups.filter(g => g.active).map(groupBlock).join('') + `
+    <tr>
+      <td class="py-2" colspan="3"><button data-add-group class="text-sage text-sm">+ Add group</button></td>
+    </tr>`;
+}
+
 // --- Allocation reconciliation: do the category limits fit under the ceiling? ---
 
 export function allocationStatus(limitCentsList, income, fixed, goal) {
