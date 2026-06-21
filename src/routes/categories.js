@@ -14,7 +14,7 @@ module.exports = (db) => {
     const group = db.prepare('SELECT id FROM groups WHERE id=? AND active=1').get(group_id);
     if (!group) fail(400, 'group_id does not exist');
     const sort_order = req.body.sort_order ??
-      db.prepare('SELECT COALESCE(MAX(sort_order), 0) + 1 AS n FROM categories').get().n;
+      db.prepare('SELECT COALESCE(MAX(sort_order), 0) + 1 AS n FROM categories WHERE active=1').get().n;
     const r = db.prepare(
       'INSERT INTO categories (group_id, name, examples, sort_order) VALUES (?, ?, ?, ?)'
     ).run(group_id, name, examples, sort_order);

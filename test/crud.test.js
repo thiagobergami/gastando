@@ -124,8 +124,9 @@ test('categories: create rejects an inactive group', async () => {
   const { app } = appWith();
   const g = await request(app).post('/api/groups').send({ name: 'Soon Gone' }).expect(201);
   await request(app).delete(`/api/groups/${g.body.id}`).expect(204); // now inactive
-  await request(app).post('/api/categories')
+  const res = await request(app).post('/api/categories')
     .send({ group_id: g.body.id, name: 'Orphan' }).expect(400);
+  assert.equal(res.body.error, 'group_id does not exist');
 });
 
 test('cards: create, list, soft-delete', async () => {
