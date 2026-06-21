@@ -67,7 +67,7 @@ async function renameCategory(id) {
   const name = prompt('Rename category', cat.name);
   if (!name || name === cat.name) return;
   await api.put(`/api/categories/${id}`, { ...cat, name });
-  loadLimits();
+  await loadLimits();
 }
 
 async function renameGroup(id) {
@@ -75,7 +75,7 @@ async function renameGroup(id) {
   const name = prompt('Rename group', g.name);
   if (!name || name === g.name) return;
   await api.put(`/api/groups/${id}`, { ...g, name });
-  loadLimits();
+  await loadLimits();
 }
 
 async function recolorGroup(id) {
@@ -83,33 +83,33 @@ async function recolorGroup(id) {
   const color = prompt(`Color (${COLORS.join(', ')})`, g.color);
   if (!color || color === g.color || !COLORS.includes(color)) return;
   await api.put(`/api/groups/${id}`, { ...g, color });
-  loadLimits();
+  await loadLimits();
 }
 
 async function addCategory(groupId) {
   const name = prompt('New category name');
   if (!name) return;
   await api.post('/api/categories', { group_id: groupId, name });
-  loadLimits();
+  await loadLimits();
 }
 
 async function addGroup() {
   const name = prompt('New group name');
   if (!name) return;
   await api.post('/api/groups', { name });
-  loadLimits();
+  await loadLimits();
 }
 
 async function onLimitsClick(e) {
   const d = e.target.dataset;
   try {
-    if (d.catDel) { await api.del(`/api/categories/${d.catDel}`); return loadLimits(); }
-    if (d.groupDel) { await api.del(`/api/groups/${d.groupDel}`); return loadLimits(); }
-    if (d.catRename) return renameCategory(Number(d.catRename));
-    if (d.groupRename) return renameGroup(Number(d.groupRename));
-    if (d.groupRecolor) return recolorGroup(Number(d.groupRecolor));
-    if (d.addCat) return addCategory(Number(d.addCat));
-    if (e.target.hasAttribute('data-add-group')) return addGroup();
+    if (d.catDel) { await api.del(`/api/categories/${d.catDel}`); await loadLimits(); return; }
+    if (d.groupDel) { await api.del(`/api/groups/${d.groupDel}`); await loadLimits(); return; }
+    if (d.catRename) { await renameCategory(Number(d.catRename)); return; }
+    if (d.groupRename) { await renameGroup(Number(d.groupRename)); return; }
+    if (d.groupRecolor) { await recolorGroup(Number(d.groupRecolor)); return; }
+    if (d.addCat) { await addCategory(Number(d.addCat)); return; }
+    if (e.target.hasAttribute('data-add-group')) { await addGroup(); return; }
   } catch (err) { showError(err.message); }
 }
 
