@@ -9,10 +9,12 @@ module.exports = (db) => {
   });
 
   router.post('/', (req, res) => {
-    const { group_id, name, examples = '', sort_order = 0 } = req.body;
+    const { group_id, name, examples = '' } = req.body;
     if (!name) fail(400, 'name is required');
-    const group = db.prepare('SELECT id FROM groups WHERE id=?').get(group_id);
+    const group = db.prepare('SELECT id FROM groups WHERE id=? AND active=1').get(group_id);
     if (!group) fail(400, 'group_id does not exist');
+    const sort_order = req.body.sort_order ??
+      db.prepare('SELECT COALESCE(MAX(sort_order), 0) + 1 AS n FROM categories').get().n;
     const r = db.prepare(
       'INSERT INTO categories (group_id, name, examples, sort_order) VALUES (?, ?, ?, ?)'
     ).run(group_id, name, examples, sort_order);
@@ -23,7 +25,7 @@ module.exports = (db) => {
     const { group_id, name, examples = '', sort_order = 0 } = req.body;
     const active = req.body.active ?? 1;
     if (!name) fail(400, 'name is required');
-    if (!db.prepare('SELECT id FROM groups WHERE id=?').get(group_id)) fail(400, 'group_id does not exist');
+    if (!db.prepare('SELECT id FROM groups WHERE id=? AND active=1').get(group_id)) fail(400, 'group_id does not exist');
     const r = db.prepare(
       'UPDATE categories SET group_id=?, name=?, examples=?, sort_order=?, active=? WHERE id=?'
     ).run(group_id, name, examples, sort_order, active ? 1 : 0, req.params.id);

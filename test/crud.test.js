@@ -111,6 +111,23 @@ test('categories: put with invalid group_id returns 400', async () => {
     .send({ group_id: 99999, name: 'Updated', examples: '' }).expect(400);
 });
 
+test('categories: create appends sort_order after existing categories', async () => {
+  const { app, ctx } = appWith();
+  const a = await request(app).post('/api/categories')
+    .send({ group_id: ctx.groupId, name: 'Alpha' }).expect(201);
+  const b = await request(app).post('/api/categories')
+    .send({ group_id: ctx.groupId, name: 'Beta' }).expect(201);
+  assert.ok(b.body.sort_order > a.body.sort_order, 'second category did not append after first');
+});
+
+test('categories: create rejects an inactive group', async () => {
+  const { app } = appWith();
+  const g = await request(app).post('/api/groups').send({ name: 'Soon Gone' }).expect(201);
+  await request(app).delete(`/api/groups/${g.body.id}`).expect(204); // now inactive
+  await request(app).post('/api/categories')
+    .send({ group_id: g.body.id, name: 'Orphan' }).expect(400);
+});
+
 test('cards: create, list, soft-delete', async () => {
   const { app } = appWith();
   const c = await request(app).post('/api/cards').send({ name: 'Itaú' }).expect(201);
