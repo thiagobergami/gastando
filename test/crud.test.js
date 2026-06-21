@@ -89,7 +89,8 @@ test('groups: delete is a soft-delete and hides the group from listing', async (
 test('groups: delete is blocked while it has active categories', async () => {
   const { app, ctx } = appWith();
   // ctx.groupId has the seeded-in-helper active category "Supermercado".
-  await request(app).delete(`/api/groups/${ctx.groupId}`).expect(409);
+  const res = await request(app).delete(`/api/groups/${ctx.groupId}`).expect(409);
+  assert.equal(res.body.error, 'group has categories; remove them first');
 });
 
 test('groups: post without name returns 400', async () => {

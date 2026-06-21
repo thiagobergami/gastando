@@ -12,7 +12,7 @@ module.exports = (db) => {
     const { name, color = 'neutral' } = req.body;
     if (!name) fail(400, 'name is required');
     const sort_order = req.body.sort_order ??
-      db.prepare('SELECT COALESCE(MAX(sort_order), 0) + 1 AS n FROM groups').get().n;
+      db.prepare('SELECT COALESCE(MAX(sort_order), 0) + 1 AS n FROM groups WHERE active=1').get().n;
     const r = db.prepare(
       'INSERT INTO groups (name, color, sort_order) VALUES (?, ?, ?)'
     ).run(name, color, sort_order);
