@@ -8,3 +8,8 @@ export function formatBRL(cents) {
 export function reaisToCents(reais) { return Math.round(Number(reais) * 100); }
 export function centsToReais(cents) { return (cents / 100).toFixed(2); }
 export function currentMonth() { return new Date().toISOString().slice(0, 7); }
+export function addMonths(ym, n) {
+  const [y, m] = ym.split('-').map(Number);
+  const total = y * 12 + (m - 1) + n;
+  return `${Math.floor(total / 12)}-${String((total % 12) + 1).padStart(2, '0')}`;
+}
