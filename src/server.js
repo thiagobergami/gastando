@@ -1,7 +1,7 @@
 // src/server.js
 const fs = require('fs');
 const path = require('path');
-const { openDatabase, runMigrations } = require('./db');
+const { openDatabase, runMigrations } = require('./infra/db');
 const { createApp } = require('./app');
 const { resolveDbPath } = require('./infra/paths');
 const { openBrowser } = require('./infra/openBrowser');
