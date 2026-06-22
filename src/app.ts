@@ -18,10 +18,11 @@ const bi = require('./routes/bi');
 const simulate = require('./routes/simulate');
 const { errorHandler } = require('./errorHandler');
 
-// Accept either a Container or a raw Db. A better-sqlite3 Db exposes `prepare`;
-// a Container does not — that distinguishes the two without importing the class.
+// Accept either a Container or a raw Db. A Container has a `db` property; a
+// better-sqlite3 Db does not — that distinguishes the two without importing the
+// class, and treats a bare stub object (used by the health test) as a raw db.
 function asContainer(arg: Container | Db): Container {
-  return typeof (arg as Db).prepare === 'function' ? buildContainer(arg as Db) : (arg as Container);
+  return 'db' in arg ? (arg as Container) : buildContainer(arg as Db);
 }
 
 export function createApp(arg: Container | Db): express.Express {
