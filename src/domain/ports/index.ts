@@ -15,6 +15,7 @@ export interface GroupRepository {
 export interface CategoryRepository {
   listAll(): Category[];                 // ORDER BY sort_order, id
   listActive(): Category[];
+  listActiveIds(): number[];             // SELECT id WHERE active=1 (insertion order; for GET /api/limits)
   findById(id: number): Category | undefined;
   nextSortOrder(): number;               // MAX(sort_order)+1 WHERE active=1
   insert(c: { group_id: number; name: string; examples: string; sort_order: number }): Category;
