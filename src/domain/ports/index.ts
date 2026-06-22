@@ -2,6 +2,7 @@ import type { Group, Category, Card, Transaction } from '../entities';
 
 export interface GroupRepository {
   listActive(): Group[];
+  listAll(): Group[];                    // all groups (active + inactive), for BI by-group
   findById(id: number): Group | undefined;
   findActiveById(id: number): Group | undefined;
   nextSortOrder(): number;
