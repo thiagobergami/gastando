@@ -1,32 +1,28 @@
 const express = require('express');
 const { fail } = require('../validate');
 const { makeGroupRepository } = require('../infra/repositories/groups');
+const { makeGroupUseCases } = require('../application/use-cases/groups');
 
 module.exports = (db) => {
   const router = express.Router();
-  const repo = makeGroupRepository(db);
+  const uc = makeGroupUseCases({ groups: makeGroupRepository(db) });
 
   router.get('/', (req, res) => {
-    res.json(repo.listActive());
+    res.json(uc.list());
   });
 
   router.post('/', (req, res) => {
-    const { name, color = 'neutral' } = req.body;
-    if (!name) fail(400, 'name is required');
-    const sort_order = req.body.sort_order ?? repo.nextSortOrder();
-    res.status(201).json(repo.insert({ name, color, sort_order }));
+    if (!req.body.name) fail(400, 'name is required');
+    res.status(201).json(uc.create(req.body));
   });
 
   router.put('/:id', (req, res) => {
-    const { name, color = 'neutral', sort_order = 0 } = req.body;
-    if (!name) fail(400, 'name is required');
-    if (repo.update(req.params.id, { name, color, sort_order }) === 0) fail(404, 'group not found');
-    res.json(repo.findById(req.params.id));
+    if (!req.body.name) fail(400, 'name is required');
+    res.json(uc.update(req.params.id, req.body));
   });
 
   router.delete('/:id', (req, res) => {
-    if (repo.countActiveCategories(req.params.id) > 0) fail(409, 'group has categories; remove them first');
-    if (repo.deactivate(req.params.id) === 0) fail(404, 'group not found');
+    uc.remove(req.params.id);
     res.status(204).end();
   });
 
