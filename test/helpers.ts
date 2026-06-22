@@ -1,8 +1,16 @@
-const fs = require('fs');
-const path = require('path');
-const Database = require('better-sqlite3');
+import fs from 'fs';
+import path from 'path';
+import Database from 'better-sqlite3';
+import type { Db } from '../src/infra/db';
 
-function makeTestDb() {
+export interface TestContext {
+  db: Db;
+  groupId: number;
+  categoryId: number;
+  cardId: number;
+}
+
+export function makeTestDb(): TestContext {
   const db = new Database(':memory:');
   db.pragma('foreign_keys = ON');
   const dir = path.join(__dirname, '..', 'migrations');
@@ -14,10 +22,13 @@ function makeTestDb() {
   }
   const g = db.prepare("INSERT INTO groups (name, sort_order) VALUES ('Test', 0)").run();
   const c = db.prepare(
-    "INSERT INTO categories (group_id, name, sort_order) VALUES (?, 'Supermercado', 0)"
+    "INSERT INTO categories (group_id, name, sort_order) VALUES (?, 'Supermercado', 0)",
   ).run(g.lastInsertRowid);
   const card = db.prepare("INSERT INTO cards (name) VALUES ('Nubank')").run();
-  return { db, groupId: g.lastInsertRowid, categoryId: c.lastInsertRowid, cardId: card.lastInsertRowid };
+  return {
+    db,
+    groupId: Number(g.lastInsertRowid),
+    categoryId: Number(c.lastInsertRowid),
+    cardId: Number(card.lastInsertRowid),
+  };
 }
-
-module.exports = { makeTestDb };
