@@ -16,7 +16,7 @@ const onboarding = require('./routes/onboarding');
 const dashboard = require('./routes/dashboard');
 const bi = require('./routes/bi');
 const simulate = require('./routes/simulate');
-const { errorHandler } = require('./errorHandler');
+const { errorHandler } = require('./adapters/http/error-mapper');
 
 // Accept either a Container or a raw Db. A Container has a `db` property; a
 // better-sqlite3 Db does not — that distinguishes the two without importing the

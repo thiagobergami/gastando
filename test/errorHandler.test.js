@@ -1,6 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { errorHandler } = require('../src/errorHandler');
+const { z } = require('zod');
+const { errorHandler } = require('../src/adapters/http/error-mapper');
 
 function fakeRes() {
   return { code: null, body: null,
@@ -22,4 +23,12 @@ test('defaults to 500 and a generic message', () => {
   console.error = orig;
   assert.equal(res.code, 500);
   assert.deepEqual(res.body, { error: 'Internal error' });
+});
+
+test('maps a ZodError to 400 with the first issue message', () => {
+  const res = fakeRes();
+  const err = z.string().regex(/^\d{4}-\d{2}$/, 'month must be YYYY-MM').safeParse('bad').error;
+  errorHandler(err, {}, res, () => {});
+  assert.equal(res.code, 400);
+  assert.deepEqual(res.body, { error: 'month must be YYYY-MM' });
 });
