@@ -1,12 +1,6 @@
 const { addMonths } = require('./dates');
 const { fail } = require('../validate');
-
-// Split total into `count` parts; first (total % count) parts get +1 cent.
-function splitCents(total, count) {
-  const base = Math.floor(total / count);
-  const rem = total - base * count;
-  return Array.from({ length: count }, (_, i) => base + (i < rem ? 1 : 0));
-}
+const { splitCents } = require('../domain/services/installments');
 
 // Creates the group + N month-spaced child transactions atomically. Returns group id.
 function createInstallmentPurchase(db, p) {

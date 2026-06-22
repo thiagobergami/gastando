@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { monthOf, addMonths } = require('../src/services/dates');
+const { monthOf, addMonths } = require('../src/domain/services/dates');
 
 test('monthOf extracts YYYY-MM from a date', () => {
   assert.equal(monthOf('2026-06-15'), '2026-06');

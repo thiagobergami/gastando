@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { formatBRL } = require('../src/services/money');
+const { formatBRL } = require('../src/domain/services/money');
 
 test('formats cents as pt-BR currency', () => {
   assert.equal(formatBRL(123456), 'R$ 1.234,56');

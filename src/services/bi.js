@@ -1,11 +1,4 @@
-const { addMonths } = require('./dates');
-
-function monthRange(from, to) {
-  const months = [];
-  let cur = from;
-  for (let i = 0; i < 600 && cur <= to; i++) { months.push(cur); cur = addMonths(cur, 1); }
-  return months;
-}
+const { monthRange } = require('../domain/services/dates');
 
 function trends(db, from, to) {
   const months = monthRange(from, to);
