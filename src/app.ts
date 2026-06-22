@@ -2,21 +2,7 @@ import express from 'express';
 import path from 'path';
 import { buildContainer, Container } from './infra/composition';
 import type { Db } from './infra/db';
-
-// Existing JS route factories still work via require during the migration;
-// they are replaced by typed controllers in Phase 5.
-const groups = require('./routes/groups');
-const categories = require('./routes/categories');
-const cards = require('./routes/cards');
-const limits = require('./routes/limits');
-const transactions = require('./routes/transactions');
-const installmentGroups = require('./routes/installmentGroups');
-const settings = require('./routes/settings');
-const onboarding = require('./routes/onboarding');
-const dashboard = require('./routes/dashboard');
-const bi = require('./routes/bi');
-const simulate = require('./routes/simulate');
-const { errorHandler } = require('./adapters/http/error-mapper');
+import { errorHandler } from './adapters/http/error-mapper';
 
 // Accept either a Container or a raw Db. A Container has a `db` property; a
 // better-sqlite3 Db does not — that distinguishes the two without importing the
@@ -26,24 +12,23 @@ function asContainer(arg: Container | Db): Container {
 }
 
 export function createApp(arg: Container | Db): express.Express {
-  const container = asContainer(arg);
-  const db = container.db;
+  const { controllers } = asContainer(arg);
   const app = express();
   app.use(express.json());
 
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-  app.use('/api/groups', groups(db));
-  app.use('/api/categories', categories(db));
-  app.use('/api/cards', cards(db));
-  app.use('/api/limits', limits(db));
-  app.use('/api/transactions', transactions(db));
-  app.use('/api/installment-groups', installmentGroups(db));
-  app.use('/api/settings', settings(db));
-  app.use('/api/onboarding', onboarding(db));
-  app.use('/api/dashboard', dashboard(db));
-  app.use('/api/bi', bi(db));
-  app.use('/api/simulate', simulate(db));
+  app.use('/api/groups', controllers.groups);
+  app.use('/api/categories', controllers.categories);
+  app.use('/api/cards', controllers.cards);
+  app.use('/api/limits', controllers.limits);
+  app.use('/api/transactions', controllers.transactions);
+  app.use('/api/installment-groups', controllers.installmentGroups);
+  app.use('/api/settings', controllers.settings);
+  app.use('/api/onboarding', controllers.onboarding);
+  app.use('/api/dashboard', controllers.dashboard);
+  app.use('/api/bi', controllers.bi);
+  app.use('/api/simulate', controllers.simulate);
 
   app.use(express.static(path.join(__dirname, '..', 'public')));
   app.use(errorHandler);
