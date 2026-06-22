@@ -3,8 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { openDatabase, runMigrations } = require('./db');
 const { createApp } = require('./app');
-const { resolveDbPath } = require('./paths');
-const { openBrowser } = require('./openBrowser');
+const { resolveDbPath } = require('./infra/paths');
+const { openBrowser } = require('./infra/openBrowser');
 
 const dbPath = resolveDbPath();
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });

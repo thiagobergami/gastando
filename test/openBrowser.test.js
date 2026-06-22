@@ -1,7 +1,7 @@
 // test/openBrowser.test.js
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { browserCommand, openBrowser } = require('../src/openBrowser');
+const { browserCommand, openBrowser } = require('../src/infra/openBrowser');
 
 test('windows uses cmd start', () => {
   assert.deepStrictEqual(browserCommand('win32', 'http://x'), { cmd: 'cmd', args: ['/c', 'start', '', 'http://x'] });
