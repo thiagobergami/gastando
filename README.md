@@ -95,8 +95,10 @@ npm run build:css   # compile Tailwind into public/css/app.css
 npm start           # starts the server on http://localhost:3000
 ```
 
-`npm start` runs `node src/server.js`, applies any pending migrations, opens your
-browser, and listens on the port from `PORT` (default `3000`).
+`npm start` runs `tsx src/server.ts`, applies any pending migrations, opens your
+browser, and listens on the port from `PORT` (default `3000`). For a production
+build, `npm run build` compiles TypeScript to `dist/` and `node dist/server.js`
+runs the compiled server.
 
 ---
 

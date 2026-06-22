@@ -52,7 +52,8 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run build:css
-      - run: npx pkg --config package.json src/server.js --targets ${{ matrix.target }} --output dist/${{ matrix.artifact }}
+      - run: npm run build
+      - run: npx pkg --config package.json dist/server.js --targets ${{ matrix.target }} --output dist/${{ matrix.artifact }}
       - name: Smoke test
         if: matrix.target != 'node22-macos-x64'
         shell: bash

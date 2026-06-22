@@ -1,7 +1,7 @@
 {
   "all": true,
-  "include": ["src/**/*.js"],
-  "exclude": ["src/server.js"],
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/server.ts"],
   "reporter": ["text", "text-summary"],
   "check-coverage": true,
   "lines": 80,
