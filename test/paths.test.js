@@ -1,7 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 const path = require('path');
-const { resolveDbPath } = require('../src/paths');
+const { resolveDbPath } = require('../src/infra/paths');
 
 test('DB_PATH env overrides everything', () => {
   const result = resolveDbPath({ env: { DB_PATH: '/custom/my.db' }, isPackaged: true, execPath: '/bin/app' });
