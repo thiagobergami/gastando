@@ -16,3 +16,15 @@ export const zPositiveInt = (message: string): z.ZodType<number> =>
 
 export const zNonNegInt = (message: string): z.ZodType<number> =>
   z.custom<number>(v => typeof v === 'number' && Number.isInteger(v) && v >= 0, { message });
+
+// Mirrors the legacy `if (!name) fail(400, 'name is required')` guard (rejects
+// empty string / undefined / any falsy value) used by groups/categories/cards.
+export const nameBodySchema = z.object({
+  name: z.custom<string>(v => !!v, { message: 'name is required' }),
+});
+
+// Shared `?month=YYYY-MM` query validation (limits GET, dashboard GET).
+export const monthQuerySchema = z.object({
+  month: zMonth('month must be YYYY-MM'),
+});
+
