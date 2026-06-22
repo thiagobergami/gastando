@@ -10,6 +10,10 @@ export function makeCategoryRepository(db: Db): CategoryRepository {
     listActive(): Category[] {
       return db.prepare('SELECT * FROM categories WHERE active=1 ORDER BY sort_order, id').all() as Category[];
     },
+    listActiveIds(): number[] {
+      // No ORDER BY — preserves the legacy GET /api/limits array ordering.
+      return (db.prepare('SELECT id FROM categories WHERE active=1').all() as { id: number }[]).map(r => r.id);
+    },
     findById(id: number): Category | undefined {
       return db.prepare('SELECT * FROM categories WHERE id=?').get(id) as Category | undefined;
     },

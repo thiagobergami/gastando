@@ -10,9 +10,10 @@ export function makeLimitUseCases(deps: LimitUseCaseDeps) {
   const { limits, categories } = deps;
   return {
     // Resolved limit per active category for the month (carry-forward).
+    // Uses listActiveIds() (no ORDER BY) to preserve the legacy array ordering.
     listForMonth(month: string): ResolvedLimit[] {
-      return categories.listActive().map(c => ({
-        category_id: c.id, month, limit_cents: limits.resolve(c.id, month),
+      return categories.listActiveIds().map(id => ({
+        category_id: id, month, limit_cents: limits.resolve(id, month),
       }));
     },
     upsert(input: UpsertLimitInput): ResolvedLimit {
