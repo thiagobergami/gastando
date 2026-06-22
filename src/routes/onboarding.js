@@ -1,41 +1,30 @@
 const express = require('express');
 const { fail } = require('../validate');
+const { makeSettingsRepository } = require('../infra/repositories/settings');
 
 const KEY = 'onboarding_complete';
 
-function isComplete(db) {
-  const row = db.prepare('SELECT value FROM settings WHERE key=?').get(KEY);
-  return row ? row.value === '1' : false;
-}
-
 module.exports = (db) => {
   const router = express.Router();
+  const repo = makeSettingsRepository(db);
+
+  const isComplete = () => repo.get(KEY) === '1';
 
   router.get('/', (req, res) => {
-    res.json({ complete: isComplete(db) });
+    res.json({ complete: isComplete() });
   });
 
   router.post('/complete', (req, res) => {
-    db.prepare(
-      'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value'
-    ).run(KEY, '1');
+    repo.set(KEY, '1');
     res.json({ complete: true });
   });
 
   router.post('/template', (req, res) => {
-    if (isComplete(db)) fail(409, 'onboarding already complete');
+    if (isComplete()) fail(409, 'onboarding already complete');
     const { template } = req.body;
     if (template !== 'suggested' && template !== 'blank') fail(400, 'invalid template');
-    const txCount = db.prepare('SELECT COUNT(*) AS n FROM transactions').get().n;
-    const igCount = db.prepare('SELECT COUNT(*) AS n FROM installment_groups').get().n;
-    if (txCount > 0 || igCount > 0) fail(409, 'cannot reset after data exists');
-    if (template === 'blank') {
-      db.transaction(() => {
-        db.prepare('DELETE FROM category_limits').run();
-        db.prepare('DELETE FROM categories').run();
-        db.prepare('DELETE FROM groups').run();
-      })();
-    }
+    if (repo.countTransactions() > 0 || repo.countInstallmentGroups() > 0) fail(409, 'cannot reset after data exists');
+    if (template === 'blank') repo.wipeCategoryData();
     res.json({ template });
   });
 

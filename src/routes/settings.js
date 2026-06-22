@@ -1,33 +1,31 @@
 const express = require('express');
+const { makeSettingsRepository } = require('../infra/repositories/settings');
 
 const KEYS = ['monthly_income', 'fixed_costs', 'savings_goal'];
 
 module.exports = (db) => {
   const router = express.Router();
+  const repo = makeSettingsRepository(db);
 
-  router.get('/', (req, res) => {
+  const readAll = () => {
     const out = {};
     for (const k of KEYS) {
-      const row = db.prepare('SELECT value FROM settings WHERE key=?').get(k);
-      out[k] = row ? Number(row.value) : 0;
+      const v = repo.get(k);
+      out[k] = v !== undefined ? Number(v) : 0;
     }
-    res.json(out);
+    return out;
+  };
+
+  router.get('/', (req, res) => {
+    res.json(readAll());
   });
 
   router.put('/', (req, res) => {
-    const set = db.prepare(
-      'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value');
-    db.transaction(() => {
-      for (const k of KEYS) {
-        if (req.body[k] !== undefined) set.run(k, String(Math.trunc(req.body[k])));
-      }
-    })();
-    const out = {};
-    for (const k of KEYS) {
-      const row = db.prepare('SELECT value FROM settings WHERE key=?').get(k);
-      out[k] = row ? Number(row.value) : 0;
-    }
-    res.json(out);
+    const entries = KEYS
+      .filter(k => req.body[k] !== undefined)
+      .map(k => [k, String(Math.trunc(req.body[k]))]);
+    repo.setMany(entries);
+    res.json(readAll());
   });
 
   return router;
