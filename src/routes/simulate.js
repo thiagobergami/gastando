@@ -1,9 +1,15 @@
 const express = require('express');
 const { isMonth, isPositiveInt, fail } = require('../validate');
-const { simulatePurchase } = require('../services/simulate');
+const { makeCategoryRepository } = require('../infra/repositories/categories');
+const { makeLimitRepository } = require('../infra/repositories/limits');
+const { makeSimulateUseCases } = require('../application/use-cases/simulate');
 
 module.exports = (db) => {
   const router = express.Router();
+  const uc = makeSimulateUseCases({
+    categories: makeCategoryRepository(db),
+    limits: makeLimitRepository(db),
+  });
 
   router.get('/', (req, res) => {
     const category_id = Number(req.query.category_id);
@@ -16,7 +22,7 @@ module.exports = (db) => {
     if (!isPositiveInt(total_cents)) fail(400, 'total_cents must be a positive integer');
     if (!isPositiveInt(count)) fail(400, 'count must be a positive integer');
 
-    const result = simulatePurchase(db, { category_id, total_cents, count, first_month });
+    const result = uc.simulate({ category_id, total_cents, count, first_month });
     if (!result) fail(404, 'category not found');
     res.json(result);
   });

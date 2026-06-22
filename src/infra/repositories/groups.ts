@@ -7,6 +7,9 @@ export function makeGroupRepository(db: Db): GroupRepository {
     listActive(): Group[] {
       return db.prepare('SELECT * FROM groups WHERE active=1 ORDER BY sort_order, id').all() as Group[];
     },
+    listAll(): Group[] {
+      return db.prepare('SELECT * FROM groups ORDER BY sort_order, id').all() as Group[];
+    },
     findById(id: number): Group | undefined {
       return db.prepare('SELECT * FROM groups WHERE id=?').get(id) as Group | undefined;
     },

@@ -1,7 +1,17 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 const { makeTestDb } = require('./helpers');
-const { simulatePurchase } = require('../src/services/simulate');
+const { makeSimulateUseCases } = require('../src/application/use-cases/simulate');
+const { makeCategoryRepository } = require('../src/infra/repositories/categories');
+const { makeLimitRepository } = require('../src/infra/repositories/limits');
+
+// Thin wrapper so these unit tests exercise the simulate use-case directly.
+function simulatePurchase(db, input) {
+  return makeSimulateUseCases({
+    categories: makeCategoryRepository(db),
+    limits: makeLimitRepository(db),
+  }).simulate(input);
+}
 
 test('simulate spreads installments and carries the limit forward', () => {
   const { db, categoryId } = makeTestDb();
