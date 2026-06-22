@@ -3,7 +3,7 @@ const assert = require('node:assert');
 const request = require('supertest');
 const { makeTestDb } = require('./helpers');
 const { createApp } = require('../src/app');
-const { splitCents } = require('../src/services/installments');
+const { splitCents } = require('../src/domain/services/installments');
 
 test('splitCents distributes remainder to the first parcelas', () => {
   assert.deepEqual(splitCents(1000, 4), [250, 250, 250, 250]);
