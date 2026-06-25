@@ -1,7 +1,7 @@
 import express from 'express';
 import type { Request } from 'express';
 import { parse } from '../validate';
-import { biRangeSchema } from '../schemas/bi';
+import { biRangeSchema, biCategoryRangeSchema } from '../schemas/bi';
 import type { makeBiUseCases } from '../../../application/use-cases/bi';
 
 type BiUseCases = ReturnType<typeof makeBiUseCases>;
@@ -30,6 +30,11 @@ export function makeBiController(uc: BiUseCases): express.Router {
   router.get('/installment-forecast', (req, res) => {
     const { from, to } = range(req);
     res.json(uc.installmentForecast(from, to));
+  });
+
+  router.get('/category-trend', (req, res) => {
+    const { category_id, from, to } = parse(biCategoryRangeSchema, req.query);
+    res.json(uc.categoryTrend(category_id, from, to));
   });
 
   return router;

@@ -71,3 +71,30 @@ test('bi installment-forecast counts only installment transactions', async () =>
   const r = await request(app).get('/api/bi/installment-forecast?from=2026-06&to=2026-08').expect(200);
   assert.deepEqual(r.body.series[0].spent_cents, [10000, 10000, 10000]);
 });
+
+test('bi category-trend returns Spent and Limit series for one category', async () => {
+  const ctx = makeTestDb();
+  ctx.db.prepare("INSERT INTO category_limits (category_id, month, limit_cents) VALUES (?, '2026-06', 90000)").run(ctx.categoryId);
+  const app = createApp(ctx.db);
+  await request(app).post('/api/transactions').send({
+    date: '2026-06-05', category_id: ctx.categoryId, card_id: ctx.cardId, amount_cents: 30000 }).expect(201);
+  await request(app).post('/api/transactions').send({
+    date: '2026-06-20', category_id: ctx.categoryId, card_id: ctx.cardId, amount_cents: 12000 }).expect(201);
+
+  const r = await request(app)
+    .get(`/api/bi/category-trend?category_id=${ctx.categoryId}&from=2026-05&to=2026-06`).expect(200);
+  assert.deepEqual(r.body.months, ['2026-05', '2026-06']);
+  const spent = r.body.series.find(s => s.name === 'Spent');
+  const limit = r.body.series.find(s => s.name === 'Limit');
+  assert.deepEqual(spent.spent_cents, [0, 42000]);   // no spend in May; 30000+12000 in June
+  assert.deepEqual(limit.spent_cents, [0, 90000]);    // no limit at/before May; 90000 in June
+});
+
+test('bi category-trend validates inputs (400s)', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  await request(app).get('/api/bi/category-trend?from=2026-05&to=2026-06').expect(400);                       // missing category_id
+  await request(app).get('/api/bi/category-trend?category_id=0&from=2026-05&to=2026-06').expect(400);          // non-positive
+  await request(app).get(`/api/bi/category-trend?category_id=${ctx.categoryId}&from=bad&to=2026-06`).expect(400); // bad month
+  await request(app).get(`/api/bi/category-trend?category_id=${ctx.categoryId}&from=2026-08&to=2026-06`).expect(400); // from > to
+});
