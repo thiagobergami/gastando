@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 
 test('datasetsFor maps series to palette datasets and filters zeros', async () => {
-  const { datasetsFor, PALETTE } = await import('../public/js/bi.js');
+  const { datasetsFor, PALETTE } = await import('../public/js/charts.js');
   assert.ok(PALETTE.length >= 4);
   const series = [
     { name: 'Supermercado', spent_cents: [85000, 82100] },
