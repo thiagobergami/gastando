@@ -27,6 +27,7 @@ export function renderHero(t) {
 }
 
 export function renderGroups(d) {
+  const month = d.month || '';
   const byGroup = new Map(d.groups.map(g => [g.group_id, { ...g, cats: [] }]));
   for (const c of d.categories) byGroup.get(c.group_id).cats.push(c);
   return [...byGroup.values()].map(g => `
@@ -41,7 +42,7 @@ export function renderGroups(d) {
           const carry = c.carry_in_cents || 0;
           const eff = c.effective_spent_cents ?? c.spent_cents;
           return `
-          <div class="paper-card">
+          <a href="category.html?id=${c.category_id}&month=${month}" class="paper-card block hover:border-sage transition-colors">
             <div class="flex items-start justify-between gap-4">
               <div>
                 <div class="font-semibold flex items-center gap-2">${c.name} ${groupTag(g.name)}</div>
@@ -57,7 +58,7 @@ export function renderGroups(d) {
               ${carry > 0 ? `<span class="pill pill-over">+${formatBRL(carry)} carryover</span>` : ''}
               ${statusPill(c.status)}
             </div>
-          </div>`;
+          </a>`;
         }).join('')}
       </div>
     </section>`).join('');
