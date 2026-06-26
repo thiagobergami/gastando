@@ -64,5 +64,16 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
         series: [{ name: 'Committed installments', spent_cents: months.map(m => reports.installmentSpendMonth(m)) }],
       };
     },
+
+    categoryTrend(categoryId: number, from: string, to: string) {
+      const months = monthRange(from, to);
+      return {
+        months,
+        series: [
+          { name: 'Spent', spent_cents: months.map(m => reports.spendByCategoryMonth(categoryId, m)) },
+          { name: 'Limit', spent_cents: months.map(m => limits.resolve(categoryId, m)) },
+        ],
+      };
+    },
   };
 }

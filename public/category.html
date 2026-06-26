@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gastando — Category</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body class="pb-24 md:pb-0">
+  <div id="nav"></div>
+  <main class="max-w-5xl mx-auto px-6 pt-2 space-y-6">
+    <div class="flex items-center gap-3">
+      <a href="/" class="text-sage text-sm">← Dashboard</a>
+      <h1 id="catName" class="font-display text-2xl"></h1>
+      <input type="month" id="month" class="ml-auto rounded border border-line bg-card px-3 py-2" />
+    </div>
+    <section class="paper-card"><div id="summary"></div></section>
+    <section class="paper-card">
+      <h2 class="font-display text-lg mb-2">Spend trend — last 6 months</h2>
+      <canvas id="trend" height="120"></canvas>
+    </section>
+    <section class="paper-card overflow-x-auto">
+      <table class="w-full text-left"><tbody id="list"></tbody></table>
+    </section>
+  </main>
+  <script type="module" src="/js/category.js"></script>
+</body>
+</html>

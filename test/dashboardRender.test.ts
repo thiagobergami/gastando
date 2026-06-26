@@ -66,3 +66,10 @@ test('renderGroups omits carryover badge when not carrying', async () => {
   const html = renderGroups(d);
   assert.doesNotMatch(html, /carryover/);
 });
+
+test('renderGroups links each category to its detail screen', async () => {
+  const { renderGroups } = await import('../public/js/dashboard.js');
+  const html = renderGroups({ ...data, month: '2026-06' });
+  assert.match(html, /href="category\.html\?id=1&month=2026-06"/);
+  assert.match(html, /href="category\.html\?id=2&month=2026-06"/);
+});
