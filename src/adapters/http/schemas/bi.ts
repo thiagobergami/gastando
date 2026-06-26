@@ -8,7 +8,7 @@ export const biRangeSchema = z.object({
 
 // category_id arrives as a query string; coerce to a number before the
 // positive-integer check (zPositiveInt requires typeof === 'number').
-export const biCategoryRangeSchema: z.ZodType<{ category_id: number; from: string; to: string }> = z.object({
+export const biCategoryRangeSchema = z.object({
   category_id: z.preprocess(
     v => (typeof v === 'string' && v.trim() !== '' ? Number(v) : v),
     zPositiveInt('category_id must be a positive integer'),
