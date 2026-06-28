@@ -11,7 +11,8 @@ const db = openDatabase(dbPath);
 runMigrations(db);
 
 const port = Number(process.env.PORT) || 3000;
-buildAppFromDb(db).listen(port, () => {
-  console.log(`Gastando listening on :${port}`);
+const host = process.env.HOST || '127.0.0.1';
+buildAppFromDb(db).listen(port, host, () => {
+  console.log(`Gastando listening on http://${host}:${port}`);
   openBrowser(`http://localhost:${port}`);
 });
