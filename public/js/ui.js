@@ -7,13 +7,14 @@ export function currency(cents) {
 export function meterBar(spentCents, limitCents, status) {
   const pct = limitCents > 0 ? Math.min(100, Math.round((spentCents / limitCents) * 100)) : 0;
   const over = status === 'over' || (limitCents > 0 && spentCents > limitCents);
-  return `<div class="meter"><div class="meter-fill${over ? ' over' : ''}" style="width:${pct}%"></div></div>`;
+  const cls = over ? ' over' : status === 'approaching' ? ' approaching' : '';
+  return `<div class="meter"><div class="meter-fill${cls}" style="width:${pct}%"></div></div>`;
 }
 
 export function statusPill(status) {
-  return status === 'over'
-    ? `<span class="pill pill-over">Over</span>`
-    : `<span class="pill pill-ok">OK</span>`;
+  if (status === 'over') return `<span class="pill pill-over">Over</span>`;
+  if (status === 'approaching') return `<span class="pill pill-warn">Close</span>`;
+  return `<span class="pill pill-ok">OK</span>`;
 }
 
 export function groupTag(groupName) {

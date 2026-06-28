@@ -32,3 +32,15 @@ test('ui helpers', async () => {
   assert.match(ui.groupTag('Fundos'), /tag-slate/);
   assert.match(ui.groupTag('Folga'), /tag-neutral/);
 });
+
+test('statusPill renders a warn pill when approaching', async () => {
+  const { statusPill } = await import('../public/js/ui.js');
+  assert.match(statusPill('approaching'), /pill-warn/);
+  assert.match(statusPill('approaching'), /Close/);
+});
+
+test('meterBar marks the approaching fill', async () => {
+  const { meterBar } = await import('../public/js/ui.js');
+  assert.match(meterBar(85, 100, 'approaching'), /meter-fill approaching/);
+  assert.doesNotMatch(meterBar(85, 100, 'approaching'), /over/);
+});
