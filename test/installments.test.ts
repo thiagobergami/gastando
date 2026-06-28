@@ -74,6 +74,7 @@ test('deleteInstallmentGroup with non-existent id throws 404', async () => {
 });
 
 const { makeInstallmentRepository } = require('../src/infra/repositories/installments');
+const { AppError } = require('../src/domain/errors');
 
 test('listWithProgress splits paid/remaining by asOf month', () => {
   const ctx = makeTestDb();
@@ -94,4 +95,30 @@ test('listWithProgress splits paid/remaining by asOf month', () => {
   assert.equal(r.remaining_cents, 30000);
   assert.equal(r.monthly_cents, 10000);
   assert.equal(r.next_month, '2026-09');
+});
+
+test('update re-expands children to the new count/total atomically', () => {
+  const ctx = makeTestDb();
+  const repo = makeInstallmentRepository(ctx.db);
+  const id = repo.createPurchase({ category_id: ctx.categoryId, card_id: ctx.cardId,
+    description: 'TV', total_cents: 60000, count: 6, first_month: '2026-06' });
+  repo.update(id, { category_id: ctx.categoryId, card_id: ctx.cardId, description: 'TV',
+    total_cents: 30000, count: 3, first_month: '2026-07' });
+  const all = ctx.db.prepare('SELECT * FROM transactions WHERE installment_group_id=? ORDER BY date').all(id);
+  assert.equal(all.length, 3);
+  assert.deepEqual(all.map(t => t.date.slice(0, 7)), ['2026-07', '2026-08', '2026-09']);
+  assert.equal(all.reduce((s, t) => s + t.amount_cents, 0), 30000);
+  assert.equal(all[0].installment_total, 3);
+  const g = ctx.db.prepare('SELECT * FROM installment_groups WHERE id=?').get(id);
+  assert.equal(g.total_count, 3);
+  assert.equal(g.first_month, '2026-07');
+});
+
+test('update on a missing group throws 404', () => {
+  const ctx = makeTestDb();
+  const repo = makeInstallmentRepository(ctx.db);
+  assert.throws(
+    () => repo.update(9999, { category_id: ctx.categoryId, card_id: ctx.cardId,
+      description: '', total_cents: 1000, count: 2, first_month: '2026-06' }),
+    (e) => e instanceof AppError && e.status === 404);
 });

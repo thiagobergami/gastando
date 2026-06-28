@@ -88,6 +88,10 @@ export interface InstallmentRepository {
   }): number;
   remove(id: number): void; // throws AppError(404) if absent
   listWithProgress(asOfMonth: string): InstallmentProgress[];
+  update(id: number, p: {
+    category_id: number; card_id: number; description?: string;
+    total_cents: number; count: number; first_month: string;
+  }): void;                              // atomic re-expand; throws AppError(404) if absent
 }
 
 export interface SettingsRepository {

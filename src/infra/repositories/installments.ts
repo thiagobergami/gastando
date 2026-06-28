@@ -38,6 +38,30 @@ export function makeInstallmentRepository(db: Db): InstallmentRepository {
       });
       tx();
     },
+    update(id, p): void {
+      const { category_id, card_id, description = '', total_cents, count, first_month } = p;
+      const tx = db.transaction(() => {
+        const exists = db.prepare('SELECT id FROM installment_groups WHERE id=?').get(id);
+        if (!exists) throw new AppError(404, 'installment group not found');
+        db.prepare('DELETE FROM transactions WHERE installment_group_id=?').run(id);
+        db.prepare(
+          `UPDATE installment_groups
+           SET description=?, total_cents=?, total_count=?, first_month=?, category_id=?, card_id=?
+           WHERE id=?`,
+        ).run(description, total_cents, count, first_month, category_id, card_id, id);
+        const amounts = splitCents(total_cents, count);
+        const insert = db.prepare(
+          `INSERT INTO transactions (date, category_id, card_id, amount_cents, description,
+            installment_group_id, installment_no, installment_total)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        );
+        amounts.forEach((amt, i) => {
+          const month = addMonths(first_month, i);
+          insert.run(`${month}-01`, category_id, card_id, amt, description, id, i + 1, count);
+        });
+      });
+      tx();
+    },
     listWithProgress(asOfMonth: string) {
       return db.prepare(
         `SELECT g.id, g.description, g.category_id, g.card_id,
