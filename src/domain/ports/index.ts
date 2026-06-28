@@ -1,4 +1,4 @@
-import type { Card, Category, Group, Transaction } from '../entities';
+import type { Card, Category, Group, InstallmentProgress, Transaction } from '../entities';
 
 export interface GroupRepository {
   listActive(): Group[];
@@ -87,6 +87,7 @@ export interface InstallmentRepository {
     first_month: string;
   }): number;
   remove(id: number): void; // throws AppError(404) if absent
+  listWithProgress(asOfMonth: string): InstallmentProgress[];
 }
 
 export interface SettingsRepository {

@@ -72,3 +72,26 @@ test('deleteInstallmentGroup with non-existent id throws 404', async () => {
   const app = createApp(ctx.db);
   await request(app).delete('/api/installment-groups/99999').expect(404);
 });
+
+const { makeInstallmentRepository } = require('../src/infra/repositories/installments');
+
+test('listWithProgress splits paid/remaining by asOf month', () => {
+  const ctx = makeTestDb();
+  const repo = makeInstallmentRepository(ctx.db);
+  const id = repo.createPurchase({ category_id: ctx.categoryId, card_id: ctx.cardId,
+    description: 'Avianca', total_cents: 60000, count: 6, first_month: '2026-06' });
+  // June, July, Aug landed (<= 2026-08); Sep, Oct, Nov remaining.
+  const rows = repo.listWithProgress('2026-08');
+  assert.equal(rows.length, 1);
+  const r = rows[0];
+  assert.equal(r.id, id);
+  assert.equal(r.category_name, 'Supermercado');
+  assert.equal(r.card_name, 'Nubank');
+  assert.equal(r.total_count, 6);
+  assert.equal(r.paid_count, 3);
+  assert.equal(r.remaining_count, 3);
+  assert.equal(r.paid_cents, 30000);
+  assert.equal(r.remaining_cents, 30000);
+  assert.equal(r.monthly_cents, 10000);
+  assert.equal(r.next_month, '2026-09');
+});
