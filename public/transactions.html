@@ -15,6 +15,11 @@
       <h1 class="font-display text-2xl">Transactions</h1>
       <input type="month" id="month" class="ml-auto rounded border border-line bg-card px-3 py-2" />
     </div>
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <select id="filterCategory" class="rounded border border-line bg-card px-3 py-2"><option value="">All categories</option></select>
+      <select id="filterCard" class="rounded border border-line bg-card px-3 py-2"><option value="">All cards</option></select>
+      <input id="search" type="search" placeholder="Search description" class="rounded border border-line bg-card px-3 py-2" />
+    </div>
     <div id="formCard">
       <form id="form" class="paper-card grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
         <label class="field"><span>Date</span><input type="date" id="date" required /></label>

@@ -34,15 +34,36 @@ async function loadSelectors() {
     .filter((c) => c.active)
     .map((c) => `<option value="${c.id}">${esc(c.name)}</option>`)
     .join('');
+  const opt = (c) => `<option value="${c.id}">${esc(c.name)}</option>`;
+  $('filterCategory').insertAdjacentHTML(
+    'beforeend',
+    cats
+      .filter((c) => c.active)
+      .map(opt)
+      .join(''),
+  );
+  $('filterCard').insertAdjacentHTML(
+    'beforeend',
+    cards
+      .filter((c) => c.active)
+      .map(opt)
+      .join(''),
+  );
 }
 
 async function loadList() {
   try {
     const perPage = Number($('perPage').value);
     const offset = (page - 1) * perPage;
-    const { items: rows, total } = await getPage(
-      `/api/transactions?month=${$('month').value}&limit=${perPage}&offset=${offset}`,
-    );
+    const qs = new URLSearchParams({
+      month: $('month').value,
+      limit: String(perPage),
+      offset: String(offset),
+    });
+    if ($('filterCategory').value) qs.set('category_id', $('filterCategory').value);
+    if ($('filterCard').value) qs.set('card_id', $('filterCard').value);
+    if ($('search').value.trim()) qs.set('q', $('search').value.trim());
+    const { items: rows, total } = await getPage(`/api/transactions?${qs}`);
     const totalPages = Math.max(1, Math.ceil(total / perPage));
     if (page > totalPages) {
       page = totalPages;
@@ -166,6 +187,16 @@ if (typeof document !== 'undefined' && document.getElementById('list')) {
     loadList();
   });
   $('perPage').addEventListener('change', () => {
+    page = 1;
+    loadList();
+  });
+  ['filterCategory', 'filterCard'].forEach((id) => {
+    $(id).addEventListener('change', () => {
+      page = 1;
+      loadList();
+    });
+  });
+  $('search').addEventListener('input', () => {
     page = 1;
     loadList();
   });
