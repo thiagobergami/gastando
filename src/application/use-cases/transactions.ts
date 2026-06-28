@@ -46,7 +46,12 @@ export function makeTransactionUseCases(deps: TransactionUseCaseDeps) {
 
   return {
     list(page: TransactionPage): { total: number; items: Transaction[] } {
-      const filter = { month: page.month, categoryId: page.categoryId, cardId: page.cardId };
+      const filter = {
+        month: page.month,
+        categoryId: page.categoryId,
+        cardId: page.cardId,
+        q: page.q,
+      };
       return { total: transactions.count(filter), items: transactions.list(page) };
     },
 
