@@ -1,5 +1,5 @@
 import { api, showError } from './api.js';
-import { reaisToCents, currentMonth } from './format.js';
+import { reaisToCents, currentMonth, esc } from './format.js';
 import { mountChrome } from './chrome.js';
 import { ceilingText, renderLimitRows, renderGroupedLimitRows,
   allocationStatus, allocationText, allocationPillClass } from './budget.js';
@@ -119,7 +119,7 @@ async function loadCards() {
     const cards = await api.get('/api/cards');
     $('cards').innerHTML = cards.filter(c => c.active).map(c => `
       <div class="flex items-center justify-between border-b border-line py-2">
-        <span>${c.name}</span>
+        <span>${esc(c.name)}</span>
         <button data-del="${c.id}" class="text-clay text-sm">Remove</button>
       </div>`).join('');
     $('cards').querySelectorAll('button[data-del]').forEach(b =>

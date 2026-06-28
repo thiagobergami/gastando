@@ -1,5 +1,5 @@
 import { api, showError } from './api.js';
-import { formatBRL, reaisToCents, currentMonth } from './format.js';
+import { formatBRL, reaisToCents, currentMonth, esc } from './format.js';
 import { mountChrome } from './chrome.js';
 import { meterBar, statusPill } from './ui.js';
 
@@ -41,7 +41,7 @@ async function run() {
 async function loadCategories() {
   try {
     const cats = await api.get('/api/categories');
-    $('category').innerHTML = cats.filter(c => c.active).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    $('category').innerHTML = cats.filter(c => c.active).map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
   } catch (e) { showError(e.message); }
 }
 

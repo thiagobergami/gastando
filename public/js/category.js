@@ -1,5 +1,5 @@
 import { api, showError } from './api.js';
-import { formatBRL, currentMonth, addMonths } from './format.js';
+import { formatBRL, currentMonth, addMonths, esc } from './format.js';
 import { mountChrome } from './chrome.js';
 import { meterBar, statusPill } from './ui.js';
 import { lineChart } from './charts.js';
@@ -18,7 +18,7 @@ export function renderRows(rows) {
   return rows.map(r => `
     <tr class="border-b border-line">
       <td class="py-3 font-mono text-sm text-ink-mut">${r.date}</td>
-      <td class="py-3">${r.description}
+      <td class="py-3">${esc(r.description)}
         ${r.installment_no ? `<span class="tag tag-gold ml-2">${r.installment_no}/${r.installment_total}</span>` : ''}</td>
       <td class="py-3 text-right font-mono">${formatBRL(r.amount_cents)}</td>
     </tr>`).join('');

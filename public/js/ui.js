@@ -1,4 +1,4 @@
-import { formatBRL } from './format.js';
+import { formatBRL, esc } from './format.js';
 
 export function currency(cents) {
   return `<span class="font-mono">${formatBRL(cents)}</span>`;
@@ -22,5 +22,5 @@ export function groupTag(groupName) {
   if (n.includes('essenc')) cls = 'tag-sage';
   else if (n.includes('estilo')) cls = 'tag-gold';
   else if (n.includes('fundo')) cls = 'tag-slate';
-  return `<span class="tag ${cls}">${groupName}</span>`;
+  return `<span class="tag ${cls}">${esc(groupName)}</span>`;
 }

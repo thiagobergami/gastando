@@ -1,5 +1,5 @@
 import { api, showError } from './api.js';
-import { formatBRL, currentMonth } from './format.js';
+import { formatBRL, currentMonth, esc } from './format.js';
 import { mountChrome } from './chrome.js';
 import { meterBar, groupTag, statusPill } from './ui.js';
 
@@ -33,7 +33,7 @@ export function renderGroups(d) {
   return [...byGroup.values()].map(g => `
     <section class="mt-8">
       <div class="flex items-center gap-3 mb-3">
-        <h2 class="text-xs font-bold uppercase tracking-wider text-ink-mut">${g.name}</h2>
+        <h2 class="text-xs font-bold uppercase tracking-wider text-ink-mut">${esc(g.name)}</h2>
         <span class="flex-1 h-px bg-line"></span>
         <span class="font-mono text-sm text-ink-mut">${formatBRL(g.effective_spent_cents ?? g.spent_cents)} / ${formatBRL(g.limit_cents)}</span>
       </div>
@@ -45,8 +45,8 @@ export function renderGroups(d) {
           <a href="category.html?id=${c.category_id}&month=${month}" class="paper-card block hover:border-sage transition-colors">
             <div class="flex items-start justify-between gap-4">
               <div>
-                <div class="font-semibold flex items-center gap-2">${c.name} ${groupTag(g.name)}</div>
-                ${c.examples ? `<div class="text-xs text-ink-mut mt-0.5">${c.examples}</div>` : ''}
+                <div class="font-semibold flex items-center gap-2">${esc(c.name)} ${groupTag(g.name)}</div>
+                ${c.examples ? `<div class="text-xs text-ink-mut mt-0.5">${esc(c.examples)}</div>` : ''}
               </div>
               <div class="text-right">
                 <div class="font-display text-xl">${formatBRL(c.limit_cents)}</div>
