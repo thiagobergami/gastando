@@ -18,7 +18,7 @@ export function makeInstallmentGroupsController(uc: InstallmentUseCases): expres
 
   router.put('/:id', (req, res) => {
     const body = parse(updateInstallmentSchema, req.body);
-    uc.update(Number(req.params.id), { ...body, description: req.body.description ?? '' });
+    uc.update(Number(req.params.id), { ...body, description: body.description ?? '' });
     res.status(204).end();
   });
 

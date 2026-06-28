@@ -283,6 +283,33 @@ test('use-case update rejects an unknown category with 400', async () => {
     .expect(400);
 });
 
+test('PUT with a non-string description returns 400', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  const made = await request(app)
+    .post('/api/transactions')
+    .send({
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      description: 'TV',
+      installment_total_cents: 1200,
+      installment_count: 2,
+      first_month: '2026-06',
+    })
+    .expect(201);
+  await request(app)
+    .put(`/api/installment-groups/${made.body.installment_group_id}`)
+    .send({
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      description: { bad: 1 },
+      total_cents: 1200,
+      count: 2,
+      first_month: '2026-06',
+    })
+    .expect(400);
+});
+
 test('payOffEarly collapses future parcelas into asOf month', () => {
   const ctx = makeTestDb();
   const repo = makeInstallmentRepository(ctx.db);
@@ -305,6 +332,19 @@ test('payOffEarly collapses future parcelas into asOf month', () => {
     )
     .get(id).s;
   assert.equal(aug, 40000); // Aug parcela 10000 + Sep/Oct/Nov 30000 moved in
+  // June and July parcelas must have kept their original dates (strictly-greater boundary).
+  const junCount = ctx.db
+    .prepare(
+      "SELECT COUNT(*) n FROM transactions WHERE installment_group_id=? AND strftime('%Y-%m',date)='2026-06'",
+    )
+    .get(id).n;
+  assert.equal(junCount, 1);
+  const julCount = ctx.db
+    .prepare(
+      "SELECT COUNT(*) n FROM transactions WHERE installment_group_id=? AND strftime('%Y-%m',date)='2026-07'",
+    )
+    .get(id).n;
+  assert.equal(julCount, 1);
 });
 
 test('payOffEarly with nothing left throws 400', () => {
