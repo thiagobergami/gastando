@@ -122,3 +122,17 @@ test('update on a missing group throws 404', () => {
       description: '', total_cents: 1000, count: 2, first_month: '2026-06' }),
     (e) => e instanceof AppError && e.status === 404);
 });
+
+const { makeInstallmentUseCases } = require('../src/application/use-cases/installments');
+const { makeCategoryRepository } = require('../src/infra/repositories/categories');
+const { makeCardRepository } = require('../src/infra/repositories/cards');
+
+test('use-case list returns progress rows', () => {
+  const ctx = makeTestDb();
+  const repo = makeInstallmentRepository(ctx.db);
+  repo.createPurchase({ category_id: ctx.categoryId, card_id: ctx.cardId, description: 'A',
+    total_cents: 1200, count: 2, first_month: '2026-06' });
+  const uc = makeInstallmentUseCases({ installments: repo,
+    categories: makeCategoryRepository(ctx.db), cards: makeCardRepository(ctx.db) });
+  assert.equal(uc.list('2026-06').length, 1);
+});
