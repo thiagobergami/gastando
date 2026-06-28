@@ -63,8 +63,9 @@ export function makeInstallmentRepository(db: Db): InstallmentRepository {
       tx();
     },
     listWithProgress(asOfMonth: string) {
-      return db.prepare(
-        `SELECT g.id, g.description, g.category_id, g.card_id,
+      return db
+        .prepare(
+          `SELECT g.id, g.description, g.category_id, g.card_id,
                 cat.name AS category_name, crd.name AS card_name,
                 g.total_cents, g.total_count, g.first_month,
                 COALESCE(SUM(CASE WHEN strftime('%Y-%m', t.date) <= @asOf THEN 1 ELSE 0 END), 0) AS paid_count,
@@ -79,7 +80,8 @@ export function makeInstallmentRepository(db: Db): InstallmentRepository {
          LEFT JOIN transactions t ON t.installment_group_id = g.id
          GROUP BY g.id
          ORDER BY g.first_month, g.id`,
-      ).all({ asOf: asOfMonth }) as import('../../domain/entities').InstallmentProgress[];
+        )
+        .all({ asOf: asOfMonth }) as import('../../domain/entities').InstallmentProgress[];
     },
   };
 }

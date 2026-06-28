@@ -34,12 +34,21 @@ export interface InstallmentGroup {
   card_id: number;
 }
 export interface InstallmentProgress {
-  id: number; description: string; category_id: number; card_id: number;
-  category_name: string; card_name: string;
-  total_cents: number; total_count: number; first_month: string;
-  paid_count: number; remaining_count: number;
-  paid_cents: number; remaining_cents: number;
-  monthly_cents: number; next_month: string | null;
+  id: number;
+  description: string;
+  category_id: number;
+  card_id: number;
+  category_name: string;
+  card_name: string;
+  total_cents: number;
+  total_count: number;
+  first_month: string;
+  paid_count: number;
+  remaining_count: number;
+  paid_cents: number;
+  remaining_cents: number;
+  monthly_cents: number;
+  next_month: string | null;
 }
 export interface Transaction {
   id: number;

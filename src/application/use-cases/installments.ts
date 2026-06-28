@@ -1,8 +1,6 @@
-import type {
-  InstallmentRepository, CategoryRepository, CardRepository,
-} from '../../domain/ports';
 import type { InstallmentProgress } from '../../domain/entities';
 import { AppError } from '../../domain/errors';
+import type { CardRepository, CategoryRepository, InstallmentRepository } from '../../domain/ports';
 
 export interface InstallmentUseCaseDeps {
   installments: InstallmentRepository;
@@ -11,8 +9,12 @@ export interface InstallmentUseCaseDeps {
 }
 
 export interface UpdateInstallmentInput {
-  category_id: number; card_id: number; description?: string;
-  total_cents: number; count: number; first_month: string;
+  category_id: number;
+  card_id: number;
+  description?: string;
+  total_cents: number;
+  count: number;
+  first_month: string;
 }
 
 export function makeInstallmentUseCases(deps: InstallmentUseCaseDeps) {
