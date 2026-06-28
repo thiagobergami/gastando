@@ -1,8 +1,8 @@
+import path from 'node:path';
 import express from 'express';
-import path from 'path';
-import { buildContainer, Container } from './infra/composition';
-import type { Db } from './infra/db';
 import { errorHandler } from './adapters/http/error-mapper';
+import { buildContainer, type Container } from './infra/composition';
+import type { Db } from './infra/db';
 
 // Accept either a Container or a raw Db. A Container has a `db` property; a
 // better-sqlite3 Db does not — that distinguishes the two without importing the

@@ -1,5 +1,5 @@
-import type { Db } from '../db';
 import type { SettingsRepository } from '../../domain/ports';
+import type { Db } from '../db';
 
 const UPSERT_SQL =
   'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value';
@@ -7,7 +7,9 @@ const UPSERT_SQL =
 export function makeSettingsRepository(db: Db): SettingsRepository {
   return {
     get(key: string): string | undefined {
-      const row = db.prepare('SELECT value FROM settings WHERE key=?').get(key) as { value: string } | undefined;
+      const row = db.prepare('SELECT value FROM settings WHERE key=?').get(key) as
+        | { value: string }
+        | undefined;
       return row ? row.value : undefined;
     },
     set(key: string, value: string): void {

@@ -7,11 +7,12 @@ export const NAV_ITEMS = [
 ];
 
 export function renderNav(active) {
-  const topLinks = NAV_ITEMS.map(i =>
-    `<a href="${i.href}" class="px-1 ${i.route === active ? 'text-sage active font-semibold' : 'text-ink-mut'}">${i.label}</a>`
+  const topLinks = NAV_ITEMS.map(
+    (i) =>
+      `<a href="${i.href}" class="px-1 ${i.route === active ? 'text-sage active font-semibold' : 'text-ink-mut'}">${i.label}</a>`,
   ).join('');
-  const bottomLinks = NAV_ITEMS.map(i =>
-    `<a href="${i.href}" class="${i.route === active ? 'active' : ''}">${i.label}</a>`
+  const bottomLinks = NAV_ITEMS.map(
+    (i) => `<a href="${i.href}" class="${i.route === active ? 'active' : ''}">${i.label}</a>`,
   ).join('');
   return `
     <header class="hidden md:flex items-center gap-6 max-w-5xl mx-auto px-6 py-5">

@@ -1,10 +1,10 @@
 import { api, showError } from './api.js';
-import { formatBRL, currentMonth, addMonths } from './format.js';
-import { mountChrome } from './chrome.js';
-import { meterBar, statusPill } from './ui.js';
 import { lineChart } from './charts.js';
+import { mountChrome } from './chrome.js';
+import { addMonths, currentMonth, esc, formatBRL } from './format.js';
+import { meterBar, statusPill } from './ui.js';
 
-const $ = id => document.getElementById(id);
+const $ = (id) => document.getElementById(id);
 
 function params() {
   const q = new URLSearchParams(location.search);
@@ -15,13 +15,17 @@ export function renderRows(rows) {
   if (!rows.length) {
     return `<tr><td class="py-4 text-ink-mut" colspan="3">No transactions this month.</td></tr>`;
   }
-  return rows.map(r => `
+  return rows
+    .map(
+      (r) => `
     <tr class="border-b border-line">
       <td class="py-3 font-mono text-sm text-ink-mut">${r.date}</td>
-      <td class="py-3">${r.description}
+      <td class="py-3">${esc(r.description)}
         ${r.installment_no ? `<span class="tag tag-gold ml-2">${r.installment_no}/${r.installment_total}</span>` : ''}</td>
       <td class="py-3 text-right font-mono">${formatBRL(r.amount_cents)}</td>
-    </tr>`).join('');
+    </tr>`,
+    )
+    .join('');
 }
 
 export function renderSummary({ spent_cents, limit_cents }) {
@@ -45,22 +49,28 @@ async function load(id, month) {
       api.get(`/api/bi/category-trend?category_id=${id}&from=${from}&to=${month}`),
     ]);
     const spent_cents = rows.reduce((s, r) => s + r.amount_cents, 0);
-    const limitSeries = trend.series.find(s => s.name === 'Limit');
+    const limitSeries = trend.series.find((s) => s.name === 'Limit');
     const limit_cents = limitSeries.spent_cents[limitSeries.spent_cents.length - 1];
     $('summary').innerHTML = renderSummary({ spent_cents, limit_cents });
     $('list').innerHTML = renderRows(rows);
     lineChart('trend', trend.months, trend.series, false);
-  } catch (e) { showError(e.message); }
+  } catch (e) {
+    showError(e.message);
+  }
 }
 
 if (typeof document !== 'undefined' && document.getElementById('list')) {
   mountChrome('/');
   const { id, month } = params();
   $('month').value = month;
-  api.get('/api/categories')
-    .then(cats => {
-      const cat = cats.find(c => c.id === id);
-      if (!cat) { $('catName').textContent = 'Category not found'; return; }
+  api
+    .get('/api/categories')
+    .then((cats) => {
+      const cat = cats.find((c) => c.id === id);
+      if (!cat) {
+        $('catName').textContent = 'Category not found';
+        return;
+      }
       $('catName').textContent = cat.name;
       $('month').addEventListener('change', () => {
         const q = new URLSearchParams(location.search);
@@ -70,5 +80,5 @@ if (typeof document !== 'undefined' && document.getElementById('list')) {
       });
       load(id, month);
     })
-    .catch(e => showError(e.message));
+    .catch((e) => showError(e.message));
 }

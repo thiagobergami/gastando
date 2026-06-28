@@ -1,7 +1,7 @@
 import express from 'express';
-import { parse } from '../validate';
-import { nameBodySchema } from '../schemas/common';
 import type { makeCardUseCases } from '../../../application/use-cases/cards';
+import { nameBodySchema } from '../schemas/common';
+import { parse } from '../validate';
 
 type CardUseCases = ReturnType<typeof makeCardUseCases>;
 

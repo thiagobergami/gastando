@@ -1,7 +1,7 @@
 import express from 'express';
-import { parse } from '../validate';
-import { nameBodySchema } from '../schemas/common';
 import type { makeCategoryUseCases } from '../../../application/use-cases/categories';
+import { nameBodySchema } from '../schemas/common';
+import { parse } from '../validate';
 
 type CategoryUseCases = ReturnType<typeof makeCategoryUseCases>;
 

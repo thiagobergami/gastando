@@ -27,8 +27,12 @@ test('allocationStatus treats exactly-at-ceiling as not over', async () => {
 
 test('allocationStatus on a fresh all-zero budget is all zeros', async () => {
   const { allocationStatus } = await import('../public/js/budget.js');
-  assert.deepEqual(allocationStatus([], 0, 0, 0),
-    { ceiling: 0, allocated: 0, remaining: 0, over: false });
+  assert.deepEqual(allocationStatus([], 0, 0, 0), {
+    ceiling: 0,
+    allocated: 0,
+    remaining: 0,
+    over: false,
+  });
 });
 
 test('allocationText shows remaining when within the ceiling', async () => {

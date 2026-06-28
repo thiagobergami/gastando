@@ -1,5 +1,9 @@
 import type {
-  ReportRepository, LimitRepository, CategoryRepository, CardRepository, GroupRepository,
+  CardRepository,
+  CategoryRepository,
+  GroupRepository,
+  LimitRepository,
+  ReportRepository,
 } from '../../domain/ports';
 import { monthRange } from '../../domain/services/dates';
 
@@ -17,27 +21,30 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
   return {
     trends(from: string, to: string) {
       const months = monthRange(from, to);
-      const series = categories.listActive().map(c => ({
-        category_id: c.id, name: c.name,
-        spent_cents: months.map(m => reports.spendByCategoryMonth(c.id, m)),
+      const series = categories.listActive().map((c) => ({
+        category_id: c.id,
+        name: c.name,
+        spent_cents: months.map((m) => reports.spendByCategoryMonth(c.id, m)),
       }));
       return { months, series };
     },
 
     byCard(from: string, to: string) {
       const months = monthRange(from, to);
-      const series = cards.listAll().map(c => ({
-        card_id: c.id, name: c.name,
-        spent_cents: months.map(m => reports.spendByCardMonth(c.id, m)),
+      const series = cards.listAll().map((c) => ({
+        card_id: c.id,
+        name: c.name,
+        spent_cents: months.map((m) => reports.spendByCardMonth(c.id, m)),
       }));
       return { months, series };
     },
 
     byGroup(from: string, to: string) {
       const months = monthRange(from, to);
-      const series = groups.listAll().map(g => ({
-        group_id: g.id, name: g.name,
-        spent_cents: months.map(m => reports.spendByGroupMonth(g.id, m)),
+      const series = groups.listAll().map((g) => ({
+        group_id: g.id,
+        name: g.name,
+        spent_cents: months.map((m) => reports.spendByGroupMonth(g.id, m)),
       }));
       return { months, series };
     },
@@ -45,9 +52,10 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
     budgetVsActual(from: string, to: string) {
       const months = monthRange(from, to);
       const cats = categories.listActive();
-      const limit_cents = months.map(m =>
-        cats.reduce((sum, c) => sum + limits.resolve(c.id, m), 0));
-      const spent_cents = months.map(m => reports.spendAllMonth(m));
+      const limit_cents = months.map((m) =>
+        cats.reduce((sum, c) => sum + limits.resolve(c.id, m), 0),
+      );
+      const spent_cents = months.map((m) => reports.spendAllMonth(m));
       return {
         months,
         series: [
@@ -61,7 +69,12 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
       const months = monthRange(from, to);
       return {
         months,
-        series: [{ name: 'Committed installments', spent_cents: months.map(m => reports.installmentSpendMonth(m)) }],
+        series: [
+          {
+            name: 'Committed installments',
+            spent_cents: months.map((m) => reports.installmentSpendMonth(m)),
+          },
+        ],
       };
     },
 
@@ -70,8 +83,11 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
       return {
         months,
         series: [
-          { name: 'Spent', spent_cents: months.map(m => reports.spendByCategoryMonth(categoryId, m)) },
-          { name: 'Limit', spent_cents: months.map(m => limits.resolve(categoryId, m)) },
+          {
+            name: 'Spent',
+            spent_cents: months.map((m) => reports.spendByCategoryMonth(categoryId, m)),
+          },
+          { name: 'Limit', spent_cents: months.map((m) => limits.resolve(categoryId, m)) },
         ],
       };
     },

@@ -13,6 +13,9 @@ export function addMonths(ym: string, n: number): string {
 export function monthRange(from: string, to: string): string[] {
   const months: string[] = [];
   let cur = from;
-  for (let i = 0; i < 600 && cur <= to; i++) { months.push(cur); cur = addMonths(cur, 1); }
+  for (let i = 0; i < 600 && cur <= to; i++) {
+    months.push(cur);
+    cur = addMonths(cur, 1);
+  }
   return months;
 }

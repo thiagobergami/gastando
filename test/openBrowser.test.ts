@@ -4,7 +4,10 @@ const assert = require('node:assert');
 const { browserCommand, openBrowser } = require('../src/infra/openBrowser');
 
 test('windows uses cmd start', () => {
-  assert.deepStrictEqual(browserCommand('win32', 'http://x'), { cmd: 'cmd', args: ['/c', 'start', '', 'http://x'] });
+  assert.deepStrictEqual(browserCommand('win32', 'http://x'), {
+    cmd: 'cmd',
+    args: ['/c', 'start', '', 'http://x'],
+  });
 });
 
 test('macOS uses open', () => {
@@ -12,7 +15,10 @@ test('macOS uses open', () => {
 });
 
 test('linux uses xdg-open', () => {
-  assert.deepStrictEqual(browserCommand('linux', 'http://x'), { cmd: 'xdg-open', args: ['http://x'] });
+  assert.deepStrictEqual(browserCommand('linux', 'http://x'), {
+    cmd: 'xdg-open',
+    args: ['http://x'],
+  });
 });
 
 test('NO_OPEN suppresses launch', () => {

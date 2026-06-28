@@ -1,8 +1,8 @@
 import express from 'express';
-import { parse } from '../validate';
+import type { makeLimitUseCases } from '../../../application/use-cases/limits';
 import { monthQuerySchema } from '../schemas/common';
 import { upsertLimitSchema } from '../schemas/limits';
-import type { makeLimitUseCases } from '../../../application/use-cases/limits';
+import { parse } from '../validate';
 
 type LimitUseCases = ReturnType<typeof makeLimitUseCases>;
 

@@ -1,38 +1,35 @@
-import type { Db } from './db';
-import express from 'express';
-
-import { makeTransactionRepository } from './repositories/transactions';
-import { makeCategoryRepository } from './repositories/categories';
-import { makeCardRepository } from './repositories/cards';
-import { makeGroupRepository } from './repositories/groups';
-import { makeLimitRepository } from './repositories/limits';
-import { makeInstallmentRepository } from './repositories/installments';
-import { makeSettingsRepository } from './repositories/settings';
-import { makeReportRepository } from './repositories/reports';
-
-import { makeTransactionUseCases } from '../application/use-cases/transactions';
-import { makeInstallmentUseCases } from '../application/use-cases/installments';
-import { makeCategoryUseCases } from '../application/use-cases/categories';
-import { makeGroupUseCases } from '../application/use-cases/groups';
-import { makeCardUseCases } from '../application/use-cases/cards';
-import { makeLimitUseCases } from '../application/use-cases/limits';
-import { makeSettingsUseCases } from '../application/use-cases/settings';
-import { makeOnboardingUseCases } from '../application/use-cases/onboarding';
-import { makeDashboardUseCases } from '../application/use-cases/dashboard';
-import { makeBiUseCases } from '../application/use-cases/bi';
-import { makeSimulateUseCases } from '../application/use-cases/simulate';
-
-import { makeGroupsController } from '../adapters/http/controllers/groups';
-import { makeCategoriesController } from '../adapters/http/controllers/categories';
-import { makeCardsController } from '../adapters/http/controllers/cards';
-import { makeLimitsController } from '../adapters/http/controllers/limits';
-import { makeTransactionsController } from '../adapters/http/controllers/transactions';
-import { makeInstallmentGroupsController } from '../adapters/http/controllers/installmentGroups';
-import { makeSettingsController } from '../adapters/http/controllers/settings';
-import { makeOnboardingController } from '../adapters/http/controllers/onboarding';
-import { makeDashboardController } from '../adapters/http/controllers/dashboard';
+import type express from 'express';
 import { makeBiController } from '../adapters/http/controllers/bi';
+import { makeCardsController } from '../adapters/http/controllers/cards';
+import { makeCategoriesController } from '../adapters/http/controllers/categories';
+import { makeDashboardController } from '../adapters/http/controllers/dashboard';
+import { makeGroupsController } from '../adapters/http/controllers/groups';
+import { makeInstallmentGroupsController } from '../adapters/http/controllers/installmentGroups';
+import { makeLimitsController } from '../adapters/http/controllers/limits';
+import { makeOnboardingController } from '../adapters/http/controllers/onboarding';
+import { makeSettingsController } from '../adapters/http/controllers/settings';
 import { makeSimulateController } from '../adapters/http/controllers/simulate';
+import { makeTransactionsController } from '../adapters/http/controllers/transactions';
+import { makeBiUseCases } from '../application/use-cases/bi';
+import { makeCardUseCases } from '../application/use-cases/cards';
+import { makeCategoryUseCases } from '../application/use-cases/categories';
+import { makeDashboardUseCases } from '../application/use-cases/dashboard';
+import { makeGroupUseCases } from '../application/use-cases/groups';
+import { makeInstallmentUseCases } from '../application/use-cases/installments';
+import { makeLimitUseCases } from '../application/use-cases/limits';
+import { makeOnboardingUseCases } from '../application/use-cases/onboarding';
+import { makeSettingsUseCases } from '../application/use-cases/settings';
+import { makeSimulateUseCases } from '../application/use-cases/simulate';
+import { makeTransactionUseCases } from '../application/use-cases/transactions';
+import type { Db } from './db';
+import { makeCardRepository } from './repositories/cards';
+import { makeCategoryRepository } from './repositories/categories';
+import { makeGroupRepository } from './repositories/groups';
+import { makeInstallmentRepository } from './repositories/installments';
+import { makeLimitRepository } from './repositories/limits';
+import { makeReportRepository } from './repositories/reports';
+import { makeSettingsRepository } from './repositories/settings';
+import { makeTransactionRepository } from './repositories/transactions';
 
 export interface Container {
   db: Db;
@@ -71,20 +68,31 @@ export function buildContainer(db: Db): Container {
       installments: repositories.installments,
     }),
     installments: makeInstallmentUseCases({ installments: repositories.installments }),
-    categories: makeCategoryUseCases({ categories: repositories.categories, groups: repositories.groups }),
+    categories: makeCategoryUseCases({
+      categories: repositories.categories,
+      groups: repositories.groups,
+    }),
     groups: makeGroupUseCases({ groups: repositories.groups }),
     cards: makeCardUseCases({ cards: repositories.cards }),
     limits: makeLimitUseCases({ limits: repositories.limits, categories: repositories.categories }),
     settings: makeSettingsUseCases({ settings: repositories.settings }),
     onboarding: makeOnboardingUseCases({ settings: repositories.settings }),
     dashboard: makeDashboardUseCases({
-      reports: repositories.reports, limits: repositories.limits, settings: repositories.settings,
+      reports: repositories.reports,
+      limits: repositories.limits,
+      settings: repositories.settings,
     }),
     bi: makeBiUseCases({
-      reports: repositories.reports, limits: repositories.limits,
-      categories: repositories.categories, cards: repositories.cards, groups: repositories.groups,
+      reports: repositories.reports,
+      limits: repositories.limits,
+      categories: repositories.categories,
+      cards: repositories.cards,
+      groups: repositories.groups,
     }),
-    simulate: makeSimulateUseCases({ categories: repositories.categories, limits: repositories.limits }),
+    simulate: makeSimulateUseCases({
+      categories: repositories.categories,
+      limits: repositories.limits,
+    }),
   };
 
   const controllers = {

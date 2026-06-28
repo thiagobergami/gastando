@@ -1,9 +1,12 @@
 import type { Transaction } from '../../domain/entities';
-import type {
-  TransactionRepository, TransactionPage,
-  CategoryRepository, CardRepository, InstallmentRepository,
-} from '../../domain/ports';
 import { AppError } from '../../domain/errors';
+import type {
+  CardRepository,
+  CategoryRepository,
+  InstallmentRepository,
+  TransactionPage,
+  TransactionRepository,
+} from '../../domain/ports';
 
 export interface TransactionUseCaseDeps {
   transactions: TransactionRepository;

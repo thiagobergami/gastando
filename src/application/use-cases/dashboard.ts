@@ -31,15 +31,22 @@ export function makeDashboardUseCases(deps: DashboardUseCaseDeps) {
     build(month: string) {
       const cats = reports.dashboardCategories();
 
-      const categories = cats.map(c => {
+      const categories = cats.map((c) => {
         const limit_cents = limits.resolve(c.id, month);
         const spent_cents = limits.sumSpend(c.id, month);
         const carry_in_cents = computeCarryIn(c.id, month);
         const effective_spent_cents = spent_cents + carry_in_cents;
         return {
-          category_id: c.id, name: c.name, examples: c.examples,
-          group_id: c.group_id, group_name: c.group_name, group_color: c.group_color,
-          limit_cents, spent_cents, carry_in_cents, effective_spent_cents,
+          category_id: c.id,
+          name: c.name,
+          examples: c.examples,
+          group_id: c.group_id,
+          group_name: c.group_name,
+          group_color: c.group_color,
+          limit_cents,
+          spent_cents,
+          carry_in_cents,
+          effective_spent_cents,
           remaining_cents: limit_cents - effective_spent_cents,
           status: effective_spent_cents > limit_cents ? 'over' : 'ok',
         };
@@ -49,8 +56,12 @@ export function makeDashboardUseCases(deps: DashboardUseCaseDeps) {
       for (const c of categories) {
         if (!groupsMap.has(c.group_id)) {
           groupsMap.set(c.group_id, {
-            group_id: c.group_id, name: c.group_name, color: c.group_color,
-            limit_cents: 0, spent_cents: 0, effective_spent_cents: 0,
+            group_id: c.group_id,
+            name: c.group_name,
+            color: c.group_color,
+            limit_cents: 0,
+            spent_cents: 0,
+            effective_spent_cents: 0,
           });
         }
         const g = groupsMap.get(c.group_id);
@@ -69,11 +80,16 @@ export function makeDashboardUseCases(deps: DashboardUseCaseDeps) {
       const projected_savings_cents = income - fixed - spent_cents;
 
       return {
-        month, categories, groups,
+        month,
+        categories,
+        groups,
         totals: {
-          limit_cents: limit_total, spent_cents,
-          monthly_income_cents: income, fixed_costs_cents: fixed,
-          savings_goal_cents: goal, teto_cents,
+          limit_cents: limit_total,
+          spent_cents,
+          monthly_income_cents: income,
+          fixed_costs_cents: fixed,
+          savings_goal_cents: goal,
+          teto_cents,
           projected_savings_cents,
           vs_goal_cents: projected_savings_cents - goal,
         },

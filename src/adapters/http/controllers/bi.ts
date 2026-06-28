@@ -1,8 +1,8 @@
-import express from 'express';
 import type { Request } from 'express';
-import { parse } from '../validate';
-import { biRangeSchema, biCategoryRangeSchema } from '../schemas/bi';
+import express from 'express';
 import type { makeBiUseCases } from '../../../application/use-cases/bi';
+import { biCategoryRangeSchema, biRangeSchema } from '../schemas/bi';
+import { parse } from '../validate';
 
 type BiUseCases = ReturnType<typeof makeBiUseCases>;
 

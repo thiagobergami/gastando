@@ -2,10 +2,10 @@ export const PALETTE = ['#4c6455', '#d4af37', '#c27d60', '#5c7c84', '#8fa998', '
 
 export function datasetsFor(series, onlyNonZero) {
   return series
-    .filter(s => !onlyNonZero || s.spent_cents.some(v => v > 0))
+    .filter((s) => !onlyNonZero || s.spent_cents.some((v) => v > 0))
     .map((s, i) => ({
       label: s.name,
-      data: s.spent_cents.map(c => c / 100),
+      data: s.spent_cents.map((c) => c / 100),
       borderColor: PALETTE[i % PALETTE.length],
       backgroundColor: PALETTE[i % PALETTE.length],
       fill: false,

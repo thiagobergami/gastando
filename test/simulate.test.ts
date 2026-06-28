@@ -15,10 +15,19 @@ function simulatePurchase(db, input) {
 
 test('simulate spreads installments and carries the limit forward', () => {
   const { db, categoryId } = makeTestDb();
-  db.prepare("INSERT INTO category_limits (category_id, month, limit_cents) VALUES (?, '2026-06', 50000)").run(categoryId);
-  db.prepare("INSERT INTO transactions (date, category_id, card_id, amount_cents) VALUES ('2026-06-02', ?, 1, 40000)").run(categoryId);
+  db.prepare(
+    "INSERT INTO category_limits (category_id, month, limit_cents) VALUES (?, '2026-06', 50000)",
+  ).run(categoryId);
+  db.prepare(
+    "INSERT INTO transactions (date, category_id, card_id, amount_cents) VALUES ('2026-06-02', ?, 1, 40000)",
+  ).run(categoryId);
 
-  const r = simulatePurchase(db, { category_id: categoryId, total_cents: 30000, count: 3, first_month: '2026-06' });
+  const r = simulatePurchase(db, {
+    category_id: categoryId,
+    total_cents: 30000,
+    count: 3,
+    first_month: '2026-06',
+  });
   assert.equal(r.name, 'Supermercado');
   assert.equal(r.months.length, 3);
 
@@ -39,15 +48,30 @@ test('simulate spreads installments and carries the limit forward', () => {
 
 test('simulate flags an over-limit month', () => {
   const { db, categoryId } = makeTestDb();
-  db.prepare("INSERT INTO category_limits (category_id, month, limit_cents) VALUES (?, '2026-06', 5000)").run(categoryId);
-  const r = simulatePurchase(db, { category_id: categoryId, total_cents: 9000, count: 1, first_month: '2026-06' });
+  db.prepare(
+    "INSERT INTO category_limits (category_id, month, limit_cents) VALUES (?, '2026-06', 5000)",
+  ).run(categoryId);
+  const r = simulatePurchase(db, {
+    category_id: categoryId,
+    total_cents: 9000,
+    count: 1,
+    first_month: '2026-06',
+  });
   assert.equal(r.months[0].status, 'over');
   assert.equal(r.months[0].remaining_after_cents, -4000);
 });
 
 test('simulate returns null for an unknown category', () => {
   const { db } = makeTestDb();
-  assert.equal(simulatePurchase(db, { category_id: 9999, total_cents: 1000, count: 1, first_month: '2026-06' }), null);
+  assert.equal(
+    simulatePurchase(db, {
+      category_id: 9999,
+      total_cents: 1000,
+      count: 1,
+      first_month: '2026-06',
+    }),
+    null,
+  );
 });
 
 const request = require('supertest');
@@ -58,18 +82,23 @@ test('GET /api/simulate returns a timeline and validates inputs', async () => {
   const app = createApp(db);
 
   const ok = await request(app)
-    .get(`/api/simulate?category_id=${categoryId}&total_cents=30000&count=3&first_month=2026-06`).expect(200);
+    .get(`/api/simulate?category_id=${categoryId}&total_cents=30000&count=3&first_month=2026-06`)
+    .expect(200);
   assert.equal(ok.body.months.length, 3);
 
   // count defaults to 1 when omitted
   const one = await request(app)
-    .get(`/api/simulate?category_id=${categoryId}&total_cents=30000&first_month=2026-06`).expect(200);
+    .get(`/api/simulate?category_id=${categoryId}&total_cents=30000&first_month=2026-06`)
+    .expect(200);
   assert.equal(one.body.months.length, 1);
 
   await request(app)
-    .get(`/api/simulate?category_id=${categoryId}&total_cents=30000&count=3&first_month=bad`).expect(400);
+    .get(`/api/simulate?category_id=${categoryId}&total_cents=30000&count=3&first_month=bad`)
+    .expect(400);
   await request(app)
-    .get(`/api/simulate?category_id=${categoryId}&total_cents=0&count=3&first_month=2026-06`).expect(400);
+    .get(`/api/simulate?category_id=${categoryId}&total_cents=0&count=3&first_month=2026-06`)
+    .expect(400);
   await request(app)
-    .get(`/api/simulate?category_id=99999&total_cents=30000&count=1&first_month=2026-06`).expect(404);
+    .get(`/api/simulate?category_id=99999&total_cents=30000&count=1&first_month=2026-06`)
+    .expect(404);
 });
