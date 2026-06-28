@@ -1,7 +1,7 @@
 import express from 'express';
-import { parse } from '../validate';
-import { nameBodySchema } from '../schemas/common';
 import type { makeGroupUseCases } from '../../../application/use-cases/groups';
+import { nameBodySchema } from '../schemas/common';
+import { parse } from '../validate';
 
 type GroupUseCases = ReturnType<typeof makeGroupUseCases>;
 

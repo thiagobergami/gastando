@@ -1,9 +1,9 @@
 import type {
-  ReportRepository,
-  LimitRepository,
-  CategoryRepository,
   CardRepository,
+  CategoryRepository,
   GroupRepository,
+  LimitRepository,
+  ReportRepository,
 } from '../../domain/ports';
 import { monthRange } from '../../domain/services/dates';
 

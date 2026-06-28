@@ -1,6 +1,6 @@
-import type { Db } from '../db';
 import type { Group } from '../../domain/entities';
 import type { GroupRepository } from '../../domain/ports';
+import type { Db } from '../db';
 
 export function makeGroupRepository(db: Db): GroupRepository {
   return {

@@ -1,6 +1,6 @@
 import type { Category } from '../../domain/entities';
-import type { CategoryRepository, GroupRepository } from '../../domain/ports';
 import { AppError } from '../../domain/errors';
+import type { CategoryRepository, GroupRepository } from '../../domain/ports';
 
 export interface CategoryUseCaseDeps {
   categories: CategoryRepository;

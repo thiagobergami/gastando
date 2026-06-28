@@ -1,8 +1,8 @@
 import { api, showError } from './api.js';
-import { formatBRL, currentMonth, addMonths, esc } from './format.js';
-import { mountChrome } from './chrome.js';
-import { meterBar, statusPill } from './ui.js';
 import { lineChart } from './charts.js';
+import { mountChrome } from './chrome.js';
+import { addMonths, currentMonth, esc, formatBRL } from './format.js';
+import { meterBar, statusPill } from './ui.js';
 
 const $ = (id) => document.getElementById(id);
 

@@ -1,9 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-import { openDatabase, runMigrations } from './infra/db';
+import fs from 'node:fs';
+import path from 'node:path';
 import { buildAppFromDb } from './app';
-import { resolveDbPath } from './infra/paths';
+import { openDatabase, runMigrations } from './infra/db';
 import { openBrowser } from './infra/openBrowser';
+import { resolveDbPath } from './infra/paths';
 
 const dbPath = resolveDbPath();
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });

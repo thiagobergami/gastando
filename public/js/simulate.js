@@ -1,6 +1,6 @@
 import { api, showError } from './api.js';
-import { formatBRL, reaisToCents, currentMonth, esc } from './format.js';
 import { mountChrome } from './chrome.js';
+import { currentMonth, esc, formatBRL, reaisToCents } from './format.js';
 import { meterBar, statusPill } from './ui.js';
 
 const $ = (id) => document.getElementById(id);
@@ -40,7 +40,7 @@ async function run() {
       count: Number($('count').value) || 1,
       first_month: $('firstMonth').value,
     });
-    const d = await api.get('/api/simulate?' + params.toString());
+    const d = await api.get(`/api/simulate?${params.toString()}`);
     $('result').innerHTML = renderResult(d);
   } catch (e) {
     showError(e.message);

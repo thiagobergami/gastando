@@ -1,6 +1,6 @@
-import type { Request, Response, NextFunction } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
-import { AppError } from '../../domain/errors';
+import type { AppError } from '../../domain/errors';
 
 // Maps thrown errors to the frozen { error } envelope. ZodError -> first issue
 // message at 400; AppError / legacy status-tagged errors -> their status;

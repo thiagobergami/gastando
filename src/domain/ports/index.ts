@@ -1,4 +1,4 @@
-import type { Group, Category, Card, Transaction } from '../entities';
+import type { Card, Category, Group, Transaction } from '../entities';
 
 export interface GroupRepository {
   listActive(): Group[];

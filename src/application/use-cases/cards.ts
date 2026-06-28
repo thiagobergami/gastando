@@ -1,6 +1,6 @@
 import type { Card } from '../../domain/entities';
-import type { CardRepository } from '../../domain/ports';
 import { AppError } from '../../domain/errors';
+import type { CardRepository } from '../../domain/ports';
 
 export interface CardUseCaseDeps {
   cards: CardRepository;

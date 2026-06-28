@@ -1,7 +1,7 @@
 import express from 'express';
-import { MONTH_RE } from '../schemas/common';
-import { AppError } from '../../../domain/errors';
 import type { makeSimulateUseCases } from '../../../application/use-cases/simulate';
+import { AppError } from '../../../domain/errors';
+import { MONTH_RE } from '../schemas/common';
 
 type SimulateUseCases = ReturnType<typeof makeSimulateUseCases>;
 

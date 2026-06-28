@@ -1,11 +1,11 @@
 import { api, showError } from './api.js';
-import { reaisToCents, currentMonth } from './format.js';
 import {
-  renderLimitRows,
+  allocationPillClass,
   allocationStatus,
   allocationText,
-  allocationPillClass,
+  renderLimitRows,
 } from './budget.js';
+import { currentMonth, reaisToCents } from './format.js';
 
 export const SETUP_STEPS = ['Start', 'Income', 'Fixed costs', 'Savings goal', 'Limits'];
 
@@ -65,7 +65,7 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
 
   function paintTemplate() {
     document.querySelectorAll('[data-template]').forEach((b) => {
-      b.className = (b.dataset.template === template ? 'btn-primary' : 'btn-ghost') + ' text-left';
+      b.className = `${b.dataset.template === template ? 'btn-primary' : 'btn-ghost'} text-left`;
     });
   }
 
@@ -78,7 +78,9 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
       $('limitsEmpty').hidden = true;
       $('limits')
         .querySelectorAll('input[data-cat]')
-        .forEach((inp) => inp.addEventListener('input', updateAllocation));
+        .forEach((inp) => {
+          inp.addEventListener('input', updateAllocation);
+        });
     }
     updateAllocation();
   }
@@ -139,15 +141,15 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
     }
   }
 
-  document.querySelectorAll('[data-template]').forEach((btn) =>
+  document.querySelectorAll('[data-template]').forEach((btn) => {
     btn.addEventListener('click', () => {
       template = btn.dataset.template;
       paintTemplate();
-    }),
-  );
-  ['monthly_income', 'fixed_costs', 'savings_goal'].forEach((id) =>
-    $(id).addEventListener('input', updateAllocation),
-  );
+    });
+  });
+  ['monthly_income', 'fixed_costs', 'savings_goal'].forEach((id) => {
+    $(id).addEventListener('input', updateAllocation);
+  });
   $('back').addEventListener('click', () => {
     if (step > 0) {
       step--;

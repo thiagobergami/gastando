@@ -1,6 +1,6 @@
-import type { Db } from '../db';
 import type { Transaction } from '../../domain/entities';
-import type { TransactionRepository, TransactionPage, TransactionFilter } from '../../domain/ports';
+import type { TransactionFilter, TransactionPage, TransactionRepository } from '../../domain/ports';
+import type { Db } from '../db';
 
 function buildWhere(f: TransactionFilter): { clause: string; args: unknown[] } {
   const where: string[] = [];
@@ -17,7 +17,7 @@ function buildWhere(f: TransactionFilter): { clause: string; args: unknown[] } {
     where.push('card_id = ?');
     args.push(f.cardId);
   }
-  return { clause: where.length ? 'WHERE ' + where.join(' AND ') : '', args };
+  return { clause: where.length ? `WHERE ${where.join(' AND ')}` : '', args };
 }
 
 export function makeTransactionRepository(db: Db): TransactionRepository {

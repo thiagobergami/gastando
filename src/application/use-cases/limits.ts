@@ -1,5 +1,5 @@
-import type { LimitRepository, CategoryRepository } from '../../domain/ports';
 import { AppError } from '../../domain/errors';
+import type { CategoryRepository, LimitRepository } from '../../domain/ports';
 
 export interface LimitUseCaseDeps {
   limits: LimitRepository;

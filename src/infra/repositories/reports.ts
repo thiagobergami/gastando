@@ -1,6 +1,6 @@
-import type { Db } from '../db';
 import type { Category } from '../../domain/entities';
 import type { ReportRepository } from '../../domain/ports';
+import type { Db } from '../db';
 
 type DashboardCategoryRow = Category & {
   group_name: string;

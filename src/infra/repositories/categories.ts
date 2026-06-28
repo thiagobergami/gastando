@@ -1,6 +1,6 @@
-import type { Db } from '../db';
 import type { Category } from '../../domain/entities';
 import type { CategoryRepository } from '../../domain/ports';
+import type { Db } from '../db';
 
 export function makeCategoryRepository(db: Db): CategoryRepository {
   return {

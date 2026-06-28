@@ -1,5 +1,5 @@
-import type { Db } from '../db';
 import type { LimitRepository } from '../../domain/ports';
+import type { Db } from '../db';
 
 export function makeLimitRepository(db: Db): LimitRepository {
   return {

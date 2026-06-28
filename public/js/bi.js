@@ -1,7 +1,7 @@
 import { api, showError } from './api.js';
-import { currentMonth, addMonths } from './format.js';
-import { mountChrome } from './chrome.js';
 import { lineChart } from './charts.js';
+import { mountChrome } from './chrome.js';
+import { addMonths, currentMonth } from './format.js';
 
 async function run() {
   try {

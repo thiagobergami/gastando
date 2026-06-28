@@ -2,9 +2,9 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const { makeTestDb } = require('./helpers');
 const { openDatabase, runMigrations } = require('../src/infra/db');
-const os = require('os');
-const path = require('path');
-const fs = require('fs');
+const os = require('node:os');
+const path = require('node:path');
+const fs = require('node:fs');
 
 test('schema applies and base fixtures exist', () => {
   const { db, categoryId, cardId } = makeTestDb();
@@ -46,10 +46,10 @@ test('openDatabase creates WAL-mode db and runMigrations applies schema', () => 
       fs.unlinkSync(tmpPath);
     } catch {}
     try {
-      fs.unlinkSync(tmpPath + '-wal');
+      fs.unlinkSync(`${tmpPath}-wal`);
     } catch {}
     try {
-      fs.unlinkSync(tmpPath + '-shm');
+      fs.unlinkSync(`${tmpPath}-shm`);
     } catch {}
   }
 });

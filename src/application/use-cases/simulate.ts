@@ -1,6 +1,6 @@
 import type { CategoryRepository, LimitRepository } from '../../domain/ports';
-import { splitCents } from '../../domain/services/installments';
 import { addMonths } from '../../domain/services/dates';
+import { splitCents } from '../../domain/services/installments';
 
 export interface SimulateUseCaseDeps {
   categories: CategoryRepository;
@@ -21,7 +21,7 @@ export function makeSimulateUseCases(deps: SimulateUseCaseDeps) {
     // Read-only what-if. Returns null if the category is unknown/inactive.
     simulate({ category_id, total_cents, count, first_month }: SimulateInput) {
       const cat = categories.findById(category_id);
-      if (!cat || !cat.active) return null;
+      if (!cat?.active) return null;
 
       const amounts = splitCents(total_cents, count);
       const months = amounts.map((installment_cents, i) => {

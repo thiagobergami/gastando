@@ -1,4 +1,4 @@
-import { formatBRL, esc } from './format.js';
+import { esc, formatBRL } from './format.js';
 
 // Pure budget-model helpers shared by the Settings page and the setup wizard.
 // Kept free of DOM side-effects so either page can import them safely.

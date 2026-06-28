@@ -1,7 +1,7 @@
 import express from 'express';
-import { parse } from '../validate';
-import { monthQuerySchema } from '../schemas/common';
 import type { makeDashboardUseCases } from '../../../application/use-cases/dashboard';
+import { monthQuerySchema } from '../schemas/common';
+import { parse } from '../validate';
 
 type DashboardUseCases = ReturnType<typeof makeDashboardUseCases>;
 

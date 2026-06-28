@@ -1,17 +1,17 @@
 import { api, showError } from './api.js';
-import { reaisToCents, currentMonth, esc } from './format.js';
-import { mountChrome } from './chrome.js';
 import {
-  ceilingText,
-  renderLimitRows,
-  renderGroupedLimitRows,
+  allocationPillClass,
   allocationStatus,
   allocationText,
-  allocationPillClass,
+  ceilingText,
+  renderGroupedLimitRows,
+  renderLimitRows,
 } from './budget.js';
+import { mountChrome } from './chrome.js';
+import { currentMonth, esc, reaisToCents } from './format.js';
 
 // Re-exported so existing importers (and tests) can keep reaching them here.
-export { ceilingText, renderLimitRows, renderGroupedLimitRows };
+export { ceilingText, renderGroupedLimitRows, renderLimitRows };
 
 const COLORS = ['sage', 'gold', 'slate', 'neutral'];
 const $ = (id) => document.getElementById(id);
@@ -179,7 +179,7 @@ async function loadCards() {
       .join('');
     $('cards')
       .querySelectorAll('button[data-del]')
-      .forEach((b) =>
+      .forEach((b) => {
         b.addEventListener('click', async () => {
           try {
             await api.del(`/api/cards/${b.dataset.del}`);
@@ -187,8 +187,8 @@ async function loadCards() {
           } catch (e) {
             showError(e.message);
           }
-        }),
-      );
+        });
+      });
   } catch (e) {
     showError(e.message);
   }
@@ -203,9 +203,9 @@ if (typeof document !== 'undefined' && document.getElementById('limits')) {
     loadLimits();
   });
   $('limits').addEventListener('click', onLimitsClick);
-  ['monthly_income', 'fixed_costs', 'savings_goal'].forEach((id) =>
-    $(id).addEventListener('input', updateAllocation),
-  );
+  ['monthly_income', 'fixed_costs', 'savings_goal'].forEach((id) => {
+    $(id).addEventListener('input', updateAllocation);
+  });
   $('saveSettings').addEventListener('click', async () => {
     try {
       await api.put('/api/settings', {

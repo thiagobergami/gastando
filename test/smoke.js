@@ -1,9 +1,9 @@
 // test/smoke.js
-const { spawn } = require('child_process');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const http = require('http');
+const { spawn } = require('node:child_process');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const http = require('node:http');
 
 const [cmd, ...args] = process.argv.slice(2);
 if (!cmd) {

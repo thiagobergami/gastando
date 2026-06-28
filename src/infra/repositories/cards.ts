@@ -1,6 +1,6 @@
-import type { Db } from '../db';
 import type { Card } from '../../domain/entities';
 import type { CardRepository } from '../../domain/ports';
+import type { Db } from '../db';
 
 export function makeCardRepository(db: Db): CardRepository {
   return {

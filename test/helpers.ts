@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import Database from 'better-sqlite3';
 import type { Db } from '../src/infra/db';
 

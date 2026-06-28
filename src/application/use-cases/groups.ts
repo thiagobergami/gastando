@@ -1,6 +1,6 @@
 import type { Group } from '../../domain/entities';
-import type { GroupRepository } from '../../domain/ports';
 import { AppError } from '../../domain/errors';
+import type { GroupRepository } from '../../domain/ports';
 
 export interface GroupUseCaseDeps {
   groups: GroupRepository;

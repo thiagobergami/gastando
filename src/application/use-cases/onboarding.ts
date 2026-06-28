@@ -1,5 +1,5 @@
-import type { SettingsRepository } from '../../domain/ports';
 import { AppError } from '../../domain/errors';
+import type { SettingsRepository } from '../../domain/ports';
 
 export interface OnboardingUseCaseDeps {
   settings: SettingsRepository;

@@ -1,7 +1,7 @@
 import { api, showError } from './api.js';
-import { formatBRL, currentMonth, esc } from './format.js';
 import { mountChrome } from './chrome.js';
-import { meterBar, groupTag, statusPill } from './ui.js';
+import { currentMonth, esc, formatBRL } from './format.js';
+import { groupTag, meterBar, statusPill } from './ui.js';
 
 export function renderHero(t) {
   const ok = t.projected_savings_cents >= t.savings_goal_cents;

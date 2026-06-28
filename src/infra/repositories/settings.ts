@@ -1,5 +1,5 @@
-import type { Db } from '../db';
 import type { SettingsRepository } from '../../domain/ports';
+import type { Db } from '../db';
 
 const UPSERT_SQL =
   'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value';

@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const path = require('path');
+const path = require('node:path');
 const { resolveDbPath } = require('../src/infra/paths');
 
 test('DB_PATH env overrides everything', () => {

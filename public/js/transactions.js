@@ -1,6 +1,6 @@
 import { api, getPage, showError } from './api.js';
-import { formatBRL, reaisToCents, centsToReais, currentMonth, esc } from './format.js';
 import { mountChrome } from './chrome.js';
+import { centsToReais, currentMonth, esc, formatBRL, reaisToCents } from './format.js';
 
 const $ = (id) => document.getElementById(id);
 let editingId = null;
@@ -52,18 +52,18 @@ async function loadList() {
     $('list').innerHTML = renderRows(rows);
     $('list')
       .querySelectorAll('button[data-edit]')
-      .forEach((b) =>
+      .forEach((b) => {
         b.addEventListener('click', () =>
           startEdit(rows.find((r) => r.id === Number(b.dataset.edit))),
-        ),
-      );
+        );
+      });
     $('list')
       .querySelectorAll('button[data-del]')
-      .forEach((b) =>
+      .forEach((b) => {
         b.addEventListener('click', () =>
           onDelete(Number(b.dataset.del), Number(b.dataset.group) || null),
-        ),
-      );
+        );
+      });
   } catch (e) {
     showError(e.message);
   }

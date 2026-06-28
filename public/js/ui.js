@@ -1,4 +1,4 @@
-import { formatBRL, esc } from './format.js';
+import { esc, formatBRL } from './format.js';
 
 export function currency(cents) {
   return `<span class="font-mono">${formatBRL(cents)}</span>`;

@@ -1,8 +1,8 @@
-import type { Db } from '../db';
-import type { InstallmentRepository } from '../../domain/ports';
-import { splitCents } from '../../domain/services/installments';
-import { addMonths } from '../../domain/services/dates';
 import { AppError } from '../../domain/errors';
+import type { InstallmentRepository } from '../../domain/ports';
+import { addMonths } from '../../domain/services/dates';
+import { splitCents } from '../../domain/services/installments';
+import type { Db } from '../db';
 
 export function makeInstallmentRepository(db: Db): InstallmentRepository {
   return {
