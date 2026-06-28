@@ -8,7 +8,11 @@ export interface LimitUseCaseDeps {
   reports: ReportRepository;
 }
 
-export interface LimitSuggestion { category_id: number; last_month_cents: number; avg3_cents: number; }
+export interface LimitSuggestion {
+  category_id: number;
+  last_month_cents: number;
+  avg3_cents: number;
+}
 
 export interface ResolvedLimit {
   category_id: number;
@@ -43,7 +47,7 @@ export function makeLimitUseCases(deps: LimitUseCaseDeps) {
       const m1 = addMonths(month, -1);
       const m2 = addMonths(month, -2);
       const m3 = addMonths(month, -3);
-      return categories.listActive().map(c => {
+      return categories.listActive().map((c) => {
         const a = reports.spendByCategoryMonth(c.id, m1);
         const b = reports.spendByCategoryMonth(c.id, m2);
         const d = reports.spendByCategoryMonth(c.id, m3);

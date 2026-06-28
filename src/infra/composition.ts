@@ -79,7 +79,9 @@ export function buildContainer(db: Db): Container {
     groups: makeGroupUseCases({ groups: repositories.groups }),
     cards: makeCardUseCases({ cards: repositories.cards }),
     limits: makeLimitUseCases({
-      limits: repositories.limits, categories: repositories.categories, reports: repositories.reports,
+      limits: repositories.limits,
+      categories: repositories.categories,
+      reports: repositories.reports,
     }),
     settings: makeSettingsUseCases({ settings: repositories.settings }),
     onboarding: makeOnboardingUseCases({ settings: repositories.settings }),

@@ -66,6 +66,10 @@
         <div data-step="4" class="mt-6 space-y-4" hidden>
           <h3 class="font-display text-xl">Category limits for <span id="limitsMonth" class="font-mono text-base"></span></h3>
           <p class="text-sm text-ink-mut">A monthly ceiling per category. You can change these any time in Settings.</p>
+          <div class="flex gap-2 mb-3">
+            <button id="setupUseLastMonth" class="btn-ghost text-sm">Use last month</button>
+            <button id="setupUseAvg3" class="btn-ghost text-sm">Use 3-month average</button>
+          </div>
           <table class="w-full text-left"><tbody id="limits"></tbody></table>
           <p id="limitsEmpty" class="text-sm text-ink-mut" hidden>No categories yet — you can add them anytime in Settings.</p>
         </div>

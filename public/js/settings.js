@@ -227,6 +227,27 @@ if (typeof document !== 'undefined' && document.getElementById('limits')) {
       showError(e.message);
     }
   });
+  async function applySuggestions(field) {
+    try {
+      const sugg = await api.get(`/api/limits/suggestions?month=${$('month').value}`);
+      const byCat = new Map(sugg.map((s) => [s.category_id, s[field]]));
+      $('limits')
+        .querySelectorAll('input[data-cat]')
+        .forEach((inp) => {
+          const v = byCat.get(Number(inp.dataset.cat));
+          if (v !== undefined) {
+            inp.value = (v / 100).toFixed(2);
+            inp.dispatchEvent(new Event('change'));
+          }
+        });
+      updateAllocation();
+    } catch (e) {
+      showError(e.message);
+    }
+  }
+  $('useLastMonth').addEventListener('click', () => applySuggestions('last_month_cents'));
+  $('useAvg3').addEventListener('click', () => applySuggestions('avg3_cents'));
+
   loadSettings();
   loadLimits();
   loadCards();

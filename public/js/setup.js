@@ -164,5 +164,23 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
     }
   });
 
+  async function applySuggestions(field) {
+    try {
+      const sugg = await api.get(`/api/limits/suggestions?month=${month}`);
+      const byCat = new Map(sugg.map((s) => [s.category_id, s[field]]));
+      $('limits')
+        .querySelectorAll('input[data-cat]')
+        .forEach((inp) => {
+          const v = byCat.get(Number(inp.dataset.cat));
+          if (v !== undefined) inp.value = (v / 100).toFixed(2);
+        });
+      updateAllocation();
+    } catch (e) {
+      showError(e.message);
+    }
+  }
+  $('setupUseLastMonth').addEventListener('click', () => applySuggestions('last_month_cents'));
+  $('setupUseAvg3').addEventListener('click', () => applySuggestions('avg3_cents'));
+
   load();
 }
