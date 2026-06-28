@@ -1,6 +1,7 @@
 export const NAV_ITEMS = [
   { href: '/', label: 'Dashboard', route: '/' },
   { href: '/transactions.html', label: 'Transactions', route: '/transactions.html' },
+  { href: '/parcelas.html', label: 'Parcelas', route: '/parcelas.html' },
   { href: '/settings.html', label: 'Settings', route: '/settings.html' },
   { href: '/bi.html', label: 'BI', route: '/bi.html' },
   { href: '/simulate.html', label: 'Simulate', route: '/simulate.html' },

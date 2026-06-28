@@ -1,6 +1,11 @@
 services:
   gastando:
     build: .
+    environment:
+      # Bind to all interfaces *inside* the container so the published port is
+      # reachable from the host. The container's network namespace is the
+      # isolation boundary; the host still only exposes the mapped port.
+      - HOST=0.0.0.0
     ports:
       - "3000:3000"
     volumes:
