@@ -1,4 +1,5 @@
 import type { LimitRepository, ReportRepository, SettingsRepository } from '../../domain/ports';
+import { budgetStatus } from '../../domain/services/budget';
 import { addMonths } from '../../domain/services/dates';
 
 export interface DashboardUseCaseDeps {
@@ -48,7 +49,7 @@ export function makeDashboardUseCases(deps: DashboardUseCaseDeps) {
           carry_in_cents,
           effective_spent_cents,
           remaining_cents: limit_cents - effective_spent_cents,
-          status: effective_spent_cents > limit_cents ? 'over' : 'ok',
+          status: budgetStatus(effective_spent_cents, limit_cents),
         };
       });
 
