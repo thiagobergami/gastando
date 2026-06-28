@@ -4,9 +4,18 @@ const { z } = require('zod');
 const { errorHandler } = require('../src/adapters/http/error-mapper');
 
 function fakeRes() {
-  return { code: null, body: null,
-    status(c) { this.code = c; return this; },
-    json(b) { this.body = b; return this; } };
+  return {
+    code: null,
+    body: null,
+    status(c) {
+      this.code = c;
+      return this;
+    },
+    json(b) {
+      this.body = b;
+      return this;
+    },
+  };
 }
 
 test('uses err.status and err.message when present', () => {
@@ -18,7 +27,8 @@ test('uses err.status and err.message when present', () => {
 
 test('defaults to 500 and a generic message', () => {
   const res = fakeRes();
-  const orig = console.error; console.error = () => {}; // silence expected log
+  const orig = console.error;
+  console.error = () => {}; // silence expected log
   errorHandler({}, {}, res, () => {});
   console.error = orig;
   assert.equal(res.code, 500);
@@ -27,7 +37,10 @@ test('defaults to 500 and a generic message', () => {
 
 test('maps a ZodError to 400 with the first issue message', () => {
   const res = fakeRes();
-  const err = z.string().regex(/^\d{4}-\d{2}$/, 'month must be YYYY-MM').safeParse('bad').error;
+  const err = z
+    .string()
+    .regex(/^\d{4}-\d{2}$/, 'month must be YYYY-MM')
+    .safeParse('bad').error;
   errorHandler(err, {}, res, () => {});
   assert.equal(res.code, 400);
   assert.deepEqual(res.body, { error: 'month must be YYYY-MM' });

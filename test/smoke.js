@@ -37,7 +37,10 @@ child.on('exit', (code, signal) => {
 
 function getStatus(url) {
   return new Promise((resolve, reject) => {
-    const req = http.get(url, (res) => { res.resume(); resolve(res.statusCode); });
+    const req = http.get(url, (res) => {
+      res.resume();
+      resolve(res.statusCode);
+    });
     req.on('error', reject);
   });
 }
@@ -47,8 +50,10 @@ async function pollReady() {
   while (Date.now() < deadline) {
     if (done) return false; // early-exit handler already fired
     try {
-      if (await getStatus(`http://localhost:${PORT}/`) === 200) return true;
-    } catch { /* not up yet */ }
+      if ((await getStatus(`http://localhost:${PORT}/`)) === 200) return true;
+    } catch {
+      /* not up yet */
+    }
     await new Promise((r) => setTimeout(r, 500));
   }
   return false;
@@ -56,8 +61,14 @@ async function pollReady() {
 
 (async () => {
   let failed = false;
-  if (!await pollReady()) { console.error('SMOKE FAIL: server did not return 200 in time'); failed = true; }
-  if (!fs.existsSync(dbPath)) { console.error('SMOKE FAIL: db file was not created'); failed = true; }
+  if (!(await pollReady())) {
+    console.error('SMOKE FAIL: server did not return 200 in time');
+    failed = true;
+  }
+  if (!fs.existsSync(dbPath)) {
+    console.error('SMOKE FAIL: db file was not created');
+    failed = true;
+  }
   ready = true; // mark ready before kill so exit handler ignores normal shutdown
   done = true;
   child.kill();

@@ -15,7 +15,8 @@ export function makeCardRepository(db: Db): CardRepository {
       return db.prepare('SELECT * FROM cards WHERE id=?').get(r.lastInsertRowid) as Card;
     },
     update(id, c) {
-      return db.prepare('UPDATE cards SET name=?, active=? WHERE id=?').run(c.name, c.active, id).changes;
+      return db.prepare('UPDATE cards SET name=?, active=? WHERE id=?').run(c.name, c.active, id)
+        .changes;
     },
     deactivate(id: number): number {
       return db.prepare('UPDATE cards SET active=0 WHERE id=?').run(id).changes;

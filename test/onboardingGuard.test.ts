@@ -2,7 +2,13 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 
 function stubLocation(pathname) {
-  return { pathname, replaced: null, replace(url) { this.replaced = url; } };
+  return {
+    pathname,
+    replaced: null,
+    replace(url) {
+      this.replaced = url;
+    },
+  };
 }
 function stubFetch(complete) {
   return async () => ({ ok: true, json: async () => ({ complete }) });
@@ -32,7 +38,9 @@ test('enforceOnboarding does not redirect when already on the setup page', async
 test('enforceOnboarding swallows fetch failures without redirecting', async () => {
   const { enforceOnboarding } = await import('../public/js/chrome.js');
   const loc = stubLocation('/');
-  const failing = async () => { throw new Error('network down'); };
+  const failing = async () => {
+    throw new Error('network down');
+  };
   await enforceOnboarding(failing, loc);
   assert.equal(loc.replaced, null);
 });

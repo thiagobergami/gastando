@@ -9,16 +9,19 @@ export function makeInstallmentRepository(db: Db): InstallmentRepository {
     createPurchase(p): number {
       const { category_id, card_id, description = '', total_cents, count, first_month } = p;
       const tx = db.transaction(() => {
-        const g = db.prepare(
-          `INSERT INTO installment_groups (description, total_cents, total_count, first_month, category_id, card_id)
+        const g = db
+          .prepare(
+            `INSERT INTO installment_groups (description, total_cents, total_count, first_month, category_id, card_id)
            VALUES (?, ?, ?, ?, ?, ?)`,
-        ).run(description, total_cents, count, first_month, category_id, card_id);
+          )
+          .run(description, total_cents, count, first_month, category_id, card_id);
         const groupId = g.lastInsertRowid as number;
         const amounts = splitCents(total_cents, count);
         const insert = db.prepare(
           `INSERT INTO transactions (date, category_id, card_id, amount_cents, description,
             installment_group_id, installment_no, installment_total)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        );
         amounts.forEach((amt, i) => {
           const month = addMonths(first_month, i);
           insert.run(`${month}-01`, category_id, card_id, amt, description, groupId, i + 1, count);

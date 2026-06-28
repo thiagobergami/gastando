@@ -1,6 +1,8 @@
 import type { SettingsRepository } from '../../domain/ports';
 
-export interface SettingsUseCaseDeps { settings: SettingsRepository; }
+export interface SettingsUseCaseDeps {
+  settings: SettingsRepository;
+}
 
 export const SETTINGS_KEYS = ['monthly_income', 'fixed_costs', 'savings_goal'] as const;
 export type SettingsValues = Record<(typeof SETTINGS_KEYS)[number], number>;
@@ -22,9 +24,9 @@ export function makeSettingsUseCases(deps: SettingsUseCaseDeps) {
       return readAll();
     },
     update(body: Record<string, unknown>): SettingsValues {
-      const entries = SETTINGS_KEYS
-        .filter(k => body[k] !== undefined)
-        .map(k => [k, String(Math.trunc(body[k] as number))] as [string, string]);
+      const entries = SETTINGS_KEYS.filter((k) => body[k] !== undefined).map(
+        (k) => [k, String(Math.trunc(body[k] as number))] as [string, string],
+      );
       settings.setMany(entries);
       return readAll();
     },

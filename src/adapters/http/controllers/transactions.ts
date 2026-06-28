@@ -2,7 +2,9 @@ import express from 'express';
 import { parse } from '../validate';
 import { MONTH_RE } from '../schemas/common';
 import {
-  singleTransactionSchema, installmentTransactionSchema, updateTransactionSchema,
+  singleTransactionSchema,
+  installmentTransactionSchema,
+  updateTransactionSchema,
 } from '../schemas/transactions';
 import { AppError } from '../../../domain/errors';
 import type { makeTransactionUseCases } from '../../../application/use-cases/transactions';
@@ -26,11 +28,13 @@ export function makeTransactionsController(uc: TransactionUseCases): express.Rou
     page.offset = 0;
     if (req.query.limit !== undefined) {
       page.limit = Number(req.query.limit);
-      if (!Number.isInteger(page.limit) || (page.limit as number) < 1) throw new AppError(400, 'limit must be a positive integer');
+      if (!Number.isInteger(page.limit) || (page.limit as number) < 1)
+        throw new AppError(400, 'limit must be a positive integer');
     }
     if (req.query.offset !== undefined) {
       page.offset = Number(req.query.offset);
-      if (!Number.isInteger(page.offset) || (page.offset as number) < 0) throw new AppError(400, 'offset must be a non-negative integer');
+      if (!Number.isInteger(page.offset) || (page.offset as number) < 0)
+        throw new AppError(400, 'offset must be a non-negative integer');
     }
 
     const { total, items } = uc.list(page as any);

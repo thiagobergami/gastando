@@ -1,6 +1,11 @@
 import { api, showError } from './api.js';
 import { reaisToCents, currentMonth } from './format.js';
-import { renderLimitRows, allocationStatus, allocationText, allocationPillClass } from './budget.js';
+import {
+  renderLimitRows,
+  allocationStatus,
+  allocationText,
+  allocationPillClass,
+} from './budget.js';
 
 export const SETUP_STEPS = ['Start', 'Income', 'Fixed costs', 'Savings goal', 'Limits'];
 
@@ -30,7 +35,7 @@ export function renderStepIndicator(activeIndex) {
 }
 
 // ---- DOM bootstrap (browser only) ----
-const $ = id => document.getElementById(id);
+const $ = (id) => document.getElementById(id);
 const LIMITS_STEP = SETUP_STEPS.length - 1;
 
 if (typeof document !== 'undefined' && document.getElementById('setup')) {
@@ -41,8 +46,9 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
   let byCat = new Map();
 
   function readLimitCents() {
-    return [...document.querySelectorAll('#limits input[data-cat]')]
-      .map(inp => reaisToCents(inp.value || 0));
+    return [...document.querySelectorAll('#limits input[data-cat]')].map((inp) =>
+      reaisToCents(inp.value || 0),
+    );
   }
 
   function updateAllocation() {
@@ -50,14 +56,15 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
       readLimitCents(),
       reaisToCents($('monthly_income').value || 0),
       reaisToCents($('fixed_costs').value || 0),
-      reaisToCents($('savings_goal').value || 0));
+      reaisToCents($('savings_goal').value || 0),
+    );
     const el = $('ceiling');
     el.textContent = allocationText(status);
     el.className = allocationPillClass(status);
   }
 
   function paintTemplate() {
-    document.querySelectorAll('[data-template]').forEach(b => {
+    document.querySelectorAll('[data-template]').forEach((b) => {
       b.className = (b.dataset.template === template ? 'btn-primary' : 'btn-ghost') + ' text-left';
     });
   }
@@ -69,15 +76,16 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
     } else {
       $('limits').innerHTML = renderLimitRows(seededCats, byCat);
       $('limitsEmpty').hidden = true;
-      $('limits').querySelectorAll('input[data-cat]').forEach(inp =>
-        inp.addEventListener('input', updateAllocation));
+      $('limits')
+        .querySelectorAll('input[data-cat]')
+        .forEach((inp) => inp.addEventListener('input', updateAllocation));
     }
     updateAllocation();
   }
 
   function render() {
     $('indicator').innerHTML = renderStepIndicator(step);
-    document.querySelectorAll('[data-step]').forEach(el => {
+    document.querySelectorAll('[data-step]').forEach((el) => {
       el.hidden = Number(el.dataset.step) !== step;
     });
     $('back').disabled = step === 0;
@@ -94,17 +102,21 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
       });
       await api.post('/api/onboarding/template', { template });
       if (template !== 'blank') {
-        const puts = seededCats.map(c => {
+        const puts = seededCats.map((c) => {
           const inp = $('limits').querySelector(`input[data-cat="${c.id}"]`);
           return api.put('/api/limits', {
-            category_id: c.id, month, limit_cents: reaisToCents(inp.value || 0),
+            category_id: c.id,
+            month,
+            limit_cents: reaisToCents(inp.value || 0),
           });
         });
         await Promise.all(puts);
       }
       await api.post('/api/onboarding/complete');
       location.replace('/');
-    } catch (e) { showError(e.message); }
+    } catch (e) {
+      showError(e.message);
+    }
   }
 
   async function load() {
@@ -114,25 +126,40 @@ if (typeof document !== 'undefined' && document.getElementById('setup')) {
         api.get('/api/categories'),
         api.get(`/api/limits?month=${month}`),
       ]);
-      seededCats = categories.filter(c => c.active);
-      byCat = new Map(limits.map(l => [l.category_id, l.limit_cents]));
+      seededCats = categories.filter((c) => c.active);
+      byCat = new Map(limits.map((l) => [l.category_id, l.limit_cents]));
       $('monthly_income').value = s.monthly_income / 100;
       $('fixed_costs').value = s.fixed_costs / 100;
       $('savings_goal').value = s.savings_goal / 100;
       $('limitsMonth').textContent = month;
       paintTemplate();
       render();
-    } catch (e) { showError(e.message); }
+    } catch (e) {
+      showError(e.message);
+    }
   }
 
-  document.querySelectorAll('[data-template]').forEach(btn =>
-    btn.addEventListener('click', () => { template = btn.dataset.template; paintTemplate(); }));
-  ['monthly_income', 'fixed_costs', 'savings_goal'].forEach(id =>
-    $(id).addEventListener('input', updateAllocation));
-  $('back').addEventListener('click', () => { if (step > 0) { step--; render(); } });
+  document.querySelectorAll('[data-template]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      template = btn.dataset.template;
+      paintTemplate();
+    }),
+  );
+  ['monthly_income', 'fixed_costs', 'savings_goal'].forEach((id) =>
+    $(id).addEventListener('input', updateAllocation),
+  );
+  $('back').addEventListener('click', () => {
+    if (step > 0) {
+      step--;
+      render();
+    }
+  });
   $('continue').addEventListener('click', () => {
     if (isLastStep(step, SETUP_STEPS.length)) finish();
-    else { step++; render(); }
+    else {
+      step++;
+      render();
+    }
   });
 
   load();

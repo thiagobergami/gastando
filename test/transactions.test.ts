@@ -11,8 +11,13 @@ function appWith() {
 
 test('transactions: create, filter by month, update, delete', async () => {
   const { app, ctx } = appWith();
-  const body = { date: '2026-06-10', category_id: ctx.categoryId, card_id: ctx.cardId,
-    amount_cents: 5200, description: 'Pão de Açúcar' };
+  const body = {
+    date: '2026-06-10',
+    category_id: ctx.categoryId,
+    card_id: ctx.cardId,
+    amount_cents: 5200,
+    description: 'Pão de Açúcar',
+  };
   const t = await request(app).post('/api/transactions').send(body).expect(201);
   assert.equal(t.body.amount_cents, 5200);
   assert.equal(t.body.installment_group_id, null);
@@ -22,33 +27,49 @@ test('transactions: create, filter by month, update, delete', async () => {
   const july = await request(app).get('/api/transactions?month=2026-07').expect(200);
   assert.equal(july.body.length, 0);
 
-  await request(app).put(`/api/transactions/${t.body.id}`)
-    .send({ ...body, amount_cents: 6000 }).expect(200);
+  await request(app)
+    .put(`/api/transactions/${t.body.id}`)
+    .send({ ...body, amount_cents: 6000 })
+    .expect(200);
   await request(app).delete(`/api/transactions/${t.body.id}`).expect(204);
 });
 
 test('transactions: validation', async () => {
   const { app, ctx } = appWith();
-  await request(app).post('/api/transactions')
-    .send({ date: 'bad', category_id: ctx.categoryId, card_id: ctx.cardId, amount_cents: 100 }).expect(400);
-  await request(app).post('/api/transactions')
-    .send({ date: '2026-06-10', category_id: ctx.categoryId, card_id: ctx.cardId, amount_cents: 0 }).expect(400);
-  await request(app).post('/api/transactions')
-    .send({ date: '2026-06-10', category_id: 99999, card_id: ctx.cardId, amount_cents: 100 }).expect(400);
+  await request(app)
+    .post('/api/transactions')
+    .send({ date: 'bad', category_id: ctx.categoryId, card_id: ctx.cardId, amount_cents: 100 })
+    .expect(400);
+  await request(app)
+    .post('/api/transactions')
+    .send({ date: '2026-06-10', category_id: ctx.categoryId, card_id: ctx.cardId, amount_cents: 0 })
+    .expect(400);
+  await request(app)
+    .post('/api/transactions')
+    .send({ date: '2026-06-10', category_id: 99999, card_id: ctx.cardId, amount_cents: 100 })
+    .expect(400);
 });
 
 test('transactions: pagination with limit/offset and X-Total-Count', async () => {
   const { app, ctx } = appWith();
   for (let i = 1; i <= 5; i++) {
-    await request(app).post('/api/transactions').send({
-      date: `2026-06-0${i}`, category_id: ctx.categoryId, card_id: ctx.cardId, amount_cents: i * 100,
-    }).expect(201);
+    await request(app)
+      .post('/api/transactions')
+      .send({
+        date: `2026-06-0${i}`,
+        category_id: ctx.categoryId,
+        card_id: ctx.cardId,
+        amount_cents: i * 100,
+      })
+      .expect(201);
   }
   const p1 = await request(app).get('/api/transactions?month=2026-06&limit=2&offset=0').expect(200);
   assert.equal(p1.body.length, 2);
   assert.equal(p1.headers['x-total-count'], '5');
 
-  const last = await request(app).get('/api/transactions?month=2026-06&limit=2&offset=4').expect(200);
+  const last = await request(app)
+    .get('/api/transactions?month=2026-06&limit=2&offset=4')
+    .expect(200);
   assert.equal(last.body.length, 1);
   assert.equal(last.headers['x-total-count'], '5');
 
@@ -70,9 +91,15 @@ test('transactions: get filters and delete 404', async () => {
   await request(app).get('/api/transactions?month=bad').expect(400);
   await request(app).delete('/api/transactions/99999').expect(404);
   // Filtered GET by category_id
-  await request(app).post('/api/transactions').send({
-    date: '2026-06-10', category_id: ctx.categoryId, card_id: ctx.cardId, amount_cents: 100
-  }).expect(201);
+  await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 100,
+    })
+    .expect(201);
   const r = await request(app).get(`/api/transactions?category_id=${ctx.categoryId}`).expect(200);
   assert.equal(r.body.length, 1);
 });

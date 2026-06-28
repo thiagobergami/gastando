@@ -16,12 +16,19 @@ export function makeSimulateController(uc: SimulateUseCases): express.Router {
     const count = req.query.count === undefined ? 1 : Number(req.query.count);
     const first_month = req.query.first_month;
 
-    if (!isPositiveInt(category_id)) throw new AppError(400, 'category_id must be a positive integer');
+    if (!isPositiveInt(category_id))
+      throw new AppError(400, 'category_id must be a positive integer');
     if (!MONTH_RE.test(String(first_month))) throw new AppError(400, 'first_month must be YYYY-MM');
-    if (!isPositiveInt(total_cents)) throw new AppError(400, 'total_cents must be a positive integer');
+    if (!isPositiveInt(total_cents))
+      throw new AppError(400, 'total_cents must be a positive integer');
     if (!isPositiveInt(count)) throw new AppError(400, 'count must be a positive integer');
 
-    const result = uc.simulate({ category_id, total_cents, count, first_month: String(first_month) });
+    const result = uc.simulate({
+      category_id,
+      total_cents,
+      count,
+      first_month: String(first_month),
+    });
     if (!result) throw new AppError(404, 'category not found');
     res.json(result);
   });

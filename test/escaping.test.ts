@@ -11,8 +11,18 @@ test('groupTag escapes the group name', async () => {
 test('dashboard renderGroups escapes category name, examples and group header', async () => {
   const { renderGroups } = await import('../public/js/dashboard.js');
   const d = {
-    categories: [{ category_id: 1, name: '<b>Boom</b>', examples: 'a & b', group_id: 1,
-      group_name: 'G&G', limit_cents: 100, spent_cents: 0, status: 'ok' }],
+    categories: [
+      {
+        category_id: 1,
+        name: '<b>Boom</b>',
+        examples: 'a & b',
+        group_id: 1,
+        group_name: 'G&G',
+        limit_cents: 100,
+        spent_cents: 0,
+        status: 'ok',
+      },
+    ],
     groups: [{ group_id: 1, name: 'G&G', limit_cents: 100, spent_cents: 0 }],
     totals: {},
   };
@@ -24,8 +34,17 @@ test('dashboard renderGroups escapes category name, examples and group header', 
 
 test('transactions renderRows escapes the description', async () => {
   const { renderRows } = await import('../public/js/transactions.js');
-  const html = renderRows([{ id: 1, date: '2026-06-01', description: '<img src=x>',
-    amount_cents: 100, installment_no: null, installment_total: null, installment_group_id: null }]);
+  const html = renderRows([
+    {
+      id: 1,
+      date: '2026-06-01',
+      description: '<img src=x>',
+      amount_cents: 100,
+      installment_no: null,
+      installment_total: null,
+      installment_group_id: null,
+    },
+  ]);
   assert.doesNotMatch(html, /<img src=x>/);
   assert.match(html, /&lt;img src=x&gt;/);
 });

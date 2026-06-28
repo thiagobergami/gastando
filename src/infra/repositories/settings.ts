@@ -7,7 +7,9 @@ const UPSERT_SQL =
 export function makeSettingsRepository(db: Db): SettingsRepository {
   return {
     get(key: string): string | undefined {
-      const row = db.prepare('SELECT value FROM settings WHERE key=?').get(key) as { value: string } | undefined;
+      const row = db.prepare('SELECT value FROM settings WHERE key=?').get(key) as
+        | { value: string }
+        | undefined;
       return row ? row.value : undefined;
     },
     set(key: string, value: string): void {

@@ -1,7 +1,10 @@
 import type { Transaction } from '../../domain/entities';
 import type {
-  TransactionRepository, TransactionPage,
-  CategoryRepository, CardRepository, InstallmentRepository,
+  TransactionRepository,
+  TransactionPage,
+  CategoryRepository,
+  CardRepository,
+  InstallmentRepository,
 } from '../../domain/ports';
 import { AppError } from '../../domain/errors';
 

@@ -71,20 +71,31 @@ export function buildContainer(db: Db): Container {
       installments: repositories.installments,
     }),
     installments: makeInstallmentUseCases({ installments: repositories.installments }),
-    categories: makeCategoryUseCases({ categories: repositories.categories, groups: repositories.groups }),
+    categories: makeCategoryUseCases({
+      categories: repositories.categories,
+      groups: repositories.groups,
+    }),
     groups: makeGroupUseCases({ groups: repositories.groups }),
     cards: makeCardUseCases({ cards: repositories.cards }),
     limits: makeLimitUseCases({ limits: repositories.limits, categories: repositories.categories }),
     settings: makeSettingsUseCases({ settings: repositories.settings }),
     onboarding: makeOnboardingUseCases({ settings: repositories.settings }),
     dashboard: makeDashboardUseCases({
-      reports: repositories.reports, limits: repositories.limits, settings: repositories.settings,
+      reports: repositories.reports,
+      limits: repositories.limits,
+      settings: repositories.settings,
     }),
     bi: makeBiUseCases({
-      reports: repositories.reports, limits: repositories.limits,
-      categories: repositories.categories, cards: repositories.cards, groups: repositories.groups,
+      reports: repositories.reports,
+      limits: repositories.limits,
+      categories: repositories.categories,
+      cards: repositories.cards,
+      groups: repositories.groups,
     }),
-    simulate: makeSimulateUseCases({ categories: repositories.categories, limits: repositories.limits }),
+    simulate: makeSimulateUseCases({
+      categories: repositories.categories,
+      limits: repositories.limits,
+    }),
   };
 
   const controllers = {

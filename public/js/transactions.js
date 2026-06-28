@@ -2,12 +2,14 @@ import { api, getPage, showError } from './api.js';
 import { formatBRL, reaisToCents, centsToReais, currentMonth, esc } from './format.js';
 import { mountChrome } from './chrome.js';
 
-const $ = id => document.getElementById(id);
+const $ = (id) => document.getElementById(id);
 let editingId = null;
 let page = 1;
 
 export function renderRows(rows) {
-  return rows.map(r => `
+  return rows
+    .map(
+      (r) => `
     <tr class="border-b border-line">
       <td class="py-3 font-mono text-sm text-ink-mut">${r.date}</td>
       <td class="py-3">${esc(r.description)}
@@ -17,13 +19,21 @@ export function renderRows(rows) {
         <button data-edit="${r.id}" class="text-sage text-sm mr-2">Edit</button>
         <button data-del="${r.id}" data-group="${r.installment_group_id || ''}" class="text-clay text-sm">Delete</button>
       </td>
-    </tr>`).join('');
+    </tr>`,
+    )
+    .join('');
 }
 
 async function loadSelectors() {
   const [cats, cards] = await Promise.all([api.get('/api/categories'), api.get('/api/cards')]);
-  $('category').innerHTML = cats.filter(c => c.active).map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
-  $('card').innerHTML = cards.filter(c => c.active).map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  $('category').innerHTML = cats
+    .filter((c) => c.active)
+    .map((c) => `<option value="${c.id}">${esc(c.name)}</option>`)
+    .join('');
+  $('card').innerHTML = cards
+    .filter((c) => c.active)
+    .map((c) => `<option value="${c.id}">${esc(c.name)}</option>`)
+    .join('');
 }
 
 async function loadList() {
@@ -31,16 +41,32 @@ async function loadList() {
     const perPage = Number($('perPage').value);
     const offset = (page - 1) * perPage;
     const { items: rows, total } = await getPage(
-      `/api/transactions?month=${$('month').value}&limit=${perPage}&offset=${offset}`);
+      `/api/transactions?month=${$('month').value}&limit=${perPage}&offset=${offset}`,
+    );
     const totalPages = Math.max(1, Math.ceil(total / perPage));
-    if (page > totalPages) { page = totalPages; return loadList(); }
+    if (page > totalPages) {
+      page = totalPages;
+      return loadList();
+    }
     updatePager(total, perPage, totalPages);
     $('list').innerHTML = renderRows(rows);
-    $('list').querySelectorAll('button[data-edit]').forEach(b =>
-      b.addEventListener('click', () => startEdit(rows.find(r => r.id === Number(b.dataset.edit)))));
-    $('list').querySelectorAll('button[data-del]').forEach(b =>
-      b.addEventListener('click', () => onDelete(Number(b.dataset.del), Number(b.dataset.group) || null)));
-  } catch (e) { showError(e.message); }
+    $('list')
+      .querySelectorAll('button[data-edit]')
+      .forEach((b) =>
+        b.addEventListener('click', () =>
+          startEdit(rows.find((r) => r.id === Number(b.dataset.edit))),
+        ),
+      );
+    $('list')
+      .querySelectorAll('button[data-del]')
+      .forEach((b) =>
+        b.addEventListener('click', () =>
+          onDelete(Number(b.dataset.del), Number(b.dataset.group) || null),
+        ),
+      );
+  } catch (e) {
+    showError(e.message);
+  }
 }
 
 function updatePager(total, perPage, totalPages) {
@@ -88,42 +114,71 @@ async function onDelete(id, groupId) {
     }
     if (editingId === id) resetForm();
     loadList();
-  } catch (e) { showError(e.message); }
+  } catch (e) {
+    showError(e.message);
+  }
 }
 
 async function onSubmit(e) {
   e.preventDefault();
   try {
-    const base = { category_id: Number($('category').value), card_id: Number($('card').value),
-      description: $('description').value };
+    const base = {
+      category_id: Number($('category').value),
+      card_id: Number($('card').value),
+      description: $('description').value,
+    };
     if (editingId !== null) {
-      await api.put(`/api/transactions/${editingId}`, { ...base,
-        date: $('date').value, amount_cents: reaisToCents($('amount').value) });
+      await api.put(`/api/transactions/${editingId}`, {
+        ...base,
+        date: $('date').value,
+        amount_cents: reaisToCents($('amount').value),
+      });
     } else if ($('isInstallment').checked) {
-      await api.post('/api/transactions', { ...base,
+      await api.post('/api/transactions', {
+        ...base,
         installment_total_cents: reaisToCents($('amount').value),
         installment_count: Number($('count').value),
-        first_month: $('firstMonth').value });
+        first_month: $('firstMonth').value,
+      });
     } else {
-      await api.post('/api/transactions', { ...base,
-        date: $('date').value, amount_cents: reaisToCents($('amount').value) });
+      await api.post('/api/transactions', {
+        ...base,
+        date: $('date').value,
+        amount_cents: reaisToCents($('amount').value),
+      });
     }
     resetForm();
     loadList();
-  } catch (err) { showError(err.message); }
+  } catch (err) {
+    showError(err.message);
+  }
 }
 
 if (typeof document !== 'undefined' && document.getElementById('list')) {
   mountChrome('/transactions.html');
   $('month').value = currentMonth();
-  $('isInstallment').addEventListener('change', e => {
+  $('isInstallment').addEventListener('change', (e) => {
     $('installmentFields').style.display = e.target.checked ? 'contents' : 'none';
     $('amount').disabled = e.target.checked;
   });
-  $('month').addEventListener('change', () => { page = 1; loadList(); });
-  $('perPage').addEventListener('change', () => { page = 1; loadList(); });
-  $('prevPage').addEventListener('click', () => { if (page > 1) { page--; loadList(); } });
-  $('nextPage').addEventListener('click', () => { page++; loadList(); });
+  $('month').addEventListener('change', () => {
+    page = 1;
+    loadList();
+  });
+  $('perPage').addEventListener('change', () => {
+    page = 1;
+    loadList();
+  });
+  $('prevPage').addEventListener('click', () => {
+    if (page > 1) {
+      page--;
+      loadList();
+    }
+  });
+  $('nextPage').addEventListener('click', () => {
+    page++;
+    loadList();
+  });
   $('form').addEventListener('submit', onSubmit);
   $('cancelEdit').addEventListener('click', resetForm);
   const fab = document.getElementById('fab');

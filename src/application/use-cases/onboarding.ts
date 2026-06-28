@@ -1,7 +1,9 @@
 import type { SettingsRepository } from '../../domain/ports';
 import { AppError } from '../../domain/errors';
 
-export interface OnboardingUseCaseDeps { settings: SettingsRepository; }
+export interface OnboardingUseCaseDeps {
+  settings: SettingsRepository;
+}
 
 const KEY = 'onboarding_complete';
 
@@ -20,7 +22,8 @@ export function makeOnboardingUseCases(deps: OnboardingUseCaseDeps) {
     },
     applyTemplate(template: unknown): { template: string } {
       if (isComplete()) throw new AppError(409, 'onboarding already complete');
-      if (template !== 'suggested' && template !== 'blank') throw new AppError(400, 'invalid template');
+      if (template !== 'suggested' && template !== 'blank')
+        throw new AppError(400, 'invalid template');
       if (settings.countTransactions() > 0 || settings.countInstallmentGroups() > 0) {
         throw new AppError(409, 'cannot reset after data exists');
       }
