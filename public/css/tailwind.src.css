@@ -11,6 +11,7 @@
   .meter { @apply h-2 rounded-full bg-line overflow-hidden; }
   .meter-fill { @apply h-full rounded-full bg-sage transition-all; }
   .meter-fill.over { @apply bg-clay-soft; }
+  .meter-fill.approaching { @apply bg-gold-accent; }
   .tag { @apply inline-block text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded; }
   .tag-sage { @apply bg-sage-soft/20 text-sage; }
   .tag-gold { @apply bg-gold-accent/20 text-gold; }
@@ -19,6 +20,7 @@
   .pill { @apply inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full; }
   .pill-ok { @apply bg-sage-soft/20 text-sage; }
   .pill-over { @apply bg-clay-soft/20 text-clay; }
+  .pill-warn { @apply bg-gold-accent/20 text-gold; }
   .label-caps { @apply text-xs font-semibold uppercase tracking-wide; }
   .step-indicator { @apply flex flex-wrap gap-x-4 gap-y-2 my-3; }
   .step { @apply flex items-center gap-2 text-sm text-ink-mut; }

@@ -122,6 +122,31 @@ test('renderGroups omits carryover badge when not carrying', async () => {
   assert.doesNotMatch(html, /carryover/);
 });
 
+test('renderGroups shows approaching meter and warn pill', async () => {
+  const { renderGroups } = await import('../public/js/dashboard.js');
+  const d = {
+    categories: [
+      {
+        category_id: 3,
+        name: 'Lazer',
+        examples: '',
+        group_id: 1,
+        group_name: 'Estilo de vida',
+        limit_cents: 10000,
+        spent_cents: 8500,
+        status: 'approaching',
+      },
+    ],
+    groups: [{ group_id: 1, name: 'Estilo de vida', limit_cents: 10000, spent_cents: 8500 }],
+    totals: {},
+  };
+  const html = renderGroups(d);
+  assert.match(html, /meter-fill approaching/);
+  assert.doesNotMatch(html, /meter-fill over/);
+  assert.match(html, /pill-warn/);
+  assert.match(html, /Close/);
+});
+
 test('renderGroups links each category to its detail screen', async () => {
   const { renderGroups } = await import('../public/js/dashboard.js');
   const html = renderGroups({ ...data, month: '2026-06' });

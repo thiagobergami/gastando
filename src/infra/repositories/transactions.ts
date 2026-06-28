@@ -17,6 +17,10 @@ function buildWhere(f: TransactionFilter): { clause: string; args: unknown[] } {
     where.push('card_id = ?');
     args.push(f.cardId);
   }
+  if (f.q !== undefined && f.q !== '') {
+    where.push('description LIKE ?');
+    args.push(`%${f.q}%`);
+  }
   return { clause: where.length ? `WHERE ${where.join(' AND ')}` : '', args };
 }
 

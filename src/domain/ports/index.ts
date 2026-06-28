@@ -38,6 +38,7 @@ export interface TransactionFilter {
   month?: string;
   categoryId?: number;
   cardId?: number;
+  q?: string;
 }
 export interface TransactionPage extends TransactionFilter {
   limit?: number | null;

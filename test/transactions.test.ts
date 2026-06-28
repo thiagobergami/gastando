@@ -103,3 +103,24 @@ test('transactions: get filters and delete 404', async () => {
   const r = await request(app).get(`/api/transactions?category_id=${ctx.categoryId}`).expect(200);
   assert.equal(r.body.length, 1);
 });
+
+test('GET /api/transactions filters by description q', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  const add = (d) =>
+    request(app)
+      .post('/api/transactions')
+      .send({
+        date: '2026-06-01',
+        category_id: ctx.categoryId,
+        card_id: ctx.cardId,
+        amount_cents: 100,
+        description: d,
+      })
+      .expect(201);
+  await add('Coffee at Starbucks');
+  await add('Groceries');
+  const res = await request(app).get('/api/transactions?q=coffee').expect(200);
+  assert.equal(res.body.length, 1);
+  assert.match(res.body[0].description, /Coffee/);
+});

@@ -9,6 +9,11 @@ type LimitUseCases = ReturnType<typeof makeLimitUseCases>;
 export function makeLimitsController(uc: LimitUseCases): express.Router {
   const router = express.Router();
 
+  router.get('/suggestions', (req, res) => {
+    const { month } = parse(monthQuerySchema, req.query);
+    res.json(uc.suggestions(month));
+  });
+
   router.get('/', (req, res) => {
     const { month } = parse(monthQuerySchema, req.query);
     res.json(uc.listForMonth(month));

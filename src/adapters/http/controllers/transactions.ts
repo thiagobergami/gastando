@@ -23,6 +23,7 @@ export function makeTransactionsController(uc: TransactionUseCases): express.Rou
     }
     if (category_id !== undefined) page.categoryId = Number(category_id);
     if (card_id !== undefined) page.cardId = Number(card_id);
+    if (req.query.q !== undefined) page.q = String(req.query.q);
 
     page.limit = null;
     page.offset = 0;
