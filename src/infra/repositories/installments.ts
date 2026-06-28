@@ -62,6 +62,20 @@ export function makeInstallmentRepository(db: Db): InstallmentRepository {
       });
       tx();
     },
+    payOffEarly(id, asOfMonth): void {
+      const tx = db.transaction(() => {
+        const exists = db.prepare('SELECT id FROM installment_groups WHERE id=?').get(id);
+        if (!exists) throw new AppError(404, 'installment group not found');
+        const r = db
+          .prepare(
+            `UPDATE transactions SET date=@date
+           WHERE installment_group_id=@id AND strftime('%Y-%m', date) > @asOf`,
+          )
+          .run({ date: `${asOfMonth}-01`, id, asOf: asOfMonth });
+        if (r.changes === 0) throw new AppError(400, 'no future parcelas to pay off');
+      });
+      tx();
+    },
     listWithProgress(asOfMonth: string) {
       return db
         .prepare(

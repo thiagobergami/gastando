@@ -22,6 +22,14 @@ export function makeInstallmentGroupsController(uc: InstallmentUseCases): expres
     res.status(204).end();
   });
 
+  router.post('/:id/payoff', (req, res) => {
+    const m = req.body.month;
+    const month =
+      typeof m === 'string' && MONTH_RE.test(m) ? m : new Date().toISOString().slice(0, 7);
+    uc.payOff(Number(req.params.id), month);
+    res.status(204).end();
+  });
+
   router.delete('/:id', (req, res) => {
     uc.remove(Number(req.params.id));
     res.status(204).end();

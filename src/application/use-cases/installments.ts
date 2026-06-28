@@ -37,5 +37,8 @@ export function makeInstallmentUseCases(deps: InstallmentUseCaseDeps) {
     remove(id: number): void {
       installments.remove(id);
     },
+    payOff(id: number, asOfMonth: string): void {
+      installments.payOffEarly(id, asOfMonth);
+    },
   };
 }

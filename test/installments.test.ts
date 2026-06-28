@@ -282,3 +282,64 @@ test('use-case update rejects an unknown category with 400', async () => {
     })
     .expect(400);
 });
+
+test('payOffEarly collapses future parcelas into asOf month', () => {
+  const ctx = makeTestDb();
+  const repo = makeInstallmentRepository(ctx.db);
+  const id = repo.createPurchase({
+    category_id: ctx.categoryId,
+    card_id: ctx.cardId,
+    description: 'TV',
+    total_cents: 60000,
+    count: 6,
+    first_month: '2026-06',
+  });
+  repo.payOffEarly(id, '2026-08');
+  const rows = repo.listWithProgress('2026-08');
+  assert.equal(rows[0].remaining_count, 0);
+  assert.equal(rows[0].paid_cents, 60000);
+  // August now carries June..Aug parcelas plus the 3 collapsed ones.
+  const aug = ctx.db
+    .prepare(
+      "SELECT COALESCE(SUM(amount_cents),0) s FROM transactions WHERE installment_group_id=? AND strftime('%Y-%m',date)='2026-08'",
+    )
+    .get(id).s;
+  assert.equal(aug, 40000); // Aug parcela 10000 + Sep/Oct/Nov 30000 moved in
+});
+
+test('payOffEarly with nothing left throws 400', () => {
+  const ctx = makeTestDb();
+  const repo = makeInstallmentRepository(ctx.db);
+  const id = repo.createPurchase({
+    category_id: ctx.categoryId,
+    card_id: ctx.cardId,
+    description: 'TV',
+    total_cents: 1200,
+    count: 2,
+    first_month: '2026-06',
+  });
+  assert.throws(
+    () => repo.payOffEarly(id, '2027-01'),
+    (e) => e.status === 400,
+  );
+});
+
+test('POST /api/installment-groups/:id/payoff returns 204', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  const made = await request(app)
+    .post('/api/transactions')
+    .send({
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      description: 'TV',
+      installment_total_cents: 60000,
+      installment_count: 6,
+      first_month: '2026-06',
+    })
+    .expect(201);
+  await request(app)
+    .post(`/api/installment-groups/${made.body.installment_group_id}/payoff`)
+    .send({ month: '2026-08' })
+    .expect(204);
+});

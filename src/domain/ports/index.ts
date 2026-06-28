@@ -99,6 +99,7 @@ export interface InstallmentRepository {
       first_month: string;
     },
   ): void; // atomic re-expand; throws AppError(404) if absent
+  payOffEarly(id: number, asOfMonth: string): void; // re-date remaining parcelas to asOf; 404/400
 }
 
 export interface SettingsRepository {
