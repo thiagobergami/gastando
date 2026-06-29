@@ -103,3 +103,47 @@ test('materialize flags an amount change vs the prior month', () => {
   const r = ucFor(ctx).materialize('2026-06');
   assert.deepEqual(r.changed, [{ template_id: t.id, from_cents: 4500, to_cents: 5000 }]);
 });
+
+const request = require('supertest');
+const { createApp } = require('../src/app');
+
+test('recurring CRUD + materialize over HTTP', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  const made = await request(app)
+    .post('/api/recurring')
+    .send({
+      description: 'Netflix',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 4590,
+      day_of_month: 15,
+    })
+    .expect(201);
+  assert.equal((await request(app).get('/api/recurring').expect(200)).body.length, 1);
+  const res = await request(app)
+    .post('/api/recurring/materialize')
+    .send({ month: '2026-06' })
+    .expect(200);
+  assert.deepEqual(res.body.created, [made.body.id]);
+  await request(app).delete(`/api/recurring/${made.body.id}`).expect(204);
+  assert.equal(
+    (await request(app).get('/api/recurring').expect(200)).body.filter((t) => t.active).length,
+    0,
+  );
+});
+
+test('POST /api/recurring with unknown card -> 400', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  await request(app)
+    .post('/api/recurring')
+    .send({
+      description: 'X',
+      category_id: ctx.categoryId,
+      card_id: 99999,
+      amount_cents: 100,
+      day_of_month: 1,
+    })
+    .expect(400);
+});

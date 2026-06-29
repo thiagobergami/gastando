@@ -7,6 +7,7 @@ import { makeGroupsController } from '../adapters/http/controllers/groups';
 import { makeInstallmentGroupsController } from '../adapters/http/controllers/installmentGroups';
 import { makeLimitsController } from '../adapters/http/controllers/limits';
 import { makeOnboardingController } from '../adapters/http/controllers/onboarding';
+import { makeRecurringController } from '../adapters/http/controllers/recurring';
 import { makeSettingsController } from '../adapters/http/controllers/settings';
 import { makeSimulateController } from '../adapters/http/controllers/simulate';
 import { makeTransactionsController } from '../adapters/http/controllers/transactions';
@@ -47,6 +48,7 @@ export interface Container {
     dashboard: express.Router;
     bi: express.Router;
     simulate: express.Router;
+    recurring: express.Router;
   };
 }
 
@@ -123,6 +125,7 @@ export function buildContainer(db: Db): Container {
     dashboard: makeDashboardController(useCases.dashboard),
     bi: makeBiController(useCases.bi),
     simulate: makeSimulateController(useCases.simulate),
+    recurring: makeRecurringController(useCases.recurring),
   };
 
   return { db, controllers };
