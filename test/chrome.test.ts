@@ -3,7 +3,7 @@ const assert = require('node:assert');
 
 test('renderNav', async () => {
   const { renderNav, NAV_ITEMS } = await import('../public/js/chrome.js');
-  assert.equal(NAV_ITEMS.length, 6);
+  assert.equal(NAV_ITEMS.length, 7);
 
   const html = renderNav('/transactions.html');
   // all five labels present
