@@ -1,4 +1,11 @@
-import type { Card, Category, Group, InstallmentProgress, Transaction } from '../entities';
+import type {
+  Card,
+  Category,
+  Group,
+  InstallmentProgress,
+  RecurringTemplate,
+  Transaction,
+} from '../entities';
 
 export interface GroupRepository {
   listActive(): Group[];
@@ -110,6 +117,41 @@ export interface SettingsRepository {
   countTransactions(): number;
   countInstallmentGroups(): number;
   wipeCategoryData(): void; // atomic: delete limits, categories, groups
+}
+
+export interface RecurringRepository {
+  list(): RecurringTemplate[];
+  listActive(): RecurringTemplate[];
+  findById(id: number): RecurringTemplate | undefined;
+  insert(t: {
+    description: string;
+    category_id: number;
+    card_id: number;
+    amount_cents: number;
+    day_of_month: number;
+  }): RecurringTemplate;
+  update(
+    id: number,
+    t: {
+      description: string;
+      category_id: number;
+      card_id: number;
+      amount_cents: number;
+      day_of_month: number;
+      active: number;
+    },
+  ): number;
+  deactivate(id: number): number;
+  findChargeForMonth(templateId: number, month: string): boolean;
+  insertCharge(c: {
+    template_id: number;
+    date: string;
+    category_id: number;
+    card_id: number;
+    amount_cents: number;
+    description: string;
+  }): number;
+  lastChargeAmountBefore(templateId: number, month: string): number | null;
 }
 
 export interface ReportRepository {

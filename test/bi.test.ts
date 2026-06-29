@@ -178,3 +178,27 @@ test('bi category-trend validates inputs (400s)', async () => {
     .get(`/api/bi/category-trend?category_id=${ctx.categoryId}&from=2026-08&to=2026-06`)
     .expect(400); // from > to
 });
+
+test('savingsTrend = income - fixed - spend, vs goal', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  await request(app)
+    .put('/api/settings')
+    .send({ monthly_income: 1000000, fixed_costs: 300000, savings_goal: 200000 })
+    .expect(200);
+  await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 100000,
+      description: 'x',
+    })
+    .expect(201);
+  const res = await request(app).get('/api/bi/savings-trend?from=2026-06&to=2026-06').expect(200);
+  const projected = res.body.series.find((s) => s.name === 'Projected savings');
+  const goal = res.body.series.find((s) => s.name === 'Goal');
+  assert.equal(projected.spent_cents[0], 600000); // 1,000,000 - 300,000 - 100,000
+  assert.equal(goal.spent_cents[0], 200000);
+});

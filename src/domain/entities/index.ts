@@ -61,3 +61,12 @@ export interface Transaction {
   installment_no: number | null;
   installment_total: number | null;
 }
+export interface RecurringTemplate {
+  id: number;
+  description: string;
+  category_id: number;
+  card_id: number;
+  amount_cents: number;
+  day_of_month: number;
+  active: number;
+}

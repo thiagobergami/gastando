@@ -19,3 +19,13 @@ export function monthRange(from: string, to: string): string[] {
   }
   return months;
 }
+
+export function daysInMonth(month: string): number {
+  const [y, m] = month.split('-').map(Number);
+  return new Date(y, m, 0).getDate();
+}
+
+export function chargeDate(month: string, day: number): string {
+  const d = Math.min(Math.max(1, day), daysInMonth(month));
+  return `${month}-${String(d).padStart(2, '0')}`;
+}

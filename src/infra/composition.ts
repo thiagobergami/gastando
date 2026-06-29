@@ -7,6 +7,7 @@ import { makeGroupsController } from '../adapters/http/controllers/groups';
 import { makeInstallmentGroupsController } from '../adapters/http/controllers/installmentGroups';
 import { makeLimitsController } from '../adapters/http/controllers/limits';
 import { makeOnboardingController } from '../adapters/http/controllers/onboarding';
+import { makeRecurringController } from '../adapters/http/controllers/recurring';
 import { makeSettingsController } from '../adapters/http/controllers/settings';
 import { makeSimulateController } from '../adapters/http/controllers/simulate';
 import { makeTransactionsController } from '../adapters/http/controllers/transactions';
@@ -18,6 +19,7 @@ import { makeGroupUseCases } from '../application/use-cases/groups';
 import { makeInstallmentUseCases } from '../application/use-cases/installments';
 import { makeLimitUseCases } from '../application/use-cases/limits';
 import { makeOnboardingUseCases } from '../application/use-cases/onboarding';
+import { makeRecurringUseCases } from '../application/use-cases/recurring';
 import { makeSettingsUseCases } from '../application/use-cases/settings';
 import { makeSimulateUseCases } from '../application/use-cases/simulate';
 import { makeTransactionUseCases } from '../application/use-cases/transactions';
@@ -27,6 +29,7 @@ import { makeCategoryRepository } from './repositories/categories';
 import { makeGroupRepository } from './repositories/groups';
 import { makeInstallmentRepository } from './repositories/installments';
 import { makeLimitRepository } from './repositories/limits';
+import { makeRecurringRepository } from './repositories/recurring';
 import { makeReportRepository } from './repositories/reports';
 import { makeSettingsRepository } from './repositories/settings';
 import { makeTransactionRepository } from './repositories/transactions';
@@ -45,6 +48,7 @@ export interface Container {
     dashboard: express.Router;
     bi: express.Router;
     simulate: express.Router;
+    recurring: express.Router;
   };
 }
 
@@ -58,6 +62,7 @@ export function buildContainer(db: Db): Container {
     installments: makeInstallmentRepository(db),
     settings: makeSettingsRepository(db),
     reports: makeReportRepository(db),
+    recurring: makeRecurringRepository(db),
   };
 
   const useCases = {
@@ -96,10 +101,16 @@ export function buildContainer(db: Db): Container {
       categories: repositories.categories,
       cards: repositories.cards,
       groups: repositories.groups,
+      settings: repositories.settings,
     }),
     simulate: makeSimulateUseCases({
       categories: repositories.categories,
       limits: repositories.limits,
+    }),
+    recurring: makeRecurringUseCases({
+      recurring: repositories.recurring,
+      categories: repositories.categories,
+      cards: repositories.cards,
     }),
   };
 
@@ -115,6 +126,7 @@ export function buildContainer(db: Db): Container {
     dashboard: makeDashboardController(useCases.dashboard),
     bi: makeBiController(useCases.bi),
     simulate: makeSimulateController(useCases.simulate),
+    recurring: makeRecurringController(useCases.recurring),
   };
 
   return { db, controllers };
