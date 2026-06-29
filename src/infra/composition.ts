@@ -18,6 +18,7 @@ import { makeGroupUseCases } from '../application/use-cases/groups';
 import { makeInstallmentUseCases } from '../application/use-cases/installments';
 import { makeLimitUseCases } from '../application/use-cases/limits';
 import { makeOnboardingUseCases } from '../application/use-cases/onboarding';
+import { makeRecurringUseCases } from '../application/use-cases/recurring';
 import { makeSettingsUseCases } from '../application/use-cases/settings';
 import { makeSimulateUseCases } from '../application/use-cases/simulate';
 import { makeTransactionUseCases } from '../application/use-cases/transactions';
@@ -27,6 +28,7 @@ import { makeCategoryRepository } from './repositories/categories';
 import { makeGroupRepository } from './repositories/groups';
 import { makeInstallmentRepository } from './repositories/installments';
 import { makeLimitRepository } from './repositories/limits';
+import { makeRecurringRepository } from './repositories/recurring';
 import { makeReportRepository } from './repositories/reports';
 import { makeSettingsRepository } from './repositories/settings';
 import { makeTransactionRepository } from './repositories/transactions';
@@ -58,6 +60,7 @@ export function buildContainer(db: Db): Container {
     installments: makeInstallmentRepository(db),
     settings: makeSettingsRepository(db),
     reports: makeReportRepository(db),
+    recurring: makeRecurringRepository(db),
   };
 
   const useCases = {
@@ -100,6 +103,11 @@ export function buildContainer(db: Db): Container {
     simulate: makeSimulateUseCases({
       categories: repositories.categories,
       limits: repositories.limits,
+    }),
+    recurring: makeRecurringUseCases({
+      recurring: repositories.recurring,
+      categories: repositories.categories,
+      cards: repositories.cards,
     }),
   };
 
