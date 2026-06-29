@@ -6,18 +6,20 @@ import { addMonths, currentMonth } from './format.js';
 async function run() {
   try {
     const qs = `from=${document.getElementById('from').value}&to=${document.getElementById('to').value}`;
-    const [trends, byCard, byGroup, bva, forecast] = await Promise.all([
+    const [trends, byCard, byGroup, bva, forecast, savings] = await Promise.all([
       api.get(`/api/bi/trends?${qs}`),
       api.get(`/api/bi/by-card?${qs}`),
       api.get(`/api/bi/by-group?${qs}`),
       api.get(`/api/bi/budget-vs-actual?${qs}`),
       api.get(`/api/bi/installment-forecast?${qs}`),
+      api.get(`/api/bi/savings-trend?${qs}`),
     ]);
     lineChart('chart', trends.months, trends.series, true);
     lineChart('byCard', byCard.months, byCard.series, false);
     lineChart('byGroup', byGroup.months, byGroup.series, false);
     lineChart('budgetVsActual', bva.months, bva.series, false);
     lineChart('installmentForecast', forecast.months, forecast.series, false);
+    lineChart('savingsTrend', savings.months, savings.series, false);
   } catch (e) {
     showError(e.message);
   }
