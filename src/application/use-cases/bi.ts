@@ -4,6 +4,7 @@ import type {
   GroupRepository,
   LimitRepository,
   ReportRepository,
+  SettingsRepository,
 } from '../../domain/ports';
 import { monthRange } from '../../domain/services/dates';
 
@@ -13,10 +14,11 @@ export interface BiUseCaseDeps {
   categories: CategoryRepository;
   cards: CardRepository;
   groups: GroupRepository;
+  settings: SettingsRepository;
 }
 
 export function makeBiUseCases(deps: BiUseCaseDeps) {
-  const { reports, limits, categories, cards, groups } = deps;
+  const { reports, limits, categories, cards, groups, settings } = deps;
 
   return {
     trends(from: string, to: string) {
@@ -88,6 +90,25 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
             spent_cents: months.map((m) => reports.spendByCategoryMonth(categoryId, m)),
           },
           { name: 'Limit', spent_cents: months.map((m) => limits.resolve(categoryId, m)) },
+        ],
+      };
+    },
+
+    savingsTrend(from: string, to: string) {
+      const months = monthRange(from, to);
+      const num = (k: string) => {
+        const v = settings.get(k);
+        return v !== undefined ? Number(v) : 0;
+      };
+      const income = num('monthly_income');
+      const fixed = num('fixed_costs');
+      const goal = num('savings_goal');
+      const projected = months.map((m) => income - fixed - reports.spendAllMonth(m));
+      return {
+        months,
+        series: [
+          { name: 'Projected savings', spent_cents: projected },
+          { name: 'Goal', spent_cents: months.map(() => goal) },
         ],
       };
     },
