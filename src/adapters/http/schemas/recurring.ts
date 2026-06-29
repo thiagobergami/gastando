@@ -7,6 +7,7 @@ const dayOfMonth = z.custom<number>(
 );
 
 export const recurringBodySchema = z.object({
+  description: z.string().optional(),
   category_id: zPositiveInt('category_id must be a positive integer'),
   card_id: zPositiveInt('card_id must be a positive integer'),
   amount_cents: zPositiveInt('amount_cents must be a positive integer'),

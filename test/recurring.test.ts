@@ -147,3 +147,63 @@ test('POST /api/recurring with unknown card -> 400', async () => {
     })
     .expect(400);
 });
+
+test('POST /api/recurring with object description -> 400', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  await request(app)
+    .post('/api/recurring')
+    .send({
+      description: { evil: true },
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 100,
+      day_of_month: 1,
+    })
+    .expect(400);
+});
+
+test('PUT /api/recurring/:id updates fields and returns updated template', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  const created = await request(app)
+    .post('/api/recurring')
+    .send({
+      description: 'Spotify',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 2190,
+      day_of_month: 10,
+    })
+    .expect(201);
+
+  const updated = await request(app)
+    .put(`/api/recurring/${created.body.id}`)
+    .send({
+      description: 'Spotify Premium',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 2490,
+      day_of_month: 15,
+    })
+    .expect(200);
+
+  assert.equal(updated.body.amount_cents, 2490);
+  assert.equal(updated.body.day_of_month, 15);
+  assert.equal(updated.body.description, 'Spotify Premium');
+});
+
+test('PUT /api/recurring/99999 (nonexistent) -> 404', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  await request(app)
+    .put('/api/recurring/99999')
+    .send({
+      description: 'Ghost',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 100,
+      day_of_month: 1,
+    })
+    .expect(404);
+});
