@@ -4,6 +4,7 @@ import {
   allocationStatus,
   allocationText,
   ceilingText,
+  nameEditor,
   renderGroupedLimitRows,
   renderLimitRows,
 } from './budget.js';
@@ -83,33 +84,44 @@ async function loadLimits() {
   }
 }
 
-async function renameCategory(id) {
-  const cat = state.cats.find((c) => c.id === id);
-  const name = prompt('Rename category', cat.name);
-  if (!name || name === cat.name) return;
-  await api.put(`/api/categories/${id}`, { ...cat, name });
-  await loadLimits();
+function beginRename(kind, id) {
+  const cell = $('limits').querySelector(`[data-name-cell="${kind}:${id}"]`);
+  if (!cell) return;
+  const cur = kind === 'cat'
+    ? state.cats.find((c) => c.id === id).name
+    : state.groups.find((g) => g.id === id).name;
+  cell.innerHTML = nameEditor(kind, id, cur);
+  cell.querySelector('input').focus();
 }
 
-async function renameGroup(id) {
-  const g = state.groups.find((x) => x.id === id);
-  const name = prompt('Rename group', g.name);
-  if (!name || name === g.name) return;
-  await api.put(`/api/groups/${id}`, { ...g, name });
-  await loadLimits();
+function beginAdd(kind, groupId) {
+  // For addcat: replace the "+ Add category" button cell content.
+  // For addgroup: replace the "+ Add group" button cell content.
+  const attr = kind === 'addcat' ? `data-add-cat="${groupId}"` : 'data-add-group';
+  const btn = $('limits').querySelector(`[${attr}]`);
+  if (!btn) return;
+  const cell = btn.closest('td');
+  if (!cell) return;
+  cell.innerHTML = nameEditor(kind, groupId, '');
+  cell.querySelector('input').focus();
 }
 
-async function addCategory(groupId) {
-  const name = prompt('New category name');
-  if (!name) return;
-  await api.post('/api/categories', { group_id: groupId, name });
-  await loadLimits();
-}
-
-async function addGroup() {
-  const name = prompt('New group name');
-  if (!name) return;
-  await api.post('/api/groups', { name });
+async function saveEdit(token) {
+  const [kind, rawId] = token.split(':');
+  const id = rawId;
+  const val = $('limits').querySelector(`[data-edit-input="${token}"]`).value.trim();
+  if (!val) { await loadLimits(); return; }
+  if (kind === 'cat') {
+    const c = state.cats.find((x) => x.id === Number(id));
+    await api.put(`/api/categories/${id}`, { ...c, name: val });
+  } else if (kind === 'group') {
+    const g = state.groups.find((x) => x.id === Number(id));
+    await api.put(`/api/groups/${id}`, { ...g, name: val });
+  } else if (kind === 'addcat') {
+    await api.post('/api/categories', { group_id: Number(id), name: val });
+  } else if (kind === 'addgroup') {
+    await api.post('/api/groups', { name: val });
+  }
   await loadLimits();
 }
 
@@ -127,11 +139,11 @@ async function onLimitsClick(e) {
       return;
     }
     if (d.catRename) {
-      await renameCategory(Number(d.catRename));
+      beginRename('cat', Number(d.catRename));
       return;
     }
     if (d.groupRename) {
-      await renameGroup(Number(d.groupRename));
+      beginRename('group', Number(d.groupRename));
       return;
     }
     if (d.groupColor) {
@@ -141,11 +153,19 @@ async function onLimitsClick(e) {
       return;
     }
     if (d.addCat) {
-      await addCategory(Number(d.addCat));
+      beginAdd('addcat', d.addCat);
       return;
     }
     if (e.target.hasAttribute('data-add-group')) {
-      await addGroup();
+      beginAdd('addgroup', 'new');
+      return;
+    }
+    if (d.save) {
+      await saveEdit(d.save);
+      return;
+    }
+    if (d.cancel) {
+      await loadLimits();
       return;
     }
   } catch (err) {

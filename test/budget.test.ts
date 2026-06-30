@@ -63,3 +63,16 @@ test('colorSwatches renders a button per palette color and marks the current', a
   assert.match(html, /data-group-color="3"/);
   assert.match(html, /data-color="gold"[^>]*ring/); // current is highlighted
 });
+
+test('nameEditor renders an input prefilled with the current value', async () => {
+  const { nameEditor } = await import('../public/js/budget.js');
+  const html = nameEditor('cat', 5, 'Mercado');
+  assert.match(html, /data-save="cat:5"/);
+  assert.match(html, /data-cancel="cat:5"/);
+  assert.match(html, /value="Mercado"/);
+});
+
+test('nameEditor escapes the value', async () => {
+  const { nameEditor } = await import('../public/js/budget.js');
+  assert.doesNotMatch(nameEditor('group', 1, '"<x>'), /<x>/);
+});
