@@ -3,6 +3,14 @@ import { esc, formatBRL } from './format.js';
 // Pure budget-model helpers shared by the Settings page and the setup wizard.
 // Kept free of DOM side-effects so either page can import them safely.
 
+export const GROUP_COLORS = ['sage', 'gold', 'slate', 'neutral'];
+
+export function colorSwatches(groupId, current) {
+  return GROUP_COLORS.map(c =>
+    `<button data-group-color="${groupId}" data-color="${c}" title="${c}"
+       class="tag tag-${c} mr-1 ${c === current ? 'ring-2 ring-ink' : ''}">${c}</button>`).join('');
+}
+
 export function ceilingText(income, fixed, goal) {
   return `Healthy ceiling ${formatBRL(income - fixed - goal)}`;
 }
@@ -47,7 +55,7 @@ export function renderGroupedLimitRows(groups, cats, byCat) {
         <td class="py-2" colspan="2"><span class="tag tag-${esc(g.color)}">${esc(g.name)}</span></td>
         <td class="py-2 text-right">
           <button data-group-rename="${g.id}" class="text-sage text-sm mr-2">Rename</button>
-          <button data-group-recolor="${g.id}" class="text-sage text-sm mr-2">Color</button>
+          ${colorSwatches(g.id, g.color)}
           <button data-group-del="${g.id}" class="text-clay text-sm">Remove</button>
         </td>
       </tr>

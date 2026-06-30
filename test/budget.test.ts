@@ -55,3 +55,11 @@ test('allocationPillClass flips between ok and over across the boundary', async 
   assert.equal(allocationPillClass(within), 'pill pill-ok');
   assert.equal(allocationPillClass(over), 'pill pill-over');
 });
+
+test('colorSwatches renders a button per palette color and marks the current', async () => {
+  const { colorSwatches, GROUP_COLORS } = await import('../public/js/budget.js');
+  const html = colorSwatches(3, 'gold');
+  for (const c of GROUP_COLORS) assert.match(html, new RegExp(`data-color="${c}"`));
+  assert.match(html, /data-group-color="3"/);
+  assert.match(html, /data-color="gold"[^>]*ring/); // current is highlighted
+});

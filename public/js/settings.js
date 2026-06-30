@@ -13,7 +13,6 @@ import { currentMonth, esc, reaisToCents } from './format.js';
 // Re-exported so existing importers (and tests) can keep reaching them here.
 export { ceilingText, renderGroupedLimitRows, renderLimitRows };
 
-const COLORS = ['sage', 'gold', 'slate', 'neutral'];
 const $ = (id) => document.getElementById(id);
 const state = { groups: [], cats: [] };
 
@@ -100,18 +99,6 @@ async function renameGroup(id) {
   await loadLimits();
 }
 
-async function recolorGroup(id) {
-  const g = state.groups.find((x) => x.id === id);
-  const color = prompt(`Color (${COLORS.join(', ')})`, g.color);
-  if (!color || color === g.color) return;
-  if (!COLORS.includes(color)) {
-    showError(`Color must be one of: ${COLORS.join(', ')}`);
-    return;
-  }
-  await api.put(`/api/groups/${id}`, { ...g, color });
-  await loadLimits();
-}
-
 async function addCategory(groupId) {
   const name = prompt('New category name');
   if (!name) return;
@@ -147,8 +134,10 @@ async function onLimitsClick(e) {
       await renameGroup(Number(d.groupRename));
       return;
     }
-    if (d.groupRecolor) {
-      await recolorGroup(Number(d.groupRecolor));
+    if (d.groupColor) {
+      const g = state.groups.find(x => x.id === Number(d.groupColor));
+      await api.put(`/api/groups/${d.groupColor}`, { ...g, color: d.color });
+      await loadLimits();
       return;
     }
     if (d.addCat) {

@@ -30,7 +30,7 @@ test('renderGroupedLimitRows groups categories under their group with controls',
   assert.match(html, /data-add-group/);
   assert.match(html, /data-cat-rename="1"/);
   assert.match(html, /data-group-rename="7"/);
-  assert.match(html, /data-group-recolor="7"/);
+  assert.match(html, /data-group-color="7"/);
 });
 
 test('renderGroupedLimitRows escapes HTML in names', async () => {
