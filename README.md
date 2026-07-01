@@ -118,11 +118,15 @@ The app reads two environment variables:
 Everything you enter is stored in a single SQLite file, **`data/gastando.db`**.
 There is no other state.
 
-- **Back up** by copying that file:
+- **Back up** by copying that file, or use the **Download backup** button in
+  Settings to download a snapshot from the running app:
 
   ```bash
   cp ./data/gastando.db ./data/gastando.db.bak
   ```
+
+- **Restore** a backup: stop the app, replace `data/gastando.db` with the
+  downloaded backup file, then start the app again.
 
 - **Move or migrate** to another machine by copying the same file into the new
   install's `data/` folder.

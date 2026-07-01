@@ -30,6 +30,7 @@ export function createApp(arg: Container | Db): express.Express {
   app.use('/api/bi', controllers.bi);
   app.use('/api/simulate', controllers.simulate);
   app.use('/api/recurring', controllers.recurring);
+  app.use('/api/backup', controllers.backup);
 
   app.use(express.static(path.join(__dirname, '..', 'public')));
   app.use(errorHandler);

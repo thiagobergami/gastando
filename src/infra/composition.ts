@@ -1,4 +1,5 @@
 import type express from 'express';
+import { makeBackupController } from '../adapters/http/controllers/backup';
 import { makeBiController } from '../adapters/http/controllers/bi';
 import { makeCardsController } from '../adapters/http/controllers/cards';
 import { makeCategoriesController } from '../adapters/http/controllers/categories';
@@ -49,6 +50,7 @@ export interface Container {
     bi: express.Router;
     simulate: express.Router;
     recurring: express.Router;
+    backup: express.Router;
   };
 }
 
@@ -127,6 +129,7 @@ export function buildContainer(db: Db): Container {
     bi: makeBiController(useCases.bi),
     simulate: makeSimulateController(useCases.simulate),
     recurring: makeRecurringController(useCases.recurring),
+    backup: makeBackupController(db),
   };
 
   return { db, controllers };
