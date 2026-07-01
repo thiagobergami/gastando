@@ -36,7 +36,17 @@ test('ui helpers', async () => {
 test('statusPill renders a warn pill when approaching', async () => {
   const { statusPill } = await import('../public/js/ui.js');
   assert.match(statusPill('approaching'), /pill-warn/);
-  assert.match(statusPill('approaching'), /Close/);
+  assert.match(statusPill('approaching'), /Perto/);
+});
+
+test('pageHeader renders a serif title and optional subtitle', async () => {
+  const { pageHeader } = await import('../public/js/ui.js');
+  const h = pageHeader('Transações', 'Organize seus gastos');
+  assert.match(h, /font-display/);
+  assert.match(h, /text-3xl/);
+  assert.match(h, /Transações/);
+  assert.match(h, /Organize seus gastos/);
+  assert.doesNotMatch(pageHeader('Só título'), /<p/); // no subtitle → no <p>
 });
 
 test('meterBar marks the approaching fill', async () => {

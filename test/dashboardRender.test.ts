@@ -144,7 +144,7 @@ test('renderGroups shows approaching meter and warn pill', async () => {
   assert.match(html, /meter-fill approaching/);
   assert.doesNotMatch(html, /meter-fill over/);
   assert.match(html, /pill-warn/);
-  assert.match(html, /Close/);
+  assert.match(html, /Perto/);
 });
 
 test('renderGroups links each category to its detail screen', async () => {
