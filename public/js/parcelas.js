@@ -6,7 +6,7 @@ const $ = (id) => document.getElementById(id);
 
 export function renderGroups(rows) {
   if (!rows.length) {
-    return `<p class="paper-card text-ink-mut">No installment purchases yet.</p>`;
+    return `<p class="paper-card text-ink-mut">Nenhum parcelamento ainda.</p>`;
   }
   return rows
     .map(
@@ -14,20 +14,20 @@ export function renderGroups(rows) {
     <div class="paper-card" data-row="${r.id}">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <div class="font-semibold">${esc(r.description) || 'Installment'}</div>
+          <div class="font-semibold">${esc(r.description) || 'Parcelamento'}</div>
           <div class="text-xs text-ink-mut mt-0.5">${esc(r.category_name)} · ${esc(r.card_name)}</div>
         </div>
         <span class="tag tag-gold">${r.paid_count}/${r.total_count}</span>
       </div>
       <div class="mt-3 grid grid-cols-3 gap-3 text-sm">
-        <div><div class="text-ink-mut text-xs">Monthly</div><div class="font-mono">${formatBRL(r.monthly_cents)}</div></div>
-        <div><div class="text-ink-mut text-xs">Remaining</div><div class="font-mono">${formatBRL(r.remaining_cents)}</div></div>
-        <div><div class="text-ink-mut text-xs">Next</div><div class="font-mono">${r.next_month || '—'}</div></div>
+        <div><div class="text-ink-mut text-xs">Mensal</div><div class="font-mono">${formatBRL(r.monthly_cents)}</div></div>
+        <div><div class="text-ink-mut text-xs">Restante</div><div class="font-mono">${formatBRL(r.remaining_cents)}</div></div>
+        <div><div class="text-ink-mut text-xs">Próximo</div><div class="font-mono">${r.next_month || '—'}</div></div>
       </div>
       <div class="mt-3 text-right">
-        <button data-edit="${r.id}" class="text-sage text-sm mr-2">Edit</button>
-        ${r.remaining_count > 0 ? `<button data-payoff="${r.id}" class="text-sage text-sm mr-2">Pay off early</button>` : ''}
-        <button data-del="${r.id}" class="text-clay text-sm">Delete</button>
+        <button data-edit="${r.id}" class="text-sage text-sm mr-2">Editar</button>
+        ${r.remaining_count > 0 ? `<button data-payoff="${r.id}" class="text-sage text-sm mr-2">Quitar antecipado</button>` : ''}
+        <button data-del="${r.id}" class="text-clay text-sm">Excluir</button>
       </div>
     </div>`,
     )
@@ -49,7 +49,7 @@ function wire(rows) {
     .querySelectorAll('button[data-del]')
     .forEach((b) => {
       b.addEventListener('click', async () => {
-        if (!confirm('Delete this installment group (all parcelas)?')) return;
+        if (!confirm('Excluir este parcelamento (todas as parcelas)?')) return;
         try {
           await api.del(`/api/installment-groups/${b.dataset.del}`);
           load();
@@ -62,7 +62,7 @@ function wire(rows) {
     .querySelectorAll('button[data-payoff]')
     .forEach((b) => {
       b.addEventListener('click', async () => {
-        if (!confirm('Pay off early? Remaining parcelas move into this month.')) return;
+        if (!confirm('Quitar antecipado? As parcelas restantes vão para este mês.')) return;
         try {
           await api.post(`/api/installment-groups/${b.dataset.payoff}/payoff`, {
             month: $('month').value,

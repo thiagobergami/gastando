@@ -21,7 +21,7 @@ test('renderList shows description, amount, day and actions', async () => {
   assert.match(html, /Claude/);
   assert.match(html, /Assinaturas/);
   assert.match(html, /R\$ 100,00/);
-  assert.match(html, /day 5/);
+  assert.match(html, /dia 5/);
   assert.match(html, /data-del="7"/);
 });
 

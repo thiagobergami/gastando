@@ -6,19 +6,19 @@ const $ = (id) => document.getElementById(id);
 let names = { cats: new Map(), cards: new Map() };
 
 export function renderList(rows, n) {
-  if (!rows.length) return `<p class="paper-card text-ink-mut">No recurring templates yet.</p>`;
+  if (!rows.length) return `<p class="paper-card text-ink-mut">Nenhum recorrente ainda.</p>`;
   return rows
     .filter((r) => r.active)
     .map(
       (r) => `
     <div class="paper-card flex items-center justify-between">
       <div>
-        <div class="font-semibold">${esc(r.description) || 'Recurring'}</div>
-        <div class="text-xs text-ink-mut">${esc(n.cats.get(r.category_id) || '')} · ${esc(n.cards.get(r.card_id) || '')} · day ${r.day_of_month}</div>
+        <div class="font-semibold">${esc(r.description) || 'Recorrente'}</div>
+        <div class="text-xs text-ink-mut">${esc(n.cats.get(r.category_id) || '')} · ${esc(n.cards.get(r.card_id) || '')} · dia ${r.day_of_month}</div>
       </div>
       <div class="text-right">
         <div class="font-mono">${formatBRL(r.amount_cents)}</div>
-        <button data-del="${r.id}" class="text-clay text-sm">Remove</button>
+        <button data-del="${r.id}" class="text-clay text-sm">Remover</button>
       </div>
     </div>`,
     )
@@ -88,7 +88,7 @@ if (typeof document !== 'undefined' && document.getElementById('list')) {
         .map((c) => `${formatBRL(c.from_cents)}→${formatBRL(c.to_cents)}`)
         .join(', ');
       showError(
-        `Created ${r.created.length}, skipped ${r.skipped.length}${changed ? ` · changed: ${changed}` : ''}`,
+        `Criados ${r.created.length}, ignorados ${r.skipped.length}${changed ? ` · alterados: ${changed}` : ''}`,
       );
     } catch (e) {
       showError(e.message);
