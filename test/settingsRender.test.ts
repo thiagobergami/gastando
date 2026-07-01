@@ -42,3 +42,14 @@ test('renderGroupedLimitRows escapes HTML in names', async () => {
   assert.ok(html.includes('&lt;img src=x'), 'expected escaped category name');
   assert.ok(html.includes('&lt;b&gt;G&lt;/b&gt;'), 'expected escaped group name');
 });
+
+test('renderCards shows the projected bill and config inputs', async () => {
+  const { renderCards } = await import('../public/js/settings.js');
+  const cards = [{ id: 2, name: 'Nubank', active: 1, closing_day: 20, due_day: 27 }];
+  const stmt = new Map([[2, { amount_cents: 35000, closing_date: '2026-06-20', due_date: '2026-06-27' }]]);
+  const html = renderCards(cards, stmt, '2026-06');
+  assert.match(html, /Nubank/);
+  assert.match(html, /R\$ 350,00/);          // projected bill
+  assert.match(html, /data-closing="2"/);
+  assert.match(html, /value="20"/);
+});

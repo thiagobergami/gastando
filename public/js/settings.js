@@ -9,7 +9,7 @@ import {
   renderLimitRows,
 } from './budget.js';
 import { mountChrome } from './chrome.js';
-import { currentMonth, esc, reaisToCents } from './format.js';
+import { currentMonth, esc, formatBRL, reaisToCents } from './format.js';
 
 // Re-exported so existing importers (and tests) can keep reaching them here.
 export { ceilingText, renderGroupedLimitRows, renderLimitRows };
@@ -173,31 +173,46 @@ async function onLimitsClick(e) {
   }
 }
 
+export function renderCards(cards, stmtByCard, month) {
+  return cards.filter(c => c.active).map(c => {
+    const s = stmtByCard.get(c.id);
+    return `
+      <div class="paper-card" data-card="${c.id}">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold">${esc(c.name)}</span>
+          <button data-del="${c.id}" class="text-clay text-sm">Remove</button>
+        </div>
+        <div class="mt-2 flex items-center gap-3 text-sm">
+          <label>Closing <input type="number" min="1" max="31" data-closing="${c.id}"
+            value="${c.closing_day ?? ''}" class="w-16 rounded border border-line px-1" /></label>
+          <label>Due <input type="number" min="1" max="31" data-due="${c.id}"
+            value="${c.due_day ?? ''}" class="w-16 rounded border border-line px-1" /></label>
+          <span class="ml-auto font-mono">${s ? `Bill ${formatBRL(s.amount_cents)}` : ''}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
 async function loadCards() {
   try {
     const cards = await api.get('/api/cards');
-    $('cards').innerHTML = cards
-      .filter((c) => c.active)
-      .map(
-        (c) => `
-      <div class="flex items-center justify-between border-b border-line py-2">
-        <span>${esc(c.name)}</span>
-        <button data-del="${c.id}" class="text-clay text-sm">Remove</button>
-      </div>`,
-      )
-      .join('');
-    $('cards')
-      .querySelectorAll('button[data-del]')
-      .forEach((b) => {
-        b.addEventListener('click', async () => {
-          try {
-            await api.del(`/api/cards/${b.dataset.del}`);
-            loadCards();
-          } catch (e) {
-            showError(e.message);
-          }
-        });
-      });
+    const active = cards.filter(c => c.active);
+    const stmts = await Promise.all(active.map(c =>
+      api.get(`/api/cards/${c.id}/statement?month=${$('month').value}`).then(s => [c.id, s])));
+    $('cards').innerHTML = renderCards(cards, new Map(stmts), $('month').value);
+    $('cards').querySelectorAll('button[data-del]').forEach(b =>
+      b.addEventListener('click', async () => { try { await api.del(`/api/cards/${b.dataset.del}`); loadCards(); } catch (e) { showError(e.message); } }));
+    const saveCfg = async id => {
+      const closing = $('cards').querySelector(`input[data-closing="${id}"]`).value;
+      const due = $('cards').querySelector(`input[data-due="${id}"]`).value;
+      try {
+        await api.put(`/api/cards/${id}/statement-config`,
+          { closing_day: closing ? Number(closing) : null, due_day: due ? Number(due) : null });
+        loadCards();
+      } catch (e) { showError(e.message); }
+    };
+    $('cards').querySelectorAll('input[data-closing],input[data-due]').forEach(inp =>
+      inp.addEventListener('change', () => saveCfg(Number(inp.dataset.closing ?? inp.dataset.due))));
   } catch (e) {
     showError(e.message);
   }
