@@ -1,0 +1,2 @@
+ALTER TABLE cards ADD COLUMN closing_day INTEGER;
+ALTER TABLE cards ADD COLUMN due_day INTEGER;

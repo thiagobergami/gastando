@@ -69,5 +69,15 @@ export function makeReportRepository(db: Db): ReportRepository {
         )
         .all() as DashboardCategoryRow[];
     },
+    spendByCardDateRange(cardId: number, startExclusive: string, endInclusive: string): number {
+      return (
+        db
+          .prepare(
+            `SELECT COALESCE(SUM(amount_cents),0) AS s FROM transactions
+         WHERE card_id=? AND date > ? AND date <= ?`,
+          )
+          .get(cardId, startExclusive, endInclusive) as { s: number }
+      ).s;
+    },
   };
 }

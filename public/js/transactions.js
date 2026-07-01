@@ -63,6 +63,12 @@ async function loadList() {
     if ($('filterCategory').value) qs.set('category_id', $('filterCategory').value);
     if ($('filterCard').value) qs.set('card_id', $('filterCard').value);
     if ($('search').value.trim()) qs.set('q', $('search').value.trim());
+    const csvQs = new URLSearchParams({ month: $('month').value });
+    if ($('filterCategory').value) csvQs.set('category_id', $('filterCategory').value);
+    if ($('filterCard').value) csvQs.set('card_id', $('filterCard').value);
+    if ($('search').value.trim()) csvQs.set('q', $('search').value.trim());
+    const exportLink = $('exportCsv');
+    if (exportLink) exportLink.href = `/api/transactions/export.csv?${csvQs}`;
     const { items: rows, total } = await getPage(`/api/transactions?${qs}`);
     const totalPages = Math.max(1, Math.ceil(total / perPage));
     if (page > totalPages) {

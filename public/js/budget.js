@@ -3,6 +3,25 @@ import { esc, formatBRL } from './format.js';
 // Pure budget-model helpers shared by the Settings page and the setup wizard.
 // Kept free of DOM side-effects so either page can import them safely.
 
+export const GROUP_COLORS = ['sage', 'gold', 'slate', 'neutral'];
+
+export function nameEditor(kind, id, value) {
+  return `<span class="inline-flex items-center gap-1">
+    <input data-edit-input="${kind}:${id}" value="${esc(value)}"
+      class="rounded border border-line px-2 py-0.5 text-sm" />
+    <button data-save="${kind}:${id}" class="text-sage text-sm">Save</button>
+    <button data-cancel="${kind}:${id}" class="text-ink-mut text-sm">Cancel</button>
+  </span>`;
+}
+
+export function colorSwatches(groupId, current) {
+  return GROUP_COLORS.map(
+    (c) =>
+      `<button data-group-color="${groupId}" data-color="${c}" title="${c}"
+       class="tag tag-${c} mr-1 ${c === current ? 'ring-2 ring-ink' : ''}">${c}</button>`,
+  ).join('');
+}
+
 export function ceilingText(income, fixed, goal) {
   return `Healthy ceiling ${formatBRL(income - fixed - goal)}`;
 }
@@ -30,7 +49,7 @@ export function renderGroupedLimitRows(groups, cats, byCat) {
       .map(
         (c) => `
       <tr class="border-b border-line">
-        <td class="py-2">${esc(c.name)}</td>
+        <td class="py-2" data-name-cell="cat:${c.id}">${esc(c.name)}</td>
         <td class="py-2 text-right">
           <input type="number" step="0.01" data-cat="${c.id}" value="${(byCat.get(c.id) || 0) / 100}"
             class="w-32 rounded border border-line bg-card px-2 py-1 text-right font-mono" />
@@ -44,10 +63,10 @@ export function renderGroupedLimitRows(groups, cats, byCat) {
       .join('');
     return `
       <tr class="bg-paper">
-        <td class="py-2" colspan="2"><span class="tag tag-${esc(g.color)}">${esc(g.name)}</span></td>
+        <td class="py-2" colspan="2" data-name-cell="group:${g.id}"><span class="tag tag-${esc(g.color)}">${esc(g.name)}</span></td>
         <td class="py-2 text-right">
           <button data-group-rename="${g.id}" class="text-sage text-sm mr-2">Rename</button>
-          <button data-group-recolor="${g.id}" class="text-sage text-sm mr-2">Color</button>
+          ${colorSwatches(g.id, g.color)}
           <button data-group-del="${g.id}" class="text-clay text-sm">Remove</button>
         </td>
       </tr>

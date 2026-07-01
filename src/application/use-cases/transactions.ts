@@ -99,5 +99,43 @@ export function makeTransactionUseCases(deps: TransactionUseCaseDeps) {
     remove(id: number): void {
       if (transactions.remove(id) === 0) throw new AppError(404, 'transaction not found');
     },
+
+    exportCsv(filter: {
+      month?: string;
+      categoryId?: number;
+      cardId?: number;
+      q?: string;
+    }): string {
+      const items = transactions.list({ ...filter, limit: null, offset: 0 });
+      const catName = new Map(categories.listAll().map((c) => [c.id, c.name]));
+      const cardName = new Map(cards.listAll().map((c) => [c.id, c.name]));
+      const cell = (v: unknown) => {
+        const s = String(v ?? '');
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const header = [
+        'date',
+        'category',
+        'card',
+        'amount_cents',
+        'description',
+        'installment_no',
+        'installment_total',
+      ];
+      const rows = items.map((t) =>
+        [
+          t.date,
+          catName.get(t.category_id) ?? '',
+          cardName.get(t.card_id) ?? '',
+          t.amount_cents,
+          t.description,
+          t.installment_no ?? '',
+          t.installment_total ?? '',
+        ]
+          .map(cell)
+          .join(','),
+      );
+      return [header.join(','), ...rows].join('\n');
+    },
   };
 }

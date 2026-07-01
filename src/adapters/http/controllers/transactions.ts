@@ -51,6 +51,15 @@ export function makeTransactionsController(uc: TransactionUseCases): express.Rou
     res.status(201).json(uc.create(req.body));
   });
 
+  router.get('/export.csv', (req, res) => {
+    const filter: Record<string, unknown> = {};
+    if (req.query.month !== undefined) filter.month = String(req.query.month);
+    if (req.query.category_id !== undefined) filter.categoryId = Number(req.query.category_id);
+    if (req.query.card_id !== undefined) filter.cardId = Number(req.query.card_id);
+    if (req.query.q !== undefined) filter.q = String(req.query.q);
+    res.attachment('transactions.csv').type('text/csv').send(uc.exportCsv(filter));
+  });
+
   router.put('/:id', (req, res) => {
     parse(updateTransactionSchema, req.body);
     res.json(uc.update(Number(req.params.id), req.body));

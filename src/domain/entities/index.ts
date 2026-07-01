@@ -17,6 +17,8 @@ export interface Card {
   id: number;
   name: string;
   active: number;
+  closing_day: number | null;
+  due_day: number | null;
 }
 export interface CategoryLimit {
   id: number;

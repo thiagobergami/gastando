@@ -124,3 +124,23 @@ test('GET /api/transactions filters by description q', async () => {
   assert.equal(res.body.length, 1);
   assert.match(res.body[0].description, /Coffee/);
 });
+
+test('GET /api/transactions/export.csv returns a CSV with a header and rows', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-01',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 1234,
+      description: 'Coffee, hot',
+    })
+    .expect(201);
+  const res = await request(app).get('/api/transactions/export.csv').expect(200);
+  assert.match(res.headers['content-type'], /text\/csv/);
+  assert.match(res.text, /date,category,card,amount_cents,description/);
+  assert.match(res.text, /Supermercado/);
+  assert.match(res.text, /"Coffee, hot"/); // comma-containing field is quoted
+});

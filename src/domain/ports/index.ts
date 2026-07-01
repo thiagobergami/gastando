@@ -39,6 +39,7 @@ export interface CardRepository {
   insert(c: { name: string }): Card;
   update(id: number, c: { name: string; active: number }): number;
   deactivate(id: number): number;
+  setStatementConfig(id: number, closingDay: number | null, dueDay: number | null): number;
 }
 
 export interface TransactionFilter {
@@ -163,4 +164,5 @@ export interface ReportRepository {
   dashboardCategories(): Array<
     Category & { group_name: string; group_color: string; group_sort: number }
   >;
+  spendByCardDateRange(cardId: number, startExclusive: string, endInclusive: string): number;
 }
