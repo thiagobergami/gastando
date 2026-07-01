@@ -15,9 +15,11 @@ export function nameEditor(kind, id, value) {
 }
 
 export function colorSwatches(groupId, current) {
-  return GROUP_COLORS.map(c =>
-    `<button data-group-color="${groupId}" data-color="${c}" title="${c}"
-       class="tag tag-${c} mr-1 ${c === current ? 'ring-2 ring-ink' : ''}">${c}</button>`).join('');
+  return GROUP_COLORS.map(
+    (c) =>
+      `<button data-group-color="${groupId}" data-color="${c}" title="${c}"
+       class="tag tag-${c} mr-1 ${c === current ? 'ring-2 ring-ink' : ''}">${c}</button>`,
+  ).join('');
 }
 
 export function ceilingText(income, fixed, goal) {

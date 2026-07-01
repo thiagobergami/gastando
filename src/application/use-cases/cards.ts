@@ -1,9 +1,12 @@
 import type { Card } from '../../domain/entities';
-import type { CardRepository, ReportRepository } from '../../domain/ports';
 import { AppError } from '../../domain/errors';
+import type { CardRepository, ReportRepository } from '../../domain/ports';
 import { addMonths, chargeDate } from '../../domain/services/dates';
 
-export interface CardUseCaseDeps { cards: CardRepository; reports: ReportRepository; }
+export interface CardUseCaseDeps {
+  cards: CardRepository;
+  reports: ReportRepository;
+}
 
 export interface CreateCardInput {
   name: string;
@@ -44,15 +47,25 @@ export function makeCardUseCases(deps: CardUseCaseDeps) {
       if (card.closing_day == null) {
         // No cycle configured: fall back to the calendar month window.
         const start = chargeDate(addMonths(month, -1), 31); // last day of prev month, exclusive
-        const end = chargeDate(month, 31);                  // last day of this month, inclusive
-        return { card_id: id, month, closing_date: null, due_date: null,
-          amount_cents: reports.spendByCardDateRange(id, start, end) };
+        const end = chargeDate(month, 31); // last day of this month, inclusive
+        return {
+          card_id: id,
+          month,
+          closing_date: null,
+          due_date: null,
+          amount_cents: reports.spendByCardDateRange(id, start, end),
+        };
       }
       const closing_date = chargeDate(month, card.closing_day);
       const start = chargeDate(addMonths(month, -1), card.closing_day);
       const due_date = card.due_day != null ? chargeDate(month, card.due_day) : null;
-      return { card_id: id, month, closing_date, due_date,
-        amount_cents: reports.spendByCardDateRange(id, start, closing_date) };
+      return {
+        card_id: id,
+        month,
+        closing_date,
+        due_date,
+        amount_cents: reports.spendByCardDateRange(id, start, closing_date),
+      };
     },
   };
 }

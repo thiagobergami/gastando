@@ -22,7 +22,8 @@ export function makeCardRepository(db: Db): CardRepository {
       return db.prepare('UPDATE cards SET active=0 WHERE id=?').run(id).changes;
     },
     setStatementConfig(id, closingDay, dueDay): number {
-      return db.prepare('UPDATE cards SET closing_day=?, due_day=? WHERE id=?')
+      return db
+        .prepare('UPDATE cards SET closing_day=?, due_day=? WHERE id=?')
         .run(closingDay, dueDay, id).changes;
     },
   };

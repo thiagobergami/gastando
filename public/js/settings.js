@@ -87,9 +87,10 @@ async function loadLimits() {
 function beginRename(kind, id) {
   const cell = $('limits').querySelector(`[data-name-cell="${kind}:${id}"]`);
   if (!cell) return;
-  const cur = kind === 'cat'
-    ? state.cats.find((c) => c.id === id).name
-    : state.groups.find((g) => g.id === id).name;
+  const cur =
+    kind === 'cat'
+      ? state.cats.find((c) => c.id === id).name
+      : state.groups.find((g) => g.id === id).name;
   cell.innerHTML = nameEditor(kind, id, cur);
   cell.querySelector('input').focus();
 }
@@ -110,7 +111,10 @@ async function saveEdit(token) {
   const [kind, rawId] = token.split(':');
   const id = rawId;
   const val = $('limits').querySelector(`[data-edit-input="${token}"]`).value.trim();
-  if (!val) { await loadLimits(); return; }
+  if (!val) {
+    await loadLimits();
+    return;
+  }
   if (kind === 'cat') {
     const c = state.cats.find((x) => x.id === Number(id));
     await api.put(`/api/categories/${id}`, { ...c, name: val });
@@ -147,7 +151,7 @@ async function onLimitsClick(e) {
       return;
     }
     if (d.groupColor) {
-      const g = state.groups.find(x => x.id === Number(d.groupColor));
+      const g = state.groups.find((x) => x.id === Number(d.groupColor));
       await api.put(`/api/groups/${d.groupColor}`, { ...g, color: d.color });
       await loadLimits();
       return;
@@ -173,10 +177,12 @@ async function onLimitsClick(e) {
   }
 }
 
-export function renderCards(cards, stmtByCard, month) {
-  return cards.filter(c => c.active).map(c => {
-    const s = stmtByCard.get(c.id);
-    return `
+export function renderCards(cards, stmtByCard, _month) {
+  return cards
+    .filter((c) => c.active)
+    .map((c) => {
+      const s = stmtByCard.get(c.id);
+      return `
       <div class="paper-card" data-card="${c.id}">
         <div class="flex items-center justify-between">
           <span class="font-semibold">${esc(c.name)}</span>
@@ -190,29 +196,52 @@ export function renderCards(cards, stmtByCard, month) {
           <span class="ml-auto font-mono">${s ? `Bill ${formatBRL(s.amount_cents)}` : ''}</span>
         </div>
       </div>`;
-  }).join('');
+    })
+    .join('');
 }
 
 async function loadCards() {
   try {
     const cards = await api.get('/api/cards');
-    const active = cards.filter(c => c.active);
-    const stmts = await Promise.all(active.map(c =>
-      api.get(`/api/cards/${c.id}/statement?month=${$('month').value}`).then(s => [c.id, s])));
+    const active = cards.filter((c) => c.active);
+    const stmts = await Promise.all(
+      active.map((c) =>
+        api.get(`/api/cards/${c.id}/statement?month=${$('month').value}`).then((s) => [c.id, s]),
+      ),
+    );
     $('cards').innerHTML = renderCards(cards, new Map(stmts), $('month').value);
-    $('cards').querySelectorAll('button[data-del]').forEach(b =>
-      b.addEventListener('click', async () => { try { await api.del(`/api/cards/${b.dataset.del}`); loadCards(); } catch (e) { showError(e.message); } }));
-    const saveCfg = async id => {
+    $('cards')
+      .querySelectorAll('button[data-del]')
+      .forEach((b) => {
+        b.addEventListener('click', async () => {
+          try {
+            await api.del(`/api/cards/${b.dataset.del}`);
+            loadCards();
+          } catch (e) {
+            showError(e.message);
+          }
+        });
+      });
+    const saveCfg = async (id) => {
       const closing = $('cards').querySelector(`input[data-closing="${id}"]`).value;
       const due = $('cards').querySelector(`input[data-due="${id}"]`).value;
       try {
-        await api.put(`/api/cards/${id}/statement-config`,
-          { closing_day: closing ? Number(closing) : null, due_day: due ? Number(due) : null });
+        await api.put(`/api/cards/${id}/statement-config`, {
+          closing_day: closing ? Number(closing) : null,
+          due_day: due ? Number(due) : null,
+        });
         loadCards();
-      } catch (e) { showError(e.message); }
+      } catch (e) {
+        showError(e.message);
+      }
     };
-    $('cards').querySelectorAll('input[data-closing],input[data-due]').forEach(inp =>
-      inp.addEventListener('change', () => saveCfg(Number(inp.dataset.closing ?? inp.dataset.due))));
+    $('cards')
+      .querySelectorAll('input[data-closing],input[data-due]')
+      .forEach((inp) => {
+        inp.addEventListener('change', () =>
+          saveCfg(Number(inp.dataset.closing ?? inp.dataset.due)),
+        );
+      });
   } catch (e) {
     showError(e.message);
   }
