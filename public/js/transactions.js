@@ -1,31 +1,45 @@
 import { api, getPage, showError } from './api.js';
 import { mountChrome } from './chrome.js';
 import { centsToReais, currentMonth, esc, formatBRL, reaisToCents } from './format.js';
+import { groupTag } from './ui.js';
 
 const $ = (id) => document.getElementById(id);
 let editingId = null;
 let page = 1;
+const lookups = { cats: new Map(), groups: new Map(), cards: new Map() };
 
-export function renderRows(rows) {
+export function renderRows(rows, refs = { cats: new Map(), groups: new Map(), cards: new Map() }) {
   return rows
-    .map(
-      (r) => `
+    .map((r) => {
+      const cat = refs.cats.get(r.category_id);
+      const groupName = cat ? (refs.groups.get(cat.group_id)?.name ?? '') : '';
+      const cardName = refs.cards.get(r.card_id) ?? '';
+      return `
     <tr class="border-b border-line">
       <td class="py-3 font-mono text-sm text-ink-mut">${r.date}</td>
       <td class="py-3">${esc(r.description)}
         ${r.installment_no ? `<span class="tag tag-gold ml-2">${r.installment_no}/${r.installment_total}</span>` : ''}</td>
+      <td class="py-3">${groupName ? groupTag(groupName) : ''} <span class="text-sm">${esc(cat?.name ?? '')}</span></td>
+      <td class="py-3 text-sm text-ink-mut">${esc(cardName)}</td>
       <td class="py-3 text-right font-mono">${formatBRL(r.amount_cents)}</td>
       <td class="py-3 text-right">
-        <button data-edit="${r.id}" class="text-sage text-sm mr-2">Edit</button>
-        <button data-del="${r.id}" data-group="${r.installment_group_id || ''}" class="text-clay text-sm">Delete</button>
+        <button data-edit="${r.id}" class="text-sage text-sm mr-2">Editar</button>
+        <button data-del="${r.id}" data-group="${r.installment_group_id || ''}" class="text-clay text-sm">Excluir</button>
       </td>
-    </tr>`,
-    )
+    </tr>`;
+    })
     .join('');
 }
 
 async function loadSelectors() {
-  const [cats, cards] = await Promise.all([api.get('/api/categories'), api.get('/api/cards')]);
+  const [cats, cards, groups] = await Promise.all([
+    api.get('/api/categories'),
+    api.get('/api/cards'),
+    api.get('/api/groups'),
+  ]);
+  lookups.cats = new Map(cats.map((c) => [c.id, { name: c.name, group_id: c.group_id }]));
+  lookups.cards = new Map(cards.map((c) => [c.id, c.name]));
+  lookups.groups = new Map(groups.map((g) => [g.id, { name: g.name }]));
   $('category').innerHTML = cats
     .filter((c) => c.active)
     .map((c) => `<option value="${c.id}">${esc(c.name)}</option>`)
@@ -76,7 +90,7 @@ async function loadList() {
       return loadList();
     }
     updatePager(total, perPage, totalPages);
-    $('list').innerHTML = renderRows(rows);
+    $('list').innerHTML = renderRows(rows, lookups);
     $('list')
       .querySelectorAll('button[data-edit]')
       .forEach((b) => {
@@ -99,7 +113,7 @@ async function loadList() {
 function updatePager(total, perPage, totalPages) {
   const from = total === 0 ? 0 : (page - 1) * perPage + 1;
   const to = Math.min(page * perPage, total);
-  $('pageInfo').textContent = `${from}–${to} of ${total} · page ${page}/${totalPages}`;
+  $('pageInfo').textContent = `${from}–${to} de ${total} · página ${page}/${totalPages}`;
   $('prevPage').disabled = page <= 1;
   $('nextPage').disabled = page >= totalPages;
 }
@@ -116,7 +130,7 @@ function startEdit(r) {
   $('card').value = String(r.card_id);
   $('amount').value = centsToReais(r.amount_cents);
   $('description').value = r.description;
-  $('submitBtn').textContent = 'Save';
+  $('submitBtn').textContent = 'Salvar';
   $('cancelEdit').style.display = 'inline';
   $('formCard').scrollIntoView({ block: 'center' });
 }
@@ -127,14 +141,14 @@ function resetForm() {
   $('installmentFields').style.display = 'none';
   $('isInstallment').disabled = false;
   $('amount').disabled = false;
-  $('submitBtn').textContent = 'Add';
+  $('submitBtn').textContent = 'Adicionar';
   $('cancelEdit').style.display = 'none';
 }
 
 async function onDelete(id, groupId) {
   try {
     if (groupId) {
-      if (!confirm('Delete the entire installment group (all parcelas)?')) return;
+      if (!confirm('Excluir todo o parcelamento (todas as parcelas)?')) return;
       await api.del(`/api/installment-groups/${groupId}`);
     } else {
       await api.del(`/api/transactions/${id}`);

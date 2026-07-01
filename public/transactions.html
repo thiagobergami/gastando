@@ -12,41 +12,52 @@
 <body class="pb-24 md:pb-0">
   <div id="nav"></div>
   <main class="max-w-5xl mx-auto px-6 pt-2">
-    <div class="flex items-center gap-3 mb-4">
-      <h1 class="font-display text-2xl">Transactions</h1>
+    <div class="flex items-center gap-3 mb-1">
+      <h1 class="font-display text-3xl text-ink">Transações</h1>
       <input type="month" id="month" class="ml-auto rounded border border-line bg-card px-3 py-2" />
     </div>
+    <p class="text-ink-mut mb-4">Organize e acompanhe seus fluxos financeiros com precisão.</p>
     <div class="flex flex-wrap items-center gap-3 mb-4">
-      <select id="filterCategory" class="rounded border border-line bg-card px-3 py-2"><option value="">All categories</option></select>
-      <select id="filterCard" class="rounded border border-line bg-card px-3 py-2"><option value="">All cards</option></select>
-      <input id="search" type="search" placeholder="Search description" class="rounded border border-line bg-card px-3 py-2" />
-      <a id="exportCsv" class="btn-ghost text-sm">Export CSV</a>
+      <select id="filterCategory" class="rounded border border-line bg-card px-3 py-2"><option value="">Todas as categorias</option></select>
+      <select id="filterCard" class="rounded border border-line bg-card px-3 py-2"><option value="">Todos os cartões</option></select>
+      <input id="search" type="search" placeholder="Buscar descrição" class="rounded border border-line bg-card px-3 py-2" />
+      <a id="exportCsv" class="btn-ghost text-sm">Exportar CSV</a>
     </div>
     <div id="formCard">
       <form id="form" class="paper-card grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-        <label class="field"><span>Date</span><input type="date" id="date" required /></label>
-        <label class="field"><span>Category</span><select id="category"></select></label>
-        <label class="field"><span>Card</span><select id="card"></select></label>
-        <label class="field"><span>Amount (R$)</span><input type="number" id="amount" step="0.01" min="0" /></label>
-        <label class="field"><span>Description</span><input type="text" id="description" /></label>
-        <label class="flex items-center gap-2 text-sm self-end"><input type="checkbox" id="isInstallment" /> Installment</label>
+        <label class="field"><span>Data</span><input type="date" id="date" required /></label>
+        <label class="field"><span>Categoria</span><select id="category"></select></label>
+        <label class="field"><span>Cartão</span><select id="card"></select></label>
+        <label class="field"><span>Valor (R$)</span><input type="number" id="amount" step="0.01" min="0" /></label>
+        <label class="field"><span>Descrição</span><input type="text" id="description" /></label>
+        <label class="flex items-center gap-2 text-sm self-end"><input type="checkbox" id="isInstallment" /> Parcelamento</label>
         <span id="installmentFields" class="contents" style="display:none">
           <label class="field"><span># parcelas</span><input type="number" id="count" min="1" /></label>
-          <label class="field"><span>First month</span><input type="month" id="firstMonth" /></label>
+          <label class="field"><span>Primeiro mês</span><input type="month" id="firstMonth" /></label>
         </span>
         <div class="flex gap-2 self-end">
-          <button type="submit" id="submitBtn" class="btn-primary">Add</button>
-          <button type="button" id="cancelEdit" class="btn-ghost" style="display:none">Cancel</button>
+          <button type="submit" id="submitBtn" class="btn-primary">Adicionar</button>
+          <button type="button" id="cancelEdit" class="btn-ghost" style="display:none">Cancelar</button>
         </div>
       </form>
     </div>
     <div class="paper-card overflow-x-auto">
-      <table class="w-full text-left"><tbody id="list"></tbody></table>
+      <table class="w-full text-left">
+        <thead><tr class="text-xs uppercase tracking-wide text-ink-mut border-b border-line">
+          <th class="py-2 text-left font-semibold">Data</th>
+          <th class="py-2 text-left font-semibold">Descrição</th>
+          <th class="py-2 text-left font-semibold">Categoria</th>
+          <th class="py-2 text-left font-semibold">Cartão</th>
+          <th class="py-2 text-right font-semibold">Valor</th>
+          <th class="py-2"></th>
+        </tr></thead>
+        <tbody id="list"></tbody>
+      </table>
       <div id="pager" class="flex items-center gap-3 mt-4 text-sm text-ink-mut">
-        <button type="button" id="prevPage" class="btn-ghost py-1.5">‹ Prev</button>
+        <button type="button" id="prevPage" class="btn-ghost py-1.5">‹ Anterior</button>
         <span id="pageInfo"></span>
-        <button type="button" id="nextPage" class="btn-ghost py-1.5">Next ›</button>
-        <label class="ml-auto">Per page
+        <button type="button" id="nextPage" class="btn-ghost py-1.5">Próxima ›</button>
+        <label class="ml-auto">Por página
           <select id="perPage" class="rounded border border-line bg-card px-2 py-1">
             <option value="10">10</option><option value="20" selected>20</option>
             <option value="50">50</option><option value="100">100</option>
@@ -55,7 +66,7 @@
       </div>
     </div>
   </main>
-  <button id="fab" class="fab" aria-label="Add transaction">+</button>
+  <button id="fab" class="fab" aria-label="Adicionar transação">+</button>
   <script type="module" src="/js/transactions.js"></script>
 </body>
 </html>
