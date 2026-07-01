@@ -164,4 +164,5 @@ export interface ReportRepository {
   dashboardCategories(): Array<
     Category & { group_name: string; group_color: string; group_sort: number }
   >;
+  spendByCardDateRange(cardId: number, startExclusive: string, endInclusive: string): number;
 }

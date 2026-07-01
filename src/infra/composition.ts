@@ -84,7 +84,7 @@ export function buildContainer(db: Db): Container {
       groups: repositories.groups,
     }),
     groups: makeGroupUseCases({ groups: repositories.groups }),
-    cards: makeCardUseCases({ cards: repositories.cards }),
+    cards: makeCardUseCases({ cards: repositories.cards, reports: repositories.reports }),
     limits: makeLimitUseCases({
       limits: repositories.limits,
       categories: repositories.categories,
