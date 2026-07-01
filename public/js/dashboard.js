@@ -1,5 +1,5 @@
-import { api, showError } from './api.js';
 import { renderAdvisor } from './advisor.js';
+import { api, showError } from './api.js';
 import { mountChrome } from './chrome.js';
 import { currentMonth, esc, formatBRL } from './format.js';
 import { groupTag, meterBar, statusPill } from './ui.js';
