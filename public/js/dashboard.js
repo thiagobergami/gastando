@@ -1,4 +1,5 @@
 import { api, showError } from './api.js';
+import { renderAdvisor } from './advisor.js';
 import { mountChrome } from './chrome.js';
 import { currentMonth, esc, formatBRL } from './format.js';
 import { groupTag, meterBar, statusPill } from './ui.js';
@@ -7,22 +8,22 @@ export function renderHero(t) {
   const ok = t.projected_savings_cents >= t.savings_goal_cents;
   const vs =
     t.vs_goal_cents >= 0
-      ? `+${formatBRL(t.vs_goal_cents)} above goal`
-      : `${formatBRL(t.vs_goal_cents)} vs goal`;
+      ? `+${formatBRL(t.vs_goal_cents)} acima da meta`
+      : `${formatBRL(t.vs_goal_cents)} vs meta`;
   return `
     <section class="paper-card grid md:grid-cols-2 gap-6 items-center">
       <div>
-        <div class="text-xs font-semibold uppercase tracking-wide text-ink-mut">Projected savings</div>
+        <div class="text-xs font-semibold uppercase tracking-wide text-ink-mut">Economia projetada</div>
         <div class="font-display text-5xl ${ok ? 'text-sage' : 'text-clay'} leading-none mt-1">${formatBRL(t.projected_savings_cents)}</div>
         <div class="mt-3 flex items-center gap-3 text-sm text-ink-mut">
-          <span>Ceiling ${formatBRL(t.teto_cents)}</span>
+          <span>Teto ${formatBRL(t.teto_cents)}</span>
           <span class="pill ${ok ? 'pill-ok' : 'pill-over'}">${vs}</span>
         </div>
       </div>
       <div class="md:border-l md:border-line md:pl-6">
-        <div class="flex justify-between text-sm text-ink-mut mb-2"><span>Spent</span><b class="text-ink">${formatBRL(t.spent_cents)}</b></div>
+        <div class="flex justify-between text-sm text-ink-mut mb-2"><span>Gasto</span><b class="text-ink">${formatBRL(t.spent_cents)}</b></div>
         ${meterBar(t.spent_cents, t.teto_cents, t.spent_cents > t.teto_cents ? 'over' : 'ok')}
-        <div class="mt-2 text-xs text-ink-mut">of ceiling ${formatBRL(t.teto_cents)}</div>
+        <div class="mt-2 text-xs text-ink-mut">do teto ${formatBRL(t.teto_cents)}</div>
       </div>
     </section>`;
 }
@@ -54,12 +55,12 @@ export function renderGroups(d) {
               </div>
               <div class="text-right">
                 <div class="font-display text-xl">${formatBRL(c.limit_cents)}</div>
-                <div class="font-mono text-xs text-ink-mut mt-0.5">spent ${formatBRL(c.spent_cents)}</div>
+                <div class="font-mono text-xs text-ink-mut mt-0.5">gasto ${formatBRL(c.spent_cents)}</div>
               </div>
             </div>
             <div class="mt-3 flex items-center gap-3">
               <div class="flex-1">${meterBar(eff, c.limit_cents, c.status)}</div>
-              ${carry > 0 ? `<span class="pill pill-over">+${formatBRL(carry)} carryover</span>` : ''}
+              ${carry > 0 ? `<span class="pill pill-over">+${formatBRL(carry)} saldo</span>` : ''}
               ${statusPill(c.status)}
             </div>
           </a>`;
@@ -75,7 +76,7 @@ async function load(month) {
   try {
     const d = await api.get(`/api/dashboard?month=${month}`);
     document.getElementById('hero').innerHTML = renderHero(d.totals);
-    document.getElementById('groups').innerHTML = renderGroups(d);
+    document.getElementById('groups').innerHTML = renderGroups(d) + renderAdvisor(d);
   } catch (e) {
     showError(e.message);
   }
