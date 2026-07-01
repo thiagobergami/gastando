@@ -32,3 +32,18 @@ test('renderRows formats amount and installment chip', async () => {
   assert.match(html, /data-edit="10"/); // edit affordance
   assert.match(html, /data-del="11"/); // delete affordance
 });
+
+const lookups = {
+  cats: new Map([[1, { name: 'Restaurantes', group_id: 2 }]]),
+  groups: new Map([[2, { name: 'Estilo de vida' }]]),
+  cards: new Map([[5, 'Nubank']]),
+};
+
+test('renderRows shows category tag and card name', async () => {
+  const { renderRows } = await import('../public/js/transactions.js');
+  const rowsWithRefs = rows.map((r) => ({ ...r, category_id: 1, card_id: 5 }));
+  const html = renderRows(rowsWithRefs, lookups);
+  assert.match(html, /Restaurantes/);
+  assert.match(html, /tag-gold/); // "Estilo de vida" → gold tag
+  assert.match(html, /Nubank/);
+});

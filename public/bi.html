@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="/js/theme-init.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gastando — BI</title>
@@ -12,22 +13,25 @@
 <body class="pb-24 md:pb-0">
   <div id="nav"></div>
   <main class="max-w-5xl mx-auto px-6 pt-2 space-y-6">
-    <h1 class="font-display text-2xl">BI</h1>
+    <div class="mb-2">
+      <h1 class="font-display text-3xl text-ink">Business Intelligence</h1>
+      <p class="text-ink-mut mt-1">Visualize seu comportamento financeiro com clareza editorial.</p>
+    </div>
     <div class="paper-card flex flex-wrap items-end gap-3">
-      <label class="field"><span>From</span><input type="month" id="from" /></label>
-      <label class="field"><span>To</span><input type="month" id="to" /></label>
-      <button id="run" class="btn-primary">Update</button>
+      <label class="field"><span>De</span><input type="month" id="from" /></label>
+      <label class="field"><span>Até</span><input type="month" id="to" /></label>
+      <button id="run" class="btn-primary">Atualizar</button>
     </div>
     <div class="grid lg:grid-cols-2 gap-6">
-      <div class="paper-card lg:col-span-2"><h2 class="font-display text-lg mb-2">Spending by category</h2><canvas id="chart" height="120"></canvas></div>
-      <div class="paper-card"><h2 class="font-display text-lg mb-2">Spending by card</h2><canvas id="byCard" height="140"></canvas></div>
-      <div class="paper-card"><h2 class="font-display text-lg mb-2">Spending by group</h2><canvas id="byGroup" height="140"></canvas></div>
-      <div class="paper-card"><h2 class="font-display text-lg mb-2">Budget vs actual</h2><canvas id="budgetVsActual" height="140"></canvas></div>
-      <div class="paper-card"><h2 class="font-display text-lg mb-2">Committed installment forecast</h2><canvas id="installmentForecast" height="140"></canvas></div>
+      <div class="paper-card lg:col-span-2"><h2 class="font-display text-lg mb-2">Gasto por categoria</h2><canvas id="chart" height="120"></canvas></div>
+      <div class="paper-card"><h2 class="font-display text-lg mb-2">Gasto por cartão</h2><canvas id="byCard" height="140"></canvas></div>
+      <div class="paper-card"><div class="flex items-baseline justify-between mb-2"><h2 class="font-display text-lg">Gasto por grupo</h2><span id="byGroupImpact" class="label-caps text-sage"></span></div><canvas id="byGroup" height="140"></canvas></div>
+      <div class="paper-card"><h2 class="font-display text-lg mb-2">Orçamento vs Real</h2><canvas id="budgetVsActual" height="140"></canvas></div>
+      <div class="paper-card"><h2 class="font-display text-lg mb-2">Previsão de parcelas</h2><canvas id="installmentForecast" height="140"></canvas></div>
     </div>
     <section class="paper-card mt-6">
-      <h2 class="font-display text-xl mb-1">Savings over time</h2>
-      <p class="text-xs text-ink-mut mb-3">Projected savings (income − fixed − spend) vs goal, using current settings.</p>
+      <h2 class="font-display text-xl mb-1">Poupança ao longo do tempo</h2>
+      <p class="text-xs text-ink-mut mb-3">Economia projetada (renda − fixos − gastos) vs meta, usando as configurações atuais.</p>
       <canvas id="savingsTrend" height="140"></canvas>
     </section>
   </main>

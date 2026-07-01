@@ -5,33 +5,65 @@ import { meterBar, statusPill } from './ui.js';
 
 const $ = (id) => document.getElementById(id);
 
+export function simulateAdvisory(months) {
+  const over = months.filter((m) => m.status === 'over').length;
+  if (over === 0) return 'Este plano cabe no seu orçamento em todos os meses.';
+  return `Este plano excede o limite em ${over} de ${months.length} meses — considere reduzir o número de parcelas.`;
+}
+
 export function renderResult(d) {
-  const overCount = d.months.filter((m) => m.status === 'over').length;
-  const summary = `<div class="pill ${overCount ? 'pill-over' : 'pill-ok'} mb-4">Over limit in ${overCount} of ${d.months.length} months</div>`;
-  const cards = d.months
+  const rows = d.months
     .map((m) => {
-      const spent = m.limit_cents - m.remaining_after_cents; // projected new total
+      const newTotal = m.limit_cents - m.remaining_after_cents;
+      const projected = newTotal - m.installment_cents;
       return `
-      <div class="paper-card">
-        <div class="flex items-center justify-between">
-          <span class="font-display text-lg">${m.month}</span>
-          ${statusPill(m.status)}
-        </div>
-        <div class="font-mono text-xs text-ink-mut mt-1">
-          Limit ${formatBRL(m.limit_cents)} · +Parcela ${formatBRL(m.installment_cents)} · New total ${formatBRL(spent)}
-        </div>
-        <div class="mt-3">${meterBar(spent, m.limit_cents, m.status)}</div>
+        <tr class="border-b border-line ${m.status === 'over' ? 'bg-clay-soft/10' : ''}">
+          <td class="py-2 font-mono text-sm">${m.month}</td>
+          <td class="py-2 text-right font-mono text-sm">${formatBRL(m.limit_cents)}</td>
+          <td class="py-2 text-right font-mono text-sm">${formatBRL(projected)}</td>
+          <td class="py-2 text-right font-mono text-sm">${formatBRL(m.installment_cents)}</td>
+          <td class="py-2 text-right font-mono text-sm">${formatBRL(newTotal)}</td>
+          <td class="py-2 text-right">${statusPill(m.status)}</td>
+        </tr>`;
+    })
+    .join('');
+  const meters = d.months
+    .map((m) => {
+      const newTotal = m.limit_cents - m.remaining_after_cents;
+      return `<div class="mb-3">
+        <div class="flex justify-between text-xs text-ink-mut mb-1"><span class="font-mono">${m.month}</span><span class="font-mono">${formatBRL(newTotal)} / ${formatBRL(m.limit_cents)}</span></div>
+        ${meterBar(newTotal, m.limit_cents, m.status)}
       </div>`;
     })
     .join('');
-  return `${summary}<div class="space-y-3">${cards}</div>`;
+  return `
+    <div class="grid md:grid-cols-[1fr,320px] gap-6">
+      <div class="paper-card overflow-x-auto">
+        <table class="w-full text-left">
+          <thead><tr class="text-xs uppercase tracking-wide text-ink-mut border-b border-line">
+            <th class="py-2 font-semibold">Mês</th>
+            <th class="py-2 text-right font-semibold">Limite</th>
+            <th class="py-2 text-right font-semibold">Gasto projetado</th>
+            <th class="py-2 text-right font-semibold">+Esta compra</th>
+            <th class="py-2 text-right font-semibold">Novo total</th>
+            <th class="py-2 text-right font-semibold">Status</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <aside class="paper-card">
+        <h2 class="font-display text-lg mb-3">Análise de Impacto</h2>
+        ${meters}
+        <p class="text-sm text-ink-mut mt-4 border-t border-line pt-3">${simulateAdvisory(d.months)}</p>
+      </aside>
+    </div>`;
 }
 
 async function run() {
   try {
     const total_cents = reaisToCents($('amount').value);
     if (!Number.isInteger(total_cents) || total_cents <= 0) {
-      showError('Enter a total amount');
+      showError('Informe um valor total');
       return;
     }
     const params = new URLSearchParams({

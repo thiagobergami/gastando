@@ -17,3 +17,28 @@ test('datasetsFor maps series to palette datasets and filters zeros', async () =
   const nz = datasetsFor(series, true);
   assert.equal(nz.length, 1); // flat-zero dropped
 });
+
+test('aggregateSeries sums each series over the range', async () => {
+  const { aggregateSeries } = await import('../public/js/charts.js');
+  const series = [
+    { name: 'Nubank', spent_cents: [1000, 2000, 500] },
+    { name: 'Itaú', spent_cents: [0, 300, 0] },
+  ];
+  assert.deepEqual(aggregateSeries(series), [
+    { name: 'Nubank', total: 3500 },
+    { name: 'Itaú', total: 300 },
+  ]);
+});
+
+test('topSeries returns the largest total, first on ties', async () => {
+  const { topSeries } = await import('../public/js/charts.js');
+  assert.deepEqual(
+    topSeries([
+      { name: 'A', spent_cents: [100] },
+      { name: 'B', spent_cents: [500] },
+      { name: 'C', spent_cents: [500] },
+    ]),
+    { name: 'B', total: 500 },
+  );
+  assert.equal(topSeries([]), null);
+});

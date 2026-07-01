@@ -52,6 +52,7 @@ test('renderCards shows the projected bill and config inputs', async () => {
   const html = renderCards(cards, stmt, '2026-06');
   assert.match(html, /Nubank/);
   assert.match(html, /R\$ 350,00/); // projected bill
+  assert.match(html, /Fatura/); // pt-BR statement label
   assert.match(html, /data-closing="2"/);
   assert.match(html, /value="20"/);
 });

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="/js/theme-init.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gastando — Simulate</title>
@@ -12,15 +13,15 @@
   <div id="nav"></div>
   <main class="max-w-5xl mx-auto px-6 pt-2 space-y-6">
     <section class="paper-card">
-      <h1 class="font-display text-2xl mb-1">Simulate a purchase</h1>
-      <p class="text-sm text-ink-mut mb-4">See how a purchase (or installment plan) would affect a category over the coming months. Nothing is saved.</p>
+      <h1 class="font-display text-3xl text-ink mb-1">Simular uma compra</h1>
+      <p class="text-sm text-ink-mut mb-4">Veja como uma compra (ou parcelamento) afetaria uma categoria nos próximos meses. Nada é salvo.</p>
       <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <label class="field"><span>Category</span><select id="category"></select></label>
-        <label class="field"><span>Total (R$)</span><input type="number" id="amount" step="0.01" min="0" /></label>
+        <label class="field"><span>Categoria</span><select id="category"></select></label>
+        <label class="field"><span>Valor total (R$)</span><input type="number" id="amount" step="0.01" min="0" /></label>
         <label class="field"><span># parcelas</span><input type="number" id="count" min="1" value="1" /></label>
-        <label class="field"><span>First month</span><input type="month" id="firstMonth" /></label>
+        <label class="field"><span>Primeiro mês</span><input type="month" id="firstMonth" /></label>
       </div>
-      <button id="run" class="btn-primary mt-4">Simulate</button>
+      <button id="run" class="btn-primary mt-4">Simular</button>
     </section>
     <div id="result"></div>
   </main>

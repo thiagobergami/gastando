@@ -1,5 +1,5 @@
 import { api, showError } from './api.js';
-import { lineChart } from './charts.js';
+import { aggregateSeries, barChart, lineChart, topSeries } from './charts.js';
 import { mountChrome } from './chrome.js';
 import { addMonths, currentMonth } from './format.js';
 
@@ -15,8 +15,26 @@ async function run() {
       api.get(`/api/bi/savings-trend?${qs}`),
     ]);
     lineChart('chart', trends.months, trends.series, true);
-    lineChart('byCard', byCard.months, byCard.series, false);
-    lineChart('byGroup', byGroup.months, byGroup.series, false);
+
+    const cardAgg = aggregateSeries(byCard.series);
+    barChart(
+      'byCard',
+      cardAgg.map((s) => s.name),
+      cardAgg.map((s) => s.total),
+      { horizontal: false },
+    );
+
+    const groupAgg = aggregateSeries(byGroup.series);
+    barChart(
+      'byGroup',
+      groupAgg.map((s) => s.name),
+      groupAgg.map((s) => s.total),
+      { horizontal: true },
+    );
+    const top = topSeries(byGroup.series);
+    const impactEl = document.getElementById('byGroupImpact');
+    if (impactEl) impactEl.textContent = top ? `Maior impacto: ${top.name}` : '';
+
     lineChart('budgetVsActual', bva.months, bva.series, false);
     lineChart('installmentForecast', forecast.months, forecast.series, false);
     lineChart('savingsTrend', savings.months, savings.series, false);
@@ -30,5 +48,6 @@ if (typeof document !== 'undefined' && document.getElementById('chart')) {
   document.getElementById('from').value = currentMonth();
   document.getElementById('to').value = addMonths(currentMonth(), 6);
   document.getElementById('run').addEventListener('click', run);
+  window.addEventListener('themechange', run);
   run();
 }

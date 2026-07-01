@@ -9,8 +9,8 @@ export function nameEditor(kind, id, value) {
   return `<span class="inline-flex items-center gap-1">
     <input data-edit-input="${kind}:${id}" value="${esc(value)}"
       class="rounded border border-line px-2 py-0.5 text-sm" />
-    <button data-save="${kind}:${id}" class="text-sage text-sm">Save</button>
-    <button data-cancel="${kind}:${id}" class="text-ink-mut text-sm">Cancel</button>
+    <button data-save="${kind}:${id}" class="text-sage text-sm">Salvar</button>
+    <button data-cancel="${kind}:${id}" class="text-ink-mut text-sm">Cancelar</button>
   </span>`;
 }
 
@@ -23,7 +23,7 @@ export function colorSwatches(groupId, current) {
 }
 
 export function ceilingText(income, fixed, goal) {
-  return `Healthy ceiling ${formatBRL(income - fixed - goal)}`;
+  return `Teto saudável ${formatBRL(income - fixed - goal)}`;
 }
 
 export function renderLimitRows(cats, byCat) {
@@ -55,8 +55,8 @@ export function renderGroupedLimitRows(groups, cats, byCat) {
             class="w-32 rounded border border-line bg-card px-2 py-1 text-right font-mono" />
         </td>
         <td class="py-2 text-right">
-          <button data-cat-rename="${c.id}" class="text-sage text-sm mr-2">Rename</button>
-          <button data-cat-del="${c.id}" class="text-clay text-sm">Remove</button>
+          <button data-cat-rename="${c.id}" class="text-sage text-sm mr-2">Renomear</button>
+          <button data-cat-del="${c.id}" class="text-clay text-sm">Remover</button>
         </td>
       </tr>`,
       )
@@ -65,15 +65,15 @@ export function renderGroupedLimitRows(groups, cats, byCat) {
       <tr class="bg-paper">
         <td class="py-2" colspan="2" data-name-cell="group:${g.id}"><span class="tag tag-${esc(g.color)}">${esc(g.name)}</span></td>
         <td class="py-2 text-right">
-          <button data-group-rename="${g.id}" class="text-sage text-sm mr-2">Rename</button>
+          <button data-group-rename="${g.id}" class="text-sage text-sm mr-2">Renomear</button>
           ${colorSwatches(g.id, g.color)}
-          <button data-group-del="${g.id}" class="text-clay text-sm">Remove</button>
+          <button data-group-del="${g.id}" class="text-clay text-sm">Remover</button>
         </td>
       </tr>
       ${rows}
       <tr>
         <td class="py-2" colspan="3">
-          <button data-add-cat="${g.id}" class="text-sage text-sm">+ Add category</button>
+          <button data-add-cat="${g.id}" class="text-sage text-sm">+ Adicionar categoria</button>
         </td>
       </tr>`;
   };
@@ -84,7 +84,7 @@ export function renderGroupedLimitRows(groups, cats, byCat) {
       .join('') +
     `
     <tr>
-      <td class="py-2" colspan="3"><button data-add-group class="text-sage text-sm">+ Add group</button></td>
+      <td class="py-2" colspan="3"><button data-add-group class="text-sage text-sm">+ Adicionar grupo</button></td>
     </tr>`
   );
 }
@@ -99,10 +99,10 @@ export function allocationStatus(limitCentsList, income, fixed, goal) {
 }
 
 export function allocationText(status) {
-  const head = `Allocated ${formatBRL(status.allocated)} of ${formatBRL(status.ceiling)}`;
+  const head = `Alocado ${formatBRL(status.allocated)} de ${formatBRL(status.ceiling)}`;
   return status.over
-    ? `${head} · ${formatBRL(-status.remaining)} over ceiling`
-    : `${head} · ${formatBRL(status.remaining)} left`;
+    ? `${head} · ${formatBRL(-status.remaining)} acima do teto`
+    : `${head} · ${formatBRL(status.remaining)} disponível`;
 }
 
 export function allocationPillClass(status) {

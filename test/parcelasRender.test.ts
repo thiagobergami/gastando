@@ -38,5 +38,5 @@ test('renderGroups escapes the description', async () => {
 
 test('renderGroups shows an empty state', async () => {
   const { renderGroups } = await import('../public/js/parcelas.js');
-  assert.match(renderGroups([]), /No installment/);
+  assert.match(renderGroups([]), /Nenhum parcelamento/);
 });

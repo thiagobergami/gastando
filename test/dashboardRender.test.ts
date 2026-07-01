@@ -39,7 +39,7 @@ const data = {
 test('renderHero shows projected savings and ok state', async () => {
   const { renderHero } = await import('../public/js/dashboard.js');
   const html = renderHero(data.totals);
-  assert.match(html, /Projected savings/);
+  assert.match(html, /Economia projetada/);
   assert.match(html, /R\$ 3\.610,00/);
   assert.match(html, /pill-ok/); // projected >= goal
 });
@@ -52,10 +52,10 @@ test('renderGroups shows examples, group tag, and over meter', async () => {
   assert.match(html, /tag-sage/); // group chip
   assert.match(html, /meter-fill over/); // Transporte over limit
   assert.match(html, /Essenciais/); // group header
-  assert.doesNotMatch(html, /carryover/); // no badge when payload lacks carry_in_cents
+  assert.doesNotMatch(html, /saldo/); // no badge when payload lacks carry_in_cents
 });
 
-test('renderGroups shows carryover badge and effective group total', async () => {
+test('renderGroups shows saldo badge and effective group total', async () => {
   const { renderGroups } = await import('../public/js/dashboard.js');
   const d = {
     categories: [
@@ -84,13 +84,13 @@ test('renderGroups shows carryover badge and effective group total', async () =>
     totals: {},
   };
   const html = renderGroups(d);
-  assert.match(html, /carryover/); // badge present when carrying
+  assert.match(html, /saldo/); // badge present when carrying
   assert.match(html, /R\$ 30,00/); // the carried amount is shown
   assert.match(html, /meter-fill over/); // meter driven by effective spend
   assert.match(html, /R\$ 110,00/); // group header shows effective total, not actual 80,00
 });
 
-test('renderGroups omits carryover badge when not carrying', async () => {
+test('renderGroups omits saldo badge when not carrying', async () => {
   const { renderGroups } = await import('../public/js/dashboard.js');
   const d = {
     categories: [
@@ -119,7 +119,7 @@ test('renderGroups omits carryover badge when not carrying', async () => {
     totals: {},
   };
   const html = renderGroups(d);
-  assert.doesNotMatch(html, /carryover/);
+  assert.doesNotMatch(html, /saldo/);
 });
 
 test('renderGroups shows approaching meter and warn pill', async () => {
@@ -144,7 +144,7 @@ test('renderGroups shows approaching meter and warn pill', async () => {
   assert.match(html, /meter-fill approaching/);
   assert.doesNotMatch(html, /meter-fill over/);
   assert.match(html, /pill-warn/);
-  assert.match(html, /Close/);
+  assert.match(html, /Perto/);
 });
 
 test('renderGroups links each category to its detail screen', async () => {

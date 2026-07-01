@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="/js/theme-init.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gastando — Recurring</title>
@@ -12,25 +13,25 @@
   <div id="nav"></div>
   <main class="max-w-5xl mx-auto px-6 pt-2">
     <div class="flex items-center gap-3 mb-4">
-      <h1 class="font-display text-2xl">Recurring Templates</h1>
+      <h1 class="font-display text-3xl text-ink">Recorrentes</h1>
       <div class="ml-auto flex items-center gap-3">
         <input type="month" id="month" class="rounded border border-line bg-card px-3 py-2" />
-        <button id="materialize" class="btn-primary">Materialize this month</button>
+        <button id="materialize" class="btn-primary">Materializar este mês</button>
       </div>
     </div>
 
     <div id="list" class="mb-6"></div>
 
     <div class="paper-card">
-      <h2 class="font-display text-lg mb-4">Add Recurring Template</h2>
+      <h2 class="font-display text-lg mb-4">Adicionar recorrente</h2>
       <form id="addForm" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <label class="field"><span>Description</span><input type="text" id="description" /></label>
-        <label class="field"><span>Category</span><select id="category"></select></label>
-        <label class="field"><span>Card</span><select id="card"></select></label>
-        <label class="field"><span>Amount (R$)</span><input type="number" id="amount" step="0.01" min="0" /></label>
-        <label class="field"><span>Day of month (1–31)</span><input type="number" id="day" min="1" max="31" /></label>
+        <label class="field"><span>Descrição</span><input type="text" id="description" /></label>
+        <label class="field"><span>Categoria</span><select id="category"></select></label>
+        <label class="field"><span>Cartão</span><select id="card"></select></label>
+        <label class="field"><span>Valor (R$)</span><input type="number" id="amount" step="0.01" min="0" /></label>
+        <label class="field"><span>Dia do mês (1–31)</span><input type="number" id="day" min="1" max="31" /></label>
         <div class="flex gap-2 self-end">
-          <button type="submit" class="btn-primary">Add</button>
+          <button type="submit" class="btn-primary">Adicionar</button>
         </div>
       </form>
     </div>

@@ -15,4 +15,11 @@ test('renderNav', async () => {
   assert.match(html, /bottom-nav/);
   // active route marked
   assert.match(html, /href="\/transactions.html"[^>]*class="[^"]*active/);
+  // pt-BR nav labels
+  assert.match(html, /Transações/);
+  assert.match(html, /Configurações/);
+  assert.match(html, /Recorrentes/);
+  assert.match(html, />Dashboard</); // stays English
+  // theme toggle button
+  assert.match(html, /id="theme-toggle"/);
 });

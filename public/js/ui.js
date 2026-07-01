@@ -12,9 +12,16 @@ export function meterBar(spentCents, limitCents, status) {
 }
 
 export function statusPill(status) {
-  if (status === 'over') return `<span class="pill pill-over">Over</span>`;
-  if (status === 'approaching') return `<span class="pill pill-warn">Close</span>`;
+  if (status === 'over') return `<span class="pill pill-over">Acima</span>`;
+  if (status === 'approaching') return `<span class="pill pill-warn">Perto</span>`;
   return `<span class="pill pill-ok">OK</span>`;
+}
+
+export function pageHeader(title, subtitle) {
+  return `<div class="mb-6">
+    <h1 class="font-display text-3xl text-ink">${esc(title)}</h1>
+    ${subtitle ? `<p class="text-ink-mut mt-1">${esc(subtitle)}</p>` : ''}
+  </div>`;
 }
 
 export function groupTag(groupName) {

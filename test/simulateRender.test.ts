@@ -22,11 +22,22 @@ const d = {
   ],
 };
 
-test('renderResult summarizes over months and renders meters', async () => {
+test('renderResult shows a results table and impact panel', async () => {
   const { renderResult } = await import('../public/js/simulate.js');
   const html = renderResult(d);
   assert.match(html, /2026-07/);
-  assert.match(html, /1 of 2 months/); // one over
-  assert.match(html, /pill-over/);
+  assert.match(html, /<table/);
+  assert.match(html, /Análise de Impacto/);
+  assert.match(html, /Novo total/);
+  assert.match(html, /Acima/); // status pill pt-BR
   assert.match(html, /meter-fill over/); // August over
+});
+
+test('simulateAdvisory phrases the over-count', async () => {
+  const { simulateAdvisory } = await import('../public/js/simulate.js');
+  assert.match(
+    simulateAdvisory([{ status: 'over' }, { status: 'ok' }]),
+    /excede o limite em 1 de 2/,
+  );
+  assert.match(simulateAdvisory([{ status: 'ok' }]), /cabe no seu orçamento/);
 });
