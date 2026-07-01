@@ -39,6 +39,7 @@ export interface CardRepository {
   insert(c: { name: string }): Card;
   update(id: number, c: { name: string; active: number }): number;
   deactivate(id: number): number;
+  setStatementConfig(id: number, closingDay: number | null, dueDay: number | null): number;
 }
 
 export interface TransactionFilter {
