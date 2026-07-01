@@ -38,14 +38,14 @@ test('allocationStatus on a fresh all-zero budget is all zeros', async () => {
 test('allocationText shows remaining when within the ceiling', async () => {
   const { allocationStatus, allocationText } = await import('../public/js/budget.js');
   const txt = allocationText(allocationStatus([137000], 1435000, 377000, 244000));
-  assert.match(txt, /Allocated R\$ 1\.370,00 of R\$ 8\.140,00/);
-  assert.match(txt, /R\$ 6\.770,00 left/);
+  assert.match(txt, /Alocado R\$ 1\.370,00 de R\$ 8\.140,00/);
+  assert.match(txt, /R\$ 6\.770,00 disponível/);
 });
 
 test('allocationText shows the overage when past the ceiling', async () => {
   const { allocationStatus, allocationText } = await import('../public/js/budget.js');
   const txt = allocationText(allocationStatus([900000], 1435000, 377000, 244000));
-  assert.match(txt, /R\$ 860,00 over ceiling/);
+  assert.match(txt, /R\$ 860,00 acima do teto/);
 });
 
 test('allocationPillClass flips between ok and over across the boundary', async () => {

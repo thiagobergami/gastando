@@ -13,36 +13,36 @@
   <div id="nav"></div>
   <main class="max-w-5xl mx-auto px-6 pt-2 space-y-6">
     <div class="flex items-center gap-3">
-      <h1 class="font-display text-2xl">Settings</h1>
-      <a href="/api/backup" class="btn-ghost text-sm ml-auto">Download backup</a>
+      <h1 class="font-display text-3xl text-ink">Configurações</h1>
+      <a href="/api/backup" class="btn-ghost text-sm ml-auto">Baixar backup</a>
       <input type="month" id="month" class="rounded border border-line bg-card px-3 py-2" />
     </div>
     <section class="paper-card">
-      <h2 class="font-display text-xl mb-4">Savings model</h2>
+      <h2 class="font-display text-xl mb-4">Modelo de poupança</h2>
       <div class="grid sm:grid-cols-3 gap-3">
-        <label class="field"><span>Monthly income (R$)</span><input type="number" id="monthly_income" step="0.01" /></label>
-        <label class="field"><span>Fixed costs (R$)</span><input type="number" id="fixed_costs" step="0.01" /></label>
-        <label class="field"><span>Savings goal (R$)</span><input type="number" id="savings_goal" step="0.01" /></label>
+        <label class="field"><span>Renda mensal (R$)</span><input type="number" id="monthly_income" step="0.01" /></label>
+        <label class="field"><span>Custos fixos (R$)</span><input type="number" id="fixed_costs" step="0.01" /></label>
+        <label class="field"><span>Meta de poupança (R$)</span><input type="number" id="savings_goal" step="0.01" /></label>
       </div>
       <div class="flex items-center gap-3 mt-4">
         <span id="ceiling" class="pill pill-ok"></span>
-        <button id="saveSettings" class="btn-primary ml-auto">Save</button>
+        <button id="saveSettings" class="btn-primary ml-auto">Salvar</button>
       </div>
     </section>
     <section class="paper-card">
-      <h2 class="font-display text-xl mb-4">Limits for <span id="monthLabel" class="font-mono text-base"></span></h2>
+      <h2 class="font-display text-xl mb-4">Limites de <span id="monthLabel" class="font-mono text-base"></span></h2>
       <div class="flex gap-2 mb-3">
-        <button id="useLastMonth" class="btn-ghost text-sm">Use last month</button>
-        <button id="useAvg3" class="btn-ghost text-sm">Use 3-month average</button>
+        <button id="useLastMonth" class="btn-ghost text-sm">Usar mês anterior</button>
+        <button id="useAvg3" class="btn-ghost text-sm">Usar média de 3 meses</button>
       </div>
       <table class="w-full text-left"><tbody id="limits"></tbody></table>
     </section>
     <section class="paper-card">
-      <h2 class="font-display text-xl mb-4">Cards</h2>
+      <h2 class="font-display text-xl mb-4">Cartões</h2>
       <div id="cards"></div>
       <div class="flex gap-2 mt-4">
-        <input id="newCard" placeholder="New card name" class="flex-1 rounded border border-line bg-card px-3 py-2" />
-        <button id="addCard" class="btn-primary">Add</button>
+        <input id="newCard" placeholder="Nome do novo cartão" class="flex-1 rounded border border-line bg-card px-3 py-2" />
+        <button id="addCard" class="btn-primary">Adicionar</button>
       </div>
     </section>
   </main>

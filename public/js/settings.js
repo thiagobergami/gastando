@@ -186,14 +186,14 @@ export function renderCards(cards, stmtByCard, _month) {
       <div class="paper-card" data-card="${c.id}">
         <div class="flex items-center justify-between">
           <span class="font-semibold">${esc(c.name)}</span>
-          <button data-del="${c.id}" class="text-clay text-sm">Remove</button>
+          <button data-del="${c.id}" class="text-clay text-sm">Remover</button>
         </div>
         <div class="mt-2 flex items-center gap-3 text-sm">
-          <label>Closing <input type="number" min="1" max="31" data-closing="${c.id}"
+          <label>Fechamento <input type="number" min="1" max="31" data-closing="${c.id}"
             value="${c.closing_day ?? ''}" class="w-16 rounded border border-line px-1" /></label>
-          <label>Due <input type="number" min="1" max="31" data-due="${c.id}"
+          <label>Vencimento <input type="number" min="1" max="31" data-due="${c.id}"
             value="${c.due_day ?? ''}" class="w-16 rounded border border-line px-1" /></label>
-          <span class="ml-auto font-mono">${s ? `Bill ${formatBRL(s.amount_cents)}` : ''}</span>
+          <span class="ml-auto font-mono">${s ? `Fatura ${formatBRL(s.amount_cents)}` : ''}</span>
         </div>
       </div>`;
     })
@@ -266,7 +266,7 @@ if (typeof document !== 'undefined' && document.getElementById('limits')) {
         fixed_costs: reaisToCents($('fixed_costs').value),
         savings_goal: reaisToCents($('savings_goal').value),
       });
-      showError('Saved');
+      showError('Salvo');
     } catch (e) {
       showError(e.message);
     }
