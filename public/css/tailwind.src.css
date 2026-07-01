@@ -26,6 +26,7 @@
 
 @layer components {
   .paper-card { @apply bg-card border border-line rounded-lg shadow-card p-5; }
+  [data-theme='dark'] .paper-card { @apply shadow-none; }
   .meter { @apply h-2 rounded-full bg-line overflow-hidden; }
   .meter-fill { @apply h-full rounded-full bg-sage transition-all; }
   .meter-fill.over { @apply bg-clay-soft; }
