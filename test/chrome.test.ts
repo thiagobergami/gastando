@@ -23,3 +23,8 @@ test('renderNav', async () => {
   // theme toggle button
   assert.match(html, /id="theme-toggle"/);
 });
+
+test('chrome no longer ships an onboarding guard', async () => {
+  const mod = await import('../public/js/chrome.js');
+  assert.equal(mod.enforceOnboarding, undefined);
+});
