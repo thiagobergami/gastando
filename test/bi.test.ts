@@ -259,3 +259,95 @@ test('committed-vs-discretionary validates its range', async () => {
   await request(app).get('/api/bi/committed-vs-discretionary?from=2026-08&to=2026-06').expect(400);
   await request(app).get('/api/bi/committed-vs-discretionary?from=bad&to=2026-06').expect(400);
 });
+
+test('savings-realized uses the model that was in force each month', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  await request(app)
+    .put('/api/monthly-model')
+    .send({
+      month: '2026-06',
+      income_cents: 1000000,
+      fixed_costs_cents: 300000,
+      savings_goal_cents: 200000,
+    })
+    .expect(200);
+  await request(app)
+    .put('/api/monthly-model')
+    .send({
+      month: '2026-07',
+      income_cents: 1400000,
+      fixed_costs_cents: 300000,
+      savings_goal_cents: 250000,
+    })
+    .expect(200);
+  await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 100000,
+    })
+    .expect(201);
+
+  const r = await request(app).get('/api/bi/savings-realized?from=2026-06&to=2026-07').expect(200);
+  const realized = r.body.series[0];
+  const goal = r.body.series[1];
+  assert.equal(realized.name, 'Poupança realizada');
+  assert.equal(goal.name, 'Meta');
+  assert.deepEqual(realized.spent_cents, [600000, 1100000]); // 1.000−300−100 · 1.400−300−0
+  assert.deepEqual(goal.spent_cents, [200000, 250000]);
+});
+
+// A razão de ser da fatia inteira do lado dos dados (§A.2 do design).
+test('changing income today does not rewrite a month that already has a model', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  await request(app)
+    .put('/api/monthly-model')
+    .send({
+      month: '2026-06',
+      income_cents: 1000000,
+      fixed_costs_cents: 300000,
+      savings_goal_cents: 200000,
+    })
+    .expect(200);
+
+  const before = await request(app)
+    .get('/api/bi/savings-realized?from=2026-06&to=2026-06')
+    .expect(200);
+
+  await request(app)
+    .put('/api/settings')
+    .send({ monthly_income: 9900000, fixed_costs: 100, savings_goal: 100 })
+    .expect(200);
+
+  const after = await request(app)
+    .get('/api/bi/savings-realized?from=2026-06&to=2026-06')
+    .expect(200);
+  assert.deepEqual(after.body.series[0].spent_cents, before.body.series[0].spent_cents);
+
+  // O contraste: `savings-trend` continua sendo projeção com os números de hoje.
+  const trend = await request(app).get('/api/bi/savings-trend?from=2026-06&to=2026-06').expect(200);
+  assert.equal(trend.body.series[0].spent_cents[0], 9900000 - 100);
+});
+
+test('savings-realized falls back to settings for months with no model row', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  await request(app)
+    .put('/api/settings')
+    .send({ monthly_income: 1000000, fixed_costs: 300000, savings_goal: 200000 })
+    .expect(200);
+  const r = await request(app).get('/api/bi/savings-realized?from=2026-06&to=2026-06').expect(200);
+  assert.equal(r.body.series[0].spent_cents[0], 700000);
+  assert.equal(r.body.series[1].spent_cents[0], 200000);
+});
+
+test('savings-realized validates its range', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  await request(app).get('/api/bi/savings-realized?from=2026-08&to=2026-06').expect(400);
+  await request(app).get('/api/bi/savings-realized?from=2026-06&to=bad').expect(400);
+});

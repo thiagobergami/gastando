@@ -103,6 +103,7 @@ export function buildContainer(db: Db): Container {
       categories: repositories.categories,
       cards: repositories.cards,
       settings: repositories.settings,
+      model,
     }),
     simulate: makeSimulateUseCases({
       categories: repositories.categories,

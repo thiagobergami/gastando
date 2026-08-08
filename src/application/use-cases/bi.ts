@@ -6,6 +6,10 @@ import type {
   SettingsRepository,
 } from '../../domain/ports';
 import { monthRange } from '../../domain/services/dates';
+// A poupança realizada precisa do modelo de cada mês. Consumir o contrato
+// estreito `ModelResolver` — em vez de reimplementar a cadeia de fallback aqui —
+// é o que garante que o histórico e a revisão nunca discordem.
+import type { ModelResolver } from './model';
 
 export interface BiUseCaseDeps {
   reports: ReportRepository;
@@ -13,10 +17,11 @@ export interface BiUseCaseDeps {
   categories: CategoryRepository;
   cards: CardRepository;
   settings: SettingsRepository;
+  model: ModelResolver;
 }
 
 export function makeBiUseCases(deps: BiUseCaseDeps) {
-  const { reports, limits, categories, cards, settings } = deps;
+  const { reports, limits, categories, cards, settings, model } = deps;
 
   return {
     trends(from: string, to: string) {
@@ -114,6 +119,27 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
         series: [
           { name: 'Projected savings', spent_cents: projected },
           { name: 'Goal', spent_cents: months.map(() => goal) },
+        ],
+      };
+    },
+
+    // A diferença para `savingsTrend` é inteira `model.resolve(m)` no lugar de
+    // `settings.get()`: cada mês usa o modelo que valia naquele mês, e mudar a
+    // renda de hoje não reescreve o passado (§A.2 do design).
+    savingsRealized(from: string, to: string) {
+      const months = monthRange(from, to);
+      const resolved = months.map((m) => model.resolve(m));
+      return {
+        months,
+        series: [
+          {
+            name: 'Poupança realizada',
+            spent_cents: months.map(
+              (m, i) =>
+                resolved[i].income_cents - resolved[i].fixed_costs_cents - reports.spendAllMonth(m),
+            ),
+          },
+          { name: 'Meta', spent_cents: resolved.map((r) => r.savings_goal_cents) },
         ],
       };
     },

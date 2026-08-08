@@ -35,6 +35,10 @@ export function makeBiController(uc: BiUseCases): express.Router {
     const { from, to } = range(req);
     res.json(uc.savingsTrend(from, to));
   });
+  router.get('/savings-realized', (req, res) => {
+    const { from, to } = range(req);
+    res.json(uc.savingsRealized(from, to));
+  });
 
   router.get('/category-trend', (req, res) => {
     const { category_id, from, to } = parse(biCategoryRangeSchema, req.query);
