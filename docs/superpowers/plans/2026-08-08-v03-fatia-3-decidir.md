@@ -626,9 +626,14 @@ test('the month row wins, and the nearest earlier row carries forward', async ()
   assert.equal(july.body.month, '2026-07');
   assert.equal(july.body.source, 'carry');
 
+  // Maio é anterior a qualquer linha gravada, então não há degrau `carry` — mas
+  // também não é `none`: os dois PUTs acima gravaram `settings` junto (é o que o
+  // teste seguinte prova), e `settings` é o terceiro degrau da cadeia. O degrau
+  // `none` só existe num banco onde o modelo nunca foi configurado, que é o
+  // primeiro teste deste arquivo.
   const may = await request(app).get('/api/monthly-model?month=2026-05').expect(200);
-  assert.equal(may.body.income_cents, 0); // nothing at or before May
-  assert.equal(may.body.source, 'none');
+  assert.equal(may.body.income_cents, 1200000);
+  assert.equal(may.body.source, 'settings');
 });
 
 test('writing a month also updates the current model in settings', async () => {
