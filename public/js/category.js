@@ -68,7 +68,7 @@ if (typeof document !== 'undefined' && document.getElementById('list')) {
     .then((cats) => {
       const cat = cats.find((c) => c.id === id);
       if (!cat) {
-        $('catName').textContent = 'Category not found';
+        $('catName').textContent = 'Categoria não encontrada';
         return;
       }
       $('catName').textContent = cat.name;
