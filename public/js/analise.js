@@ -32,7 +32,7 @@ async function run() {
 }
 
 if (typeof document !== 'undefined' && document.getElementById('chart')) {
-  mountChrome('/bi.html');
+  mountChrome('/analise.html');
   document.getElementById('from').value = currentMonth();
   document.getElementById('to').value = addMonths(currentMonth(), 6);
   document.getElementById('run').addEventListener('click', run);

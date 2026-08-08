@@ -1,10 +1,10 @@
 export const NAV_ITEMS = [
   { href: '/', label: 'Dashboard', route: '/' },
-  { href: '/transactions.html', label: 'Transações', route: '/transactions.html' },
+  { href: '/registrar.html', label: 'Transações', route: '/registrar.html' },
   { href: '/parcelas.html', label: 'Parcelas', route: '/parcelas.html' },
   { href: '/recurring.html', label: 'Recorrentes', route: '/recurring.html' },
   { href: '/settings.html', label: 'Configurações', route: '/settings.html' },
-  { href: '/bi.html', label: 'BI', route: '/bi.html' },
+  { href: '/analise.html', label: 'BI', route: '/analise.html' },
   { href: '/simulate.html', label: 'Simular', route: '/simulate.html' },
 ];
 

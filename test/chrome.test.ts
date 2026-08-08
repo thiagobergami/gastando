@@ -5,7 +5,7 @@ test('renderNav', async () => {
   const { renderNav, NAV_ITEMS } = await import('../public/js/chrome.js');
   assert.equal(NAV_ITEMS.length, 7);
 
-  const html = renderNav('/transactions.html');
+  const html = renderNav('/registrar.html');
   // all five labels present
   for (const item of NAV_ITEMS) assert.ok(html.includes(item.label), `missing ${item.label}`);
   // wordmark present
@@ -14,7 +14,7 @@ test('renderNav', async () => {
   assert.match(html, /<header/);
   assert.match(html, /bottom-nav/);
   // active route marked
-  assert.match(html, /href="\/transactions.html"[^>]*class="[^"]*active/);
+  assert.match(html, /href="\/registrar.html"[^>]*class="[^"]*active/);
   // pt-BR nav labels
   assert.match(html, /Transações/);
   assert.match(html, /Configurações/);

@@ -23,7 +23,7 @@ const rows = [
 ];
 
 test('renderRows formats amount and installment chip', async () => {
-  const { renderRows } = await import('../public/js/transactions.js');
+  const { renderRows } = await import('../public/js/registrar.js');
   const html = renderRows(rows);
   assert.match(html, /iFood almoço/);
   assert.match(html, /R\$ 48,90/);
@@ -39,7 +39,7 @@ const lookups = {
 };
 
 test('renderRows shows category name and card name', async () => {
-  const { renderRows } = await import('../public/js/transactions.js');
+  const { renderRows } = await import('../public/js/registrar.js');
   const rowsWithRefs = rows.map((r) => ({ ...r, category_id: 1, card_id: 5 }));
   const html = renderRows(rowsWithRefs, lookups);
   assert.match(html, /Restaurantes/);
@@ -47,7 +47,7 @@ test('renderRows shows category name and card name', async () => {
 });
 
 test('renderRows shows the category name without any group chip', async () => {
-  const { renderRows } = await import('../public/js/transactions.js');
+  const { renderRows } = await import('../public/js/registrar.js');
   const html = renderRows(
     [
       {

@@ -39,7 +39,7 @@ test('dashboard renderHeroInitial escapes the category name', async () => {
 });
 
 test('transactions renderRows escapes the description', async () => {
-  const { renderRows } = await import('../public/js/transactions.js');
+  const { renderRows } = await import('../public/js/registrar.js');
   const html = renderRows([
     {
       id: 1,

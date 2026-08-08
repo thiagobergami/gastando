@@ -188,7 +188,7 @@ async function onSubmit(e) {
 }
 
 if (typeof document !== 'undefined' && document.getElementById('list')) {
-  mountChrome('/transactions.html');
+  mountChrome('/registrar.html');
   $('month').value = currentMonth();
   $('isInstallment').addEventListener('change', (e) => {
     $('installmentFields').style.display = e.target.checked ? 'contents' : 'none';

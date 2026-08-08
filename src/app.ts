@@ -30,6 +30,11 @@ export function createApp(arg: Container | Db): express.Express {
   app.use('/api/recurring', controllers.recurring);
   app.use('/api/backup', controllers.backup);
 
+  // Os nomes antigos continuam funcionando: favoritos e links salvos não quebram
+  // quando o vocabulário do §5 chega às URLs.
+  app.get('/transactions.html', (_req, res) => res.redirect(301, '/registrar.html'));
+  app.get('/bi.html', (_req, res) => res.redirect(301, '/analise.html'));
+
   app.use(express.static(path.join(__dirname, '..', 'public')));
   app.use(errorHandler);
 
