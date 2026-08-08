@@ -19,10 +19,6 @@ export function makeBiController(uc: BiUseCases): express.Router {
     const { from, to } = range(req);
     res.json(uc.byCard(from, to));
   });
-  router.get('/by-group', (req, res) => {
-    const { from, to } = range(req);
-    res.json(uc.byGroup(from, to));
-  });
   router.get('/budget-vs-actual', (req, res) => {
     const { from, to } = range(req);
     res.json(uc.budgetVsActual(from, to));

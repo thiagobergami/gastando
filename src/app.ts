@@ -18,14 +18,12 @@ export function createApp(arg: Container | Db): express.Express {
 
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-  app.use('/api/groups', controllers.groups);
   app.use('/api/categories', controllers.categories);
   app.use('/api/cards', controllers.cards);
   app.use('/api/limits', controllers.limits);
   app.use('/api/transactions', controllers.transactions);
   app.use('/api/installment-groups', controllers.installmentGroups);
   app.use('/api/settings', controllers.settings);
-  app.use('/api/onboarding', controllers.onboarding);
   app.use('/api/dashboard', controllers.dashboard);
   app.use('/api/bi', controllers.bi);
   app.use('/api/simulate', controllers.simulate);

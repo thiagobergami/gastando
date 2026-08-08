@@ -30,17 +30,6 @@ export function makeReportRepository(db: Db): ReportRepository {
           .get(cardId, month) as { s: number }
       ).s;
     },
-    spendByGroupMonth(groupId: number, month: string): number {
-      return (
-        db
-          .prepare(
-            `SELECT COALESCE(SUM(t.amount_cents),0) AS s FROM transactions t
-         JOIN categories c ON c.id = t.category_id
-         WHERE c.group_id=? AND strftime('%Y-%m', t.date)=?`,
-          )
-          .get(groupId, month) as { s: number }
-      ).s;
-    },
     spendAllMonth(month: string): number {
       return (
         db

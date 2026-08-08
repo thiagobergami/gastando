@@ -1,7 +1,6 @@
 import type {
   CardRepository,
   CategoryRepository,
-  GroupRepository,
   LimitRepository,
   ReportRepository,
   SettingsRepository,
@@ -13,12 +12,11 @@ export interface BiUseCaseDeps {
   limits: LimitRepository;
   categories: CategoryRepository;
   cards: CardRepository;
-  groups: GroupRepository;
   settings: SettingsRepository;
 }
 
 export function makeBiUseCases(deps: BiUseCaseDeps) {
-  const { reports, limits, categories, cards, groups, settings } = deps;
+  const { reports, limits, categories, cards, settings } = deps;
 
   return {
     trends(from: string, to: string) {
@@ -37,16 +35,6 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
         card_id: c.id,
         name: c.name,
         spent_cents: months.map((m) => reports.spendByCardMonth(c.id, m)),
-      }));
-      return { months, series };
-    },
-
-    byGroup(from: string, to: string) {
-      const months = monthRange(from, to);
-      const series = groups.listAll().map((g) => ({
-        group_id: g.id,
-        name: g.name,
-        spent_cents: months.map((m) => reports.spendByGroupMonth(g.id, m)),
       }));
       return { months, series };
     },

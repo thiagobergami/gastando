@@ -21,18 +21,5 @@ export function makeSettingsRepository(db: Db): SettingsRepository {
         for (const [k, v] of entries) upsert.run(k, v);
       })();
     },
-    countTransactions(): number {
-      return (db.prepare('SELECT COUNT(*) AS n FROM transactions').get() as { n: number }).n;
-    },
-    countInstallmentGroups(): number {
-      return (db.prepare('SELECT COUNT(*) AS n FROM installment_groups').get() as { n: number }).n;
-    },
-    wipeCategoryData(): void {
-      db.transaction(() => {
-        db.prepare('DELETE FROM category_limits').run();
-        db.prepare('DELETE FROM categories').run();
-        db.prepare('DELETE FROM groups').run();
-      })();
-    },
   };
 }

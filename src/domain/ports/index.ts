@@ -115,9 +115,6 @@ export interface SettingsRepository {
   get(key: string): string | undefined;
   set(key: string, value: string): void;
   setMany(entries: [string, string][]): void; // atomic
-  countTransactions(): number;
-  countInstallmentGroups(): number;
-  wipeCategoryData(): void; // atomic: delete limits, categories, groups
 }
 
 export interface RecurringRepository {
@@ -158,7 +155,6 @@ export interface RecurringRepository {
 export interface ReportRepository {
   spendByCategoryMonth(categoryId: number, month: string): number;
   spendByCardMonth(cardId: number, month: string): number;
-  spendByGroupMonth(groupId: number, month: string): number;
   spendAllMonth(month: string): number;
   installmentSpendMonth(month: string): number;
   dashboardCategories(): Array<
