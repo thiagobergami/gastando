@@ -6,6 +6,7 @@ import { makeCategoriesController } from '../adapters/http/controllers/categorie
 import { makeDashboardController } from '../adapters/http/controllers/dashboard';
 import { makeInstallmentGroupsController } from '../adapters/http/controllers/installmentGroups';
 import { makeLimitsController } from '../adapters/http/controllers/limits';
+import { makeMonthlyModelController } from '../adapters/http/controllers/monthlyModel';
 import { makeRecurringController } from '../adapters/http/controllers/recurring';
 import { makeSettingsController } from '../adapters/http/controllers/settings';
 import { makeSimulateController } from '../adapters/http/controllers/simulate';
@@ -38,6 +39,7 @@ export interface Container {
     categories: express.Router;
     cards: express.Router;
     limits: express.Router;
+    monthlyModel: express.Router;
     transactions: express.Router;
     installmentGroups: express.Router;
     settings: express.Router;
@@ -117,6 +119,7 @@ export function buildContainer(db: Db): Container {
     categories: makeCategoriesController(useCases.categories),
     cards: makeCardsController(useCases.cards),
     limits: makeLimitsController(useCases.limits),
+    monthlyModel: makeMonthlyModelController(useCases.model),
     transactions: makeTransactionsController(useCases.transactions),
     installmentGroups: makeInstallmentGroupsController(useCases.installments),
     settings: makeSettingsController(useCases.settings),

@@ -330,6 +330,7 @@ distingue o estado inicial do completo — nenhuma flag nova é necessária.
 | `/api/dashboard` | agregação por grupo é substituída por agregação por `essential` |
 | `/api/bi/*` | ganha série de poupança realizada por mês, e série comprometido vs. discricionário |
 | `/api/transactions` | inalterado (já aceita campos de parcela) |
+| `GET/PUT /api/monthly-model` | **novo** — modelo de poupança por mês (renda, custos fixos, meta), com resolução carry-forward. Consequência do §9 passo 3: sem dimensão de mês não há "poupança realizada" honesta |
 | demais | inalterados |
 
 Nenhuma mudança na arquitetura hexagonal: as alterações ficam contidas em
