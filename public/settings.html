@@ -4,7 +4,7 @@
   <script src="/js/theme-init.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gastando — Settings</title>
+  <title>Gastando — Configurações</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/app.css" />
@@ -35,7 +35,15 @@
         <button id="useLastMonth" class="btn-ghost text-sm">Usar mês anterior</button>
         <button id="useAvg3" class="btn-ghost text-sm">Usar média de 3 meses</button>
       </div>
-      <table class="w-full text-left"><tbody id="limits"></tbody></table>
+      <table class="w-full text-left">
+        <thead><tr class="text-xs uppercase tracking-wide text-ink-mut border-b border-line">
+          <th class="py-2 font-semibold">Categoria</th>
+          <th class="py-2 text-center font-semibold">Essencial</th>
+          <th class="py-2 text-right font-semibold">Limite</th>
+          <th class="py-2"></th>
+        </tr></thead>
+        <tbody id="limits"></tbody>
+      </table>
     </section>
     <section class="paper-card">
       <h2 class="font-display text-xl mb-4">Cartões</h2>

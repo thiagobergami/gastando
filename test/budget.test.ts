@@ -45,7 +45,7 @@ test('allocationText shows remaining when within the ceiling', async () => {
 test('allocationText shows the overage when past the ceiling', async () => {
   const { allocationStatus, allocationText } = await import('../public/js/budget.js');
   const txt = allocationText(allocationStatus([900000], 1435000, 377000, 244000));
-  assert.match(txt, /R\$ 860,00 acima do teto/);
+  assert.match(txt, /R\$ 860,00 acima do que posso gastar/);
 });
 
 test('allocationPillClass flips between ok and over across the boundary', async () => {
@@ -54,14 +54,6 @@ test('allocationPillClass flips between ok and over across the boundary', async 
   const over = allocationStatus([900000], 1435000, 377000, 244000);
   assert.equal(allocationPillClass(within), 'pill pill-ok');
   assert.equal(allocationPillClass(over), 'pill pill-over');
-});
-
-test('colorSwatches renders a button per palette color and marks the current', async () => {
-  const { colorSwatches, GROUP_COLORS } = await import('../public/js/budget.js');
-  const html = colorSwatches(3, 'gold');
-  for (const c of GROUP_COLORS) assert.match(html, new RegExp(`data-color="${c}"`));
-  assert.match(html, /data-group-color="3"/);
-  assert.match(html, /data-color="gold"[^>]*ring/); // current is highlighted
 });
 
 test('nameEditor renders an input prefilled with the current value', async () => {

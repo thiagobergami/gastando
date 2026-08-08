@@ -3,19 +3,18 @@ import {
   allocationPillClass,
   allocationStatus,
   allocationText,
-  ceilingText,
+  canSpendText,
   nameEditor,
-  renderGroupedLimitRows,
-  renderLimitRows,
+  renderCategoryRows,
 } from './budget.js';
 import { mountChrome } from './chrome.js';
 import { currentMonth, esc, formatBRL, reaisToCents } from './format.js';
 
 // Re-exported so existing importers (and tests) can keep reaching them here.
-export { ceilingText, renderGroupedLimitRows, renderLimitRows };
+export { canSpendText, renderCategoryRows };
 
 const $ = (id) => document.getElementById(id);
-const state = { groups: [], cats: [] };
+const state = { cats: [] };
 
 async function loadSettings() {
   try {
@@ -66,18 +65,35 @@ function wireLimitInputs() {
     });
 }
 
+function wireEssentialToggles() {
+  $('limits')
+    .querySelectorAll('input[data-essential]')
+    .forEach((box) => {
+      box.addEventListener('change', async () => {
+        const id = Number(box.dataset.essential);
+        const c = state.cats.find((x) => x.id === id);
+        try {
+          await api.put(`/api/categories/${id}`, { ...c, essential: box.checked ? 1 : 0 });
+          c.essential = box.checked ? 1 : 0;
+        } catch (e) {
+          box.checked = !box.checked;
+          showError(e.message);
+        }
+      });
+    });
+}
+
 async function loadLimits() {
   try {
-    const [groups, cats, limits] = await Promise.all([
-      api.get('/api/groups'),
+    const [cats, limits] = await Promise.all([
       api.get('/api/categories'),
       api.get(`/api/limits?month=${$('month').value}`),
     ]);
-    state.groups = groups;
     state.cats = cats;
     const byCat = new Map(limits.map((l) => [l.category_id, l.limit_cents]));
-    $('limits').innerHTML = renderGroupedLimitRows(groups, cats, byCat);
+    $('limits').innerHTML = renderCategoryRows(cats, byCat);
     wireLimitInputs();
+    wireEssentialToggles();
     updateAllocation();
   } catch (e) {
     showError(e.message);
@@ -87,23 +103,17 @@ async function loadLimits() {
 function beginRename(kind, id) {
   const cell = $('limits').querySelector(`[data-name-cell="${kind}:${id}"]`);
   if (!cell) return;
-  const cur =
-    kind === 'cat'
-      ? state.cats.find((c) => c.id === id).name
-      : state.groups.find((g) => g.id === id).name;
+  const cur = state.cats.find((c) => c.id === id).name;
   cell.innerHTML = nameEditor(kind, id, cur);
   cell.querySelector('input').focus();
 }
 
-function beginAdd(kind, groupId) {
-  // For addcat: replace the "+ Add category" button cell content.
-  // For addgroup: replace the "+ Add group" button cell content.
-  const attr = kind === 'addcat' ? `data-add-cat="${groupId}"` : 'data-add-group';
-  const btn = $('limits').querySelector(`[${attr}]`);
+function beginAdd() {
+  const btn = $('limits').querySelector('[data-add-cat]');
   if (!btn) return;
   const cell = btn.closest('td');
   if (!cell) return;
-  cell.innerHTML = nameEditor(kind, groupId, '');
+  cell.innerHTML = nameEditor('addcat', 'new', '');
   cell.querySelector('input').focus();
 }
 
@@ -118,13 +128,8 @@ async function saveEdit(token) {
   if (kind === 'cat') {
     const c = state.cats.find((x) => x.id === Number(id));
     await api.put(`/api/categories/${id}`, { ...c, name: val });
-  } else if (kind === 'group') {
-    const g = state.groups.find((x) => x.id === Number(id));
-    await api.put(`/api/groups/${id}`, { ...g, name: val });
   } else if (kind === 'addcat') {
-    await api.post('/api/categories', { group_id: Number(id), name: val });
-  } else if (kind === 'addgroup') {
-    await api.post('/api/groups', { name: val });
+    await api.post('/api/categories', { name: val });
   }
   await loadLimits();
 }
@@ -137,31 +142,12 @@ async function onLimitsClick(e) {
       await loadLimits();
       return;
     }
-    if (d.groupDel) {
-      await api.del(`/api/groups/${d.groupDel}`);
-      await loadLimits();
-      return;
-    }
     if (d.catRename) {
       beginRename('cat', Number(d.catRename));
       return;
     }
-    if (d.groupRename) {
-      beginRename('group', Number(d.groupRename));
-      return;
-    }
-    if (d.groupColor) {
-      const g = state.groups.find((x) => x.id === Number(d.groupColor));
-      await api.put(`/api/groups/${d.groupColor}`, { ...g, color: d.color });
-      await loadLimits();
-      return;
-    }
-    if (d.addCat) {
-      beginAdd('addcat', d.addCat);
-      return;
-    }
-    if (e.target.hasAttribute('data-add-group')) {
-      beginAdd('addgroup', 'new');
+    if (e.target.hasAttribute('data-add-cat')) {
+      beginAdd();
       return;
     }
     if (d.save) {
