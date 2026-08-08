@@ -30,9 +30,7 @@ export function makeDashboardUseCases(deps: DashboardUseCaseDeps) {
 
   return {
     build(month: string) {
-      const cats = reports.dashboardCategories();
-
-      const categories = cats.map((c) => {
+      const categories = reports.dashboardCategories().map((c) => {
         const limit_cents = limits.resolve(c.id, month);
         const spent_cents = limits.sumSpend(c.id, month);
         const carry_in_cents = computeCarryIn(c.id, month);
@@ -41,9 +39,7 @@ export function makeDashboardUseCases(deps: DashboardUseCaseDeps) {
           category_id: c.id,
           name: c.name,
           examples: c.examples,
-          group_id: c.group_id,
-          group_name: c.group_name,
-          group_color: c.group_color,
+          essential: c.essential,
           limit_cents,
           spent_cents,
           carry_in_cents,
@@ -53,44 +49,34 @@ export function makeDashboardUseCases(deps: DashboardUseCaseDeps) {
         };
       });
 
-      const groupsMap = new Map();
-      for (const c of categories) {
-        if (!groupsMap.has(c.group_id)) {
-          groupsMap.set(c.group_id, {
-            group_id: c.group_id,
-            name: c.group_name,
-            color: c.group_color,
-            limit_cents: 0,
-            spent_cents: 0,
-            effective_spent_cents: 0,
-          });
-        }
-        const g = groupsMap.get(c.group_id);
-        g.limit_cents += c.limit_cents;
-        g.spent_cents += c.spent_cents;
-        g.effective_spent_cents += c.effective_spent_cents;
-      }
-      const groups = [...groupsMap.values()];
+      const sumWhere = (essential: number) =>
+        categories.reduce((s, c) => (c.essential === essential ? s + c.spent_cents : s), 0);
 
       const income = num('monthly_income');
       const fixed = num('fixed_costs');
       const goal = num('savings_goal');
       const spent_cents = categories.reduce((s, c) => s + c.spent_cents, 0);
-      const limit_total = categories.reduce((s, c) => s + c.limit_cents, 0);
-      const teto_cents = income - fixed - goal;
+      const can_spend_cents = income - fixed - goal;
       const projected_savings_cents = income - fixed - spent_cents;
 
       return {
         month,
+        // A ausência de renda é o que separa o estado inicial do completo (§10).
+        configured: settings.get('monthly_income') !== undefined,
+        entry_count: reports.countTransactions(month),
         categories,
-        groups,
+        by_essential: {
+          essential_cents: sumWhere(1),
+          non_essential_cents: sumWhere(0),
+        },
         totals: {
-          limit_cents: limit_total,
+          limit_cents: categories.reduce((s, c) => s + c.limit_cents, 0),
           spent_cents,
           monthly_income_cents: income,
           fixed_costs_cents: fixed,
           savings_goal_cents: goal,
-          teto_cents,
+          can_spend_cents,
+          left_to_spend_cents: can_spend_cents - spent_cents,
           projected_savings_cents,
           vs_goal_cents: projected_savings_cents - goal,
         },

@@ -157,8 +157,7 @@ export interface ReportRepository {
   spendByCardMonth(cardId: number, month: string): number;
   spendAllMonth(month: string): number;
   installmentSpendMonth(month: string): number;
-  dashboardCategories(): Array<
-    Category & { group_name: string; group_color: string; group_sort: number }
-  >;
+  dashboardCategories(): Category[];
+  countTransactions(month: string): number;
   spendByCardDateRange(cardId: number, startExclusive: string, endInclusive: string): number;
 }
