@@ -23,12 +23,3 @@ export function pageHeader(title, subtitle) {
     ${subtitle ? `<p class="text-ink-mut mt-1">${esc(subtitle)}</p>` : ''}
   </div>`;
 }
-
-export function groupTag(groupName) {
-  const n = (groupName || '').toLowerCase();
-  let cls = 'tag-neutral';
-  if (n.includes('essenc')) cls = 'tag-sage';
-  else if (n.includes('estilo')) cls = 'tag-gold';
-  else if (n.includes('fundo')) cls = 'tag-slate';
-  return `<span class="tag ${cls}">${esc(groupName)}</span>`;
-}
