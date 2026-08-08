@@ -27,6 +27,10 @@ export function makeBiController(uc: BiUseCases): express.Router {
     const { from, to } = range(req);
     res.json(uc.installmentForecast(from, to));
   });
+  router.get('/committed-vs-discretionary', (req, res) => {
+    const { from, to } = range(req);
+    res.json(uc.committedVsDiscretionary(from, to));
+  });
   router.get('/savings-trend', (req, res) => {
     const { from, to } = range(req);
     res.json(uc.savingsTrend(from, to));

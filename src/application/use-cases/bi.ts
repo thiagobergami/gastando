@@ -68,6 +68,23 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
       };
     },
 
+    // A ordem das séries é contratual: o card da Análise lê por índice, não por
+    // nome, para não quebrar se a tradução mudar.
+    committedVsDiscretionary(from: string, to: string) {
+      const months = monthRange(from, to);
+      const committed = months.map((m) => reports.committedSpendMonth(m));
+      return {
+        months,
+        series: [
+          { name: 'Comprometido', spent_cents: committed },
+          {
+            name: 'Discricionário',
+            spent_cents: months.map((m, i) => reports.spendAllMonth(m) - committed[i]),
+          },
+        ],
+      };
+    },
+
     categoryTrend(categoryId: number, from: string, to: string) {
       const months = monthRange(from, to);
       return {

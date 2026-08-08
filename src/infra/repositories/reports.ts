@@ -43,6 +43,22 @@ export function makeReportRepository(db: Db): ReportRepository {
           .get(month) as { s: number }
       ).s;
     },
+    // "Comprometido" é o que já foi assinado embaixo: parcelas em curso e
+    // cobranças de recorrência. Categorias essenciais NÃO entram (decisão C.1) —
+    // mercado é inevitável, mas não é um compromisso que você assumiu.
+    // O `OR` numa consulta só garante que a transação que é parcela E recorrente
+    // seja contada uma vez.
+    committedSpendMonth(month: string): number {
+      return (
+        db
+          .prepare(
+            `SELECT COALESCE(SUM(amount_cents),0) AS s FROM transactions
+         WHERE strftime('%Y-%m', date)=?
+           AND (installment_group_id IS NOT NULL OR recurring_template_id IS NOT NULL)`,
+          )
+          .get(month) as { s: number }
+      ).s;
+    },
     dashboardCategories(): Category[] {
       // Essenciais primeiro — é a ordem em que a pessoa lê "o que é obrigatório".
       return db

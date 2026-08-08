@@ -186,3 +186,76 @@ test('savingsTrend = income - fixed - spend, vs goal', async () => {
   assert.equal(projected.spent_cents[0], 600000); // 1,000,000 - 300,000 - 100,000
   assert.equal(goal.spent_cents[0], 200000);
 });
+
+test('committed is installments and recurring charges — not essential categories', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  // A categoria de `makeTestDb` é `essential = 1`. Um gasto avulso nela é
+  // discricionário: a decisão C.1 é que "comprometido" é o que já foi assinado.
+  await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-05',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 50000,
+    })
+    .expect(201);
+  await request(app)
+    .post('/api/transactions')
+    .send({
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      installment_total_cents: 30000,
+      installment_count: 3,
+      first_month: '2026-06',
+    })
+    .expect(201);
+
+  const r = await request(app)
+    .get('/api/bi/committed-vs-discretionary?from=2026-06&to=2026-06')
+    .expect(200);
+  assert.deepEqual(
+    r.body.series.map((s) => s.name),
+    ['Comprometido', 'Discricionário'],
+  );
+  assert.equal(r.body.series[0].spent_cents[0], 10000); // só a parcela
+  assert.equal(r.body.series[1].spent_cents[0], 50000); // o gasto essencial avulso
+});
+
+test('committed counts a transaction that is both an installment and recurring once', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  const tpl = ctx.db
+    .prepare(
+      `INSERT INTO recurring_templates (description, category_id, card_id, amount_cents, day_of_month)
+       VALUES ('Seguro', ?, ?, 9000, 5)`,
+    )
+    .run(ctx.categoryId, ctx.cardId);
+  const grp = ctx.db
+    .prepare(
+      `INSERT INTO installment_groups (description, total_cents, total_count, first_month, category_id, card_id)
+       VALUES ('Seguro parcelado', 9000, 1, '2026-06', ?, ?)`,
+    )
+    .run(ctx.categoryId, ctx.cardId);
+  ctx.db
+    .prepare(
+      `INSERT INTO transactions (date, category_id, card_id, amount_cents, description,
+                                 installment_group_id, recurring_template_id)
+       VALUES ('2026-06-05', ?, ?, 9000, 'Seguro', ?, ?)`,
+    )
+    .run(ctx.categoryId, ctx.cardId, grp.lastInsertRowid, tpl.lastInsertRowid);
+
+  const r = await request(app)
+    .get('/api/bi/committed-vs-discretionary?from=2026-06&to=2026-06')
+    .expect(200);
+  assert.equal(r.body.series[0].spent_cents[0], 9000); // não 18000
+  assert.equal(r.body.series[1].spent_cents[0], 0);
+});
+
+test('committed-vs-discretionary validates its range', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  await request(app).get('/api/bi/committed-vs-discretionary?from=2026-08&to=2026-06').expect(400);
+  await request(app).get('/api/bi/committed-vs-discretionary?from=bad&to=2026-06').expect(400);
+});
