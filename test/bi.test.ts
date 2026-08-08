@@ -61,22 +61,6 @@ test('bi by-card sums spend per card', async () => {
   await request(app).get('/api/bi/by-card?from=2026-08&to=2026-06').expect(400);
 });
 
-test('bi by-group aggregates categories in a group', async () => {
-  const ctx = makeTestDb();
-  const app = createApp(ctx.db);
-  await request(app)
-    .post('/api/transactions')
-    .send({
-      date: '2026-06-05',
-      category_id: ctx.categoryId,
-      card_id: ctx.cardId,
-      amount_cents: 25000,
-    })
-    .expect(201);
-  const r = await request(app).get('/api/bi/by-group?from=2026-06&to=2026-06').expect(200);
-  assert.equal(r.body.series[0].spent_cents[0], 25000);
-});
-
 test('bi budget-vs-actual returns Limit and Spent series', async () => {
   const ctx = makeTestDb();
   ctx.db

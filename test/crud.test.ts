@@ -62,31 +62,11 @@ function appWith() {
   return { app: createApp(ctx.db), ctx };
 }
 
-test('groups: create, list, update, delete', async () => {
+test('categories: create needs no group and supports soft-delete', async () => {
   const { app } = appWith();
-  const created = await request(app)
-    .post('/api/groups')
-    .send({ name: 'Essenciais', color: 'sage', sort_order: 1 })
-    .expect(201);
-  assert.equal(created.body.name, 'Essenciais');
-
-  const list = await request(app).get('/api/groups').expect(200);
-  assert.ok(list.body.some((g) => g.name === 'Essenciais'));
-
-  await request(app)
-    .put(`/api/groups/${created.body.id}`)
-    .send({ name: 'Essenciais / semi-fixos', color: 'sage', sort_order: 1 })
-    .expect(200);
-  await request(app).delete(`/api/groups/${created.body.id}`).expect(204);
-});
-
-test('categories: create requires a real group and supports soft-delete', async () => {
-  const { app, ctx } = appWith();
-  await request(app).post('/api/categories').send({ group_id: 99999, name: 'X' }).expect(400);
-
   const c = await request(app)
     .post('/api/categories')
-    .send({ group_id: ctx.groupId, name: 'Transporte', examples: 'Uber' })
+    .send({ name: 'Transporte', examples: 'Uber' })
     .expect(201);
   assert.equal(c.body.active, 1);
 
@@ -96,34 +76,6 @@ test('categories: create requires a real group and supports soft-delete', async 
   assert.equal(found.active, 0);
 });
 
-test('groups: delete non-existent returns 404', async () => {
-  const { app } = appWith();
-  await request(app).delete('/api/groups/99999').expect(404);
-});
-
-test('groups: delete is a soft-delete and hides the group from listing', async () => {
-  const { app } = appWith();
-  const g = await request(app)
-    .post('/api/groups')
-    .send({ name: 'Temp', color: 'gold' })
-    .expect(201);
-  await request(app).delete(`/api/groups/${g.body.id}`).expect(204);
-  const list = await request(app).get('/api/groups').expect(200);
-  assert.ok(!list.body.some((x) => x.id === g.body.id), 'soft-deleted group still listed');
-});
-
-test('groups: delete is blocked while it has active categories', async () => {
-  const { app, ctx } = appWith();
-  // ctx.groupId has the seeded-in-helper active category "Supermercado".
-  const res = await request(app).delete(`/api/groups/${ctx.groupId}`).expect(409);
-  assert.equal(res.body.error, 'group has categories; remove them first');
-});
-
-test('groups: post without name returns 400', async () => {
-  const { app } = appWith();
-  await request(app).post('/api/groups').send({ color: 'sage' }).expect(400);
-});
-
 test('categories: put updates name and examples', async () => {
   const { app, ctx } = appWith();
   const res = await request(app)
@@ -131,14 +83,6 @@ test('categories: put updates name and examples', async () => {
     .send({ group_id: ctx.groupId, name: 'Updated', examples: 'test', sort_order: 0, active: 1 })
     .expect(200);
   assert.equal(res.body.name, 'Updated');
-});
-
-test('categories: put with invalid group_id returns 400', async () => {
-  const { app, ctx } = appWith();
-  await request(app)
-    .put(`/api/categories/${ctx.categoryId}`)
-    .send({ group_id: 99999, name: 'Updated', examples: '' })
-    .expect(400);
 });
 
 test('categories: create appends sort_order after existing categories', async () => {
@@ -152,17 +96,6 @@ test('categories: create appends sort_order after existing categories', async ()
     .send({ group_id: ctx.groupId, name: 'Beta' })
     .expect(201);
   assert.ok(b.body.sort_order > a.body.sort_order, 'second category did not append after first');
-});
-
-test('categories: create rejects an inactive group', async () => {
-  const { app } = appWith();
-  const g = await request(app).post('/api/groups').send({ name: 'Soon Gone' }).expect(201);
-  await request(app).delete(`/api/groups/${g.body.id}`).expect(204); // now inactive
-  const res = await request(app)
-    .post('/api/categories')
-    .send({ group_id: g.body.id, name: 'Orphan' })
-    .expect(400);
-  assert.equal(res.body.error, 'group_id does not exist');
 });
 
 test('cards: create, list, soft-delete', async () => {

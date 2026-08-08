@@ -2,13 +2,16 @@
 
 A personal expense tracker for credit-card spending. Record every transaction by
 category, card and month; compare actual spend against editable per-category
-monthly limits; model installment purchases (*parcelas*); reproduce a full savings
-summary (income → fixed costs → savings goal → healthy ceiling → projected
-savings); and explore your history through BI views.
+monthly limits; model installment purchases (*parcelas*); and see, month by
+month, how much you can still spend ("posso gastar este mês") and how much you
+are on track to save.
 
 It runs entirely on your machine. There is no account, no cloud sync, and no
 telemetry — everything lives in a single SQLite file you control. The UI is in
-English; example data and currency are pt-BR (R$).
+pt-BR; currency is R$.
+
+On first run the app opens ready to use: eight generic Brazilian categories, no
+setup wizard, no sample data belonging to anyone else.
 
 Built with Node.js, Express and SQLite.
 
