@@ -64,3 +64,28 @@ test('renderRows shows the category name without any group chip', async () => {
   assert.match(html, /Mercado/);
   assert.doesNotMatch(html, /tag-sage|tag-gold|tag-slate|tag-neutral/);
 });
+
+test('renderRows shows the date as day/month', async () => {
+  const { renderRows } = await import('../public/js/registrar.js');
+  const html = renderRows([
+    {
+      id: 1,
+      date: '2026-08-06',
+      description: 'Assaí Atacadista',
+      category_id: 1,
+      card_id: 5,
+      amount_cents: 24890,
+    },
+  ]);
+  assert.match(html, />06\/08</);
+  assert.doesNotMatch(html, /2026-08-06/);
+});
+
+test('renderRows keeps edit and delete affordances', async () => {
+  const { renderRows } = await import('../public/js/registrar.js');
+  const html = renderRows([
+    { id: 42, date: '2026-08-06', description: 'x', amount_cents: 100, installment_group_id: null },
+  ]);
+  assert.match(html, /data-edit="42"/);
+  assert.match(html, /data-del="42"/);
+});

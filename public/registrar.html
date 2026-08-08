@@ -12,34 +12,34 @@
 <body class="pb-24 md:pb-0">
   <div id="nav"></div>
   <main class="max-w-5xl mx-auto px-6 pt-2">
-    <div class="flex items-center gap-3 mb-1">
-      <h1 class="font-display text-3xl text-ink">Transações</h1>
-      <input type="month" id="month" class="ml-auto rounded border border-line bg-card px-3 py-2" />
+    <div class="mb-6">
+      <h1 class="font-display text-3xl text-ink">Registrar</h1>
+      <p class="text-ink-mut mt-1">Lance os gastos da semana. Enter salva e mantém o foco no próximo.</p>
     </div>
-    <p class="text-ink-mut mb-4">Organize e acompanhe seus fluxos financeiros com precisão.</p>
+
+    <form id="form" class="paper-card mb-6">
+      <div class="label-caps text-ink-mut mb-3">LANÇAMENTO RÁPIDO</div>
+      <div id="entryRow"></div>
+      <div class="border-t border-line mt-4 pt-3 flex flex-wrap gap-6 text-sm">
+        <button type="button" id="toggleInstallment" class="text-ink-mut hover:text-sage">+ dividir em N vezes</button>
+        <button type="button" id="toggleRecurring" class="text-ink-mut hover:text-sage">+ repete todo mês</button>
+        <button type="button" id="cancelEdit" class="text-clay ml-auto" style="display:none">Cancelar edição</button>
+      </div>
+      <div id="installmentFields" class="flex flex-wrap gap-3 mt-3" style="display:none">
+        <label class="field w-32"><span># parcelas</span><input type="number" id="count" min="2" /></label>
+        <label class="field w-40"><span>Primeiro mês</span><input type="month" id="firstMonth" /></label>
+      </div>
+      <div id="recurringFields" class="flex flex-wrap gap-3 mt-3" style="display:none">
+        <label class="field w-32"><span>Dia do mês</span><input type="number" id="dayOfMonth" min="1" max="31" /></label>
+      </div>
+    </form>
+
     <div class="flex flex-wrap items-center gap-3 mb-4">
+      <input type="month" id="month" class="rounded border border-line bg-card px-3 py-2" />
       <select id="filterCategory" class="rounded border border-line bg-card px-3 py-2"><option value="">Todas as categorias</option></select>
       <select id="filterCard" class="rounded border border-line bg-card px-3 py-2"><option value="">Todos os cartões</option></select>
       <input id="search" type="search" placeholder="Buscar descrição" class="rounded border border-line bg-card px-3 py-2" />
-      <a id="exportCsv" class="btn-ghost text-sm">Exportar CSV</a>
-    </div>
-    <div id="formCard">
-      <form id="form" class="paper-card grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-        <label class="field"><span>Data</span><input type="date" id="date" required /></label>
-        <label class="field"><span>Categoria</span><select id="category"></select></label>
-        <label class="field"><span>Cartão</span><select id="card"></select></label>
-        <label class="field"><span>Valor (R$)</span><input type="number" id="amount" step="0.01" min="0" /></label>
-        <label class="field"><span>Descrição</span><input type="text" id="description" /></label>
-        <label class="flex items-center gap-2 text-sm self-end"><input type="checkbox" id="isInstallment" /> Parcelamento</label>
-        <span id="installmentFields" class="contents" style="display:none">
-          <label class="field"><span># parcelas</span><input type="number" id="count" min="1" /></label>
-          <label class="field"><span>Primeiro mês</span><input type="month" id="firstMonth" /></label>
-        </span>
-        <div class="flex gap-2 self-end">
-          <button type="submit" id="submitBtn" class="btn-primary">Adicionar</button>
-          <button type="button" id="cancelEdit" class="btn-ghost" style="display:none">Cancelar</button>
-        </div>
-      </form>
+      <a id="exportCsv" class="btn-ghost text-sm ml-auto">Exportar CSV</a>
     </div>
     <div class="paper-card overflow-x-auto">
       <table class="w-full text-left">
@@ -66,7 +66,6 @@
       </div>
     </div>
   </main>
-  <button id="fab" class="fab" aria-label="Adicionar transação">+</button>
   <script type="module" src="/js/registrar.js"></script>
 </body>
 </html>

@@ -1,11 +1,16 @@
 import { api, getPage, showError } from './api.js';
 import { mountChrome } from './chrome.js';
-import { centsToReais, currentMonth, esc, formatBRL, reaisToCents } from './format.js';
+import { currentMonth, esc, formatBRL, parseReais, shortDate } from './format.js';
+import { entryHint, renderEntryRow, resolveRef } from './quickentry.js';
 
 const $ = (id) => document.getElementById(id);
 let editingId = null;
 let page = 1;
 const lookups = { cats: new Map(), cards: new Map() };
+// Data e cartão persistem entre lançamentos: o caso comum é lançar vários gastos
+// do mesmo cartão, no mesmo dia (spec §7).
+const sticky = { date: new Date().toISOString().slice(0, 10), card: '' };
+const state = { cats: [], cards: [] };
 
 export function renderRows(rows, refs = { cats: new Map(), cards: new Map() }) {
   return rows
@@ -13,7 +18,7 @@ export function renderRows(rows, refs = { cats: new Map(), cards: new Map() }) {
       const cardName = refs.cards.get(r.card_id) ?? '';
       return `
     <tr class="border-b border-line">
-      <td class="py-3 font-mono text-sm text-ink-mut">${r.date}</td>
+      <td class="py-3 font-mono text-sm text-ink-mut">${shortDate(r.date)}</td>
       <td class="py-3">${esc(r.description)}
         ${r.installment_no ? `<span class="tag tag-gold ml-2">${r.installment_no}/${r.installment_total}</span>` : ''}</td>
       <td class="py-3 text-sm">${esc(refs.cats.get(r.category_id)?.name ?? '')}</td>
@@ -28,33 +33,31 @@ export function renderRows(rows, refs = { cats: new Map(), cards: new Map() }) {
     .join('');
 }
 
+function mountEntryRow() {
+  $('entryRow').innerHTML = renderEntryRow(state.cats, state.cards, sticky);
+  $('q-cat').addEventListener('input', () => {
+    $('q-cat-hint').textContent = entryHint($('q-cat').value, state.cats, 'category');
+  });
+  $('q-card').addEventListener('input', () => {
+    $('q-card-hint').textContent = entryHint($('q-card').value, state.cards, 'card');
+  });
+}
+
 async function loadSelectors() {
   const [cats, cards] = await Promise.all([api.get('/api/categories'), api.get('/api/cards')]);
+  state.cats = cats;
+  state.cards = cards;
   lookups.cats = new Map(cats.map((c) => [c.id, { name: c.name }]));
   lookups.cards = new Map(cards.map((c) => [c.id, c.name]));
-  $('category').innerHTML = cats
-    .filter((c) => c.active)
-    .map((c) => `<option value="${c.id}">${esc(c.name)}</option>`)
-    .join('');
-  $('card').innerHTML = cards
-    .filter((c) => c.active)
-    .map((c) => `<option value="${c.id}">${esc(c.name)}</option>`)
-    .join('');
+  mountEntryRow();
   const opt = (c) => `<option value="${c.id}">${esc(c.name)}</option>`;
-  $('filterCategory').insertAdjacentHTML(
-    'beforeend',
-    cats
+  const active = (list) =>
+    list
       .filter((c) => c.active)
       .map(opt)
-      .join(''),
-  );
-  $('filterCard').insertAdjacentHTML(
-    'beforeend',
-    cards
-      .filter((c) => c.active)
-      .map(opt)
-      .join(''),
-  );
+      .join('');
+  $('filterCategory').innerHTML = `<option value="">Todas as categorias</option>${active(cats)}`;
+  $('filterCard').innerHTML = `<option value="">Todos os cartões</option>${active(cards)}`;
 }
 
 async function loadList() {
@@ -110,30 +113,40 @@ function updatePager(total, perPage, totalPages) {
   $('nextPage').disabled = page >= totalPages;
 }
 
+function setAdvanced(which) {
+  $('installmentFields').style.display = which === 'installment' ? 'flex' : 'none';
+  $('recurringFields').style.display = which === 'recurring' ? 'flex' : 'none';
+}
+
+function advancedMode() {
+  if ($('installmentFields').style.display === 'flex') return 'installment';
+  if ($('recurringFields').style.display === 'flex') return 'recurring';
+  return null;
+}
+
 function startEdit(r) {
   if (!r) return;
   editingId = r.id;
-  $('isInstallment').checked = false;
-  $('installmentFields').style.display = 'none';
-  $('isInstallment').disabled = true;
-  $('amount').disabled = false;
-  $('date').value = r.date;
-  $('category').value = String(r.category_id);
-  $('card').value = String(r.card_id);
-  $('amount').value = centsToReais(r.amount_cents);
-  $('description').value = r.description;
-  $('submitBtn').textContent = 'Salvar';
+  setAdvanced(null);
+  $('q-date').value = r.date;
+  $('q-desc').value = r.description;
+  $('q-cat').value = lookups.cats.get(r.category_id)?.name ?? '';
+  $('q-card').value = lookups.cards.get(r.card_id) ?? '';
+  $('q-amount').value = (r.amount_cents / 100).toFixed(2).replace('.', ',');
+  $('q-submit').textContent = 'Salvar';
   $('cancelEdit').style.display = 'inline';
-  $('formCard').scrollIntoView({ block: 'center' });
+  $('q-desc').focus();
 }
 
 function resetForm() {
   editingId = null;
-  $('form').reset();
-  $('installmentFields').style.display = 'none';
-  $('isInstallment').disabled = false;
-  $('amount').disabled = false;
-  $('submitBtn').textContent = 'Adicionar';
+  setAdvanced(null);
+  $('q-desc').value = '';
+  $('q-cat').value = '';
+  $('q-amount').value = '';
+  $('q-cat-hint').textContent = '';
+  $('q-card-hint').textContent = '';
+  $('q-submit').textContent = 'Adicionar';
   $('cancelEdit').style.display = 'none';
 }
 
@@ -152,36 +165,77 @@ async function onDelete(id, groupId) {
   }
 }
 
+// Erro inline, sem modal (spec §7): a dica sob o campo vira a mensagem e o foco
+// vai para lá.
+function fieldError(hintId, inputId, msg) {
+  $(hintId).textContent = msg;
+  $(inputId).focus();
+}
+
+// Categoria e cartão que não existem são criados aqui, antes da transação — é o
+// que torna o primeiro lançamento possível num banco sem nenhum cartão (§B.3).
+async function ensureId(ref, endpoint) {
+  if (ref.id !== undefined) return ref.id;
+  const created = await api.post(endpoint, { name: ref.create });
+  return created.id;
+}
+
 async function onSubmit(e) {
   e.preventDefault();
+  $('q-cat-hint').textContent = '';
+  $('q-card-hint').textContent = '';
   try {
-    const base = {
-      category_id: Number($('category').value),
-      card_id: Number($('card').value),
-      description: $('description').value,
-    };
+    const catRef = resolveRef($('q-cat').value, state.cats);
+    if (!catRef) return fieldError('q-cat-hint', 'q-cat', 'Informe uma categoria');
+    const cardRef = resolveRef($('q-card').value, state.cards);
+    if (!cardRef) return fieldError('q-card-hint', 'q-card', 'Informe um cartão');
+    const amount = parseReais($('q-amount').value);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return fieldError('q-cat-hint', 'q-amount', 'Valor inválido');
+    }
+
+    const category_id = await ensureId(catRef, '/api/categories');
+    const card_id = await ensureId(cardRef, '/api/cards');
+    const base = { category_id, card_id, description: $('q-desc').value };
+    const mode = advancedMode();
+
     if (editingId !== null) {
       await api.put(`/api/transactions/${editingId}`, {
         ...base,
-        date: $('date').value,
-        amount_cents: reaisToCents($('amount').value),
+        date: $('q-date').value,
+        amount_cents: amount,
       });
-    } else if ($('isInstallment').checked) {
+    } else if (mode === 'installment') {
       await api.post('/api/transactions', {
         ...base,
-        installment_total_cents: reaisToCents($('amount').value),
+        installment_total_cents: amount,
         installment_count: Number($('count').value),
-        first_month: $('firstMonth').value,
+        first_month: $('firstMonth').value || $('q-date').value.slice(0, 7),
+      });
+    } else if (mode === 'recurring') {
+      await api.post('/api/recurring', {
+        ...base,
+        amount_cents: amount,
+        day_of_month: Number($('dayOfMonth').value) || Number($('q-date').value.slice(8, 10)),
       });
     } else {
       await api.post('/api/transactions', {
         ...base,
-        date: $('date').value,
-        amount_cents: reaisToCents($('amount').value),
+        date: $('q-date').value,
+        amount_cents: amount,
       });
     }
+
+    // Data e cartão ficam; o resto limpa. O formulário não fecha e o foco volta
+    // para a descrição — o primeiro campo que de fato se digita de novo (§B.3).
+    sticky.date = $('q-date').value;
+    sticky.card = $('q-card').value;
+    const catCreated = catRef.create !== undefined;
+    const cardCreated = cardRef.create !== undefined;
     resetForm();
-    loadList();
+    if (catCreated || cardCreated) await loadSelectors();
+    $('q-desc').focus();
+    await loadList();
   } catch (err) {
     showError(err.message);
   }
@@ -190,10 +244,12 @@ async function onSubmit(e) {
 if (typeof document !== 'undefined' && document.getElementById('list')) {
   mountChrome('/registrar.html');
   $('month').value = currentMonth();
-  $('isInstallment').addEventListener('change', (e) => {
-    $('installmentFields').style.display = e.target.checked ? 'contents' : 'none';
-    $('amount').disabled = e.target.checked;
-  });
+  $('toggleInstallment').addEventListener('click', () =>
+    setAdvanced(advancedMode() === 'installment' ? null : 'installment'),
+  );
+  $('toggleRecurring').addEventListener('click', () =>
+    setAdvanced(advancedMode() === 'recurring' ? null : 'recurring'),
+  );
   $('month').addEventListener('change', () => {
     page = 1;
     loadList();
@@ -224,7 +280,5 @@ if (typeof document !== 'undefined' && document.getElementById('list')) {
   });
   $('form').addEventListener('submit', onSubmit);
   $('cancelEdit').addEventListener('click', resetForm);
-  const fab = document.getElementById('fab');
-  if (fab) fab.addEventListener('click', () => $('formCard').scrollIntoView({ block: 'start' }));
   loadSelectors().then(loadList);
 }
