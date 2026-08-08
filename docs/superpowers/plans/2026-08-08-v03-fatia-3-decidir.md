@@ -1609,6 +1609,17 @@ Expected: FAIL — `Cannot find module '../public/js/pauta.js'`.
 Em `public/js/format.js`, depois de `MONTHS_SHORT` (linha 49):
 
 ```js
+// O sinal aritmético do §Global Constraints é U+2212, não hífen: `− R$ 142,00`
+// alinha com `+ R$ 268,00` em fonte mono, e o hífen não alinha. Mora aqui para
+// que `pauta.js` e `review.js` não tenham cada um a sua cópia.
+export const MINUS = '−';
+
+// Os nomes de mês nascem em minúsculo, porque o mesmo nome aparece no meio de
+// frase e no começo dela. Quem precisa de caixa alta capitaliza na borda.
+export function capitalize(s) {
+  return String(s ?? '').replace(/^./, (c) => c.toUpperCase());
+}
+
 const MONTHS_LONG = [
   'janeiro',
   'fevereiro',
@@ -1649,11 +1660,7 @@ Criar `public/js/pauta.js`:
 
 ```js
 import { PALETTE } from './charts.js';
-import { esc, formatBRL, monthName } from './format.js';
-
-// O sinal aritmético é U+2212, não hífen: `− R$ 142,00` alinha com `+ R$ 268,00`
-// em fonte mono, e o hífen não alinha.
-const MINUS = '−';
+import { capitalize, esc, formatBRL, MINUS, monthName } from './format.js';
 
 const NUM_WORDS = [
   '',
@@ -1671,7 +1678,6 @@ const NUM_WORDS = [
   'doze',
 ];
 
-const cap = (s) => s.replace(/^./, (c) => c.toUpperCase());
 const year = (ym) => Number(String(ym).slice(0, 4));
 
 // `'Março a agosto de 2026 · seis meses de histórico'`. O numeral por extenso vai
@@ -1683,9 +1689,9 @@ export function rangeSentence(months) {
   const span =
     year(first) === year(last)
       ? months.length === 1
-        ? `${cap(monthName(last))} de ${year(last)}`
-        : `${cap(monthName(first))} a ${monthName(last)} de ${year(last)}`
-      : `${cap(monthName(first))} de ${year(first)} a ${monthName(last)} de ${year(last)}`;
+        ? `${capitalize(monthName(last))} de ${year(last)}`
+        : `${capitalize(monthName(first))} a ${monthName(last)} de ${year(last)}`
+      : `${capitalize(monthName(first))} de ${year(first)} a ${monthName(last)} de ${year(last)}`;
   const n = months.length;
   const count = n < NUM_WORDS.length ? NUM_WORDS[n] : String(n);
   return `${span} · ${count} ${n === 1 ? 'mês' : 'meses'} de histórico`;
@@ -1978,7 +1984,7 @@ Substituir todo o conteúdo de `public/js/analise.js` por:
 import { api, showError } from './api.js';
 import { lineChart, savingsChart } from './charts.js';
 import { mountChrome } from './chrome.js';
-import { addMonths, currentMonth, formatBRL, monthName } from './format.js';
+import { addMonths, capitalize, currentMonth, formatBRL, monthName } from './format.js';
 import {
   changes,
   composition,
@@ -1993,7 +1999,6 @@ import {
 } from './pauta.js';
 
 const $ = (id) => document.getElementById(id);
-const cap = (s) => s.replace(/^./, (c) => c.toUpperCase());
 
 // Os cinco cards do frame 15:3, na ordem em que a pauta do §8 pergunta. Os dois
 // que têm gráfico nascem com o `<canvas>` dentro do próprio card.
@@ -2011,7 +2016,7 @@ function renderPauta({ trends, split, savings }) {
   return [
     questionCard({
       question: 'Para onde meu dinheiro foi?',
-      note: `${cap(monthName(comp.month))} de ${String(comp.month).slice(0, 4)} · ${formatBRL(comp.total_cents)}`,
+      note: `${capitalize(monthName(comp.month))} de ${String(comp.month).slice(0, 4)} · ${formatBRL(comp.total_cents)}`,
       body: renderComposition(comp),
     }),
     questionCard({
@@ -2265,9 +2270,7 @@ Expected: FAIL — `Cannot find module '../public/js/review.js'`.
 Criar `public/js/review.js`:
 
 ```js
-import { addMonths, esc, formatBRL, monthName } from './format.js';
-
-const MINUS = '−';
+import { addMonths, esc, formatBRL, MINUS, monthName } from './format.js';
 
 export const STEPS = [
   'O mês que passou',
@@ -2488,12 +2491,11 @@ Criar `public/js/decidir.js`:
 import { api, showError } from './api.js';
 import { mountChrome } from './chrome.js';
 import { buildCommitments, renderCommitments } from './commitments.js';
-import { formatBRL, monthName } from './format.js';
+import { capitalize, formatBRL, monthName } from './format.js';
 import { changes, monthlyTotals, trendVerdict } from './pauta.js';
 import { reviewMonths, stepSubtitle, stepTrail } from './review.js';
 
 const $ = (id) => document.getElementById(id);
-const cap = (s) => s.replace(/^./, (c) => c.toUpperCase());
 
 // Sem persistência de progresso: sair e voltar recomeça no passo 1. O que
 // persiste é o que cada passo grava pela API — nunca estado de wizard. É o que
@@ -2534,7 +2536,7 @@ async function renderStep1() {
   return `
     <section class="paper-card">
       <h2 class="font-display text-2xl text-ink">O mês que passou</h2>
-      <p class="text-sm text-ink-mut mt-1 mb-4">${cap(monthName(state.months.closed))} fechou. Antes de decidir qualquer coisa, veja o que aconteceu.</p>
+      <p class="text-sm text-ink-mut mt-1 mb-4">${capitalize(monthName(state.months.closed))} fechou. Antes de decidir qualquer coisa, veja o que aconteceu.</p>
       <div class="flex flex-col md:flex-row gap-4">
         ${tile('GASTOU', formatBRL(spent), verdict || 'sem base de comparação ainda')}
         ${tile('GUARDOU', formatBRL(saved), `meta era ${formatBRL(lastGoal)}`, saved >= lastGoal ? 'text-sage' : 'text-ink')}
@@ -2632,7 +2634,7 @@ if (typeof document !== 'undefined' && $('trail')) {
 O import de `./format.js` no topo do arquivo é, portanto:
 
 ```js
-import { addMonths, formatBRL, monthName } from './format.js';
+import { addMonths, capitalize, formatBRL, monthName } from './format.js';
 ```
 
 - [ ] **Step 6: Apontar a navegação para a tela nova**
@@ -2821,7 +2823,7 @@ async function renderStep4() {
   return `
     <section class="paper-card">
       <h2 class="font-display text-2xl text-ink">Ajustar orçamentos</h2>
-      <p class="text-sm text-ink-mut mt-1 mb-2">Os limites valem para ${monthName(state.months.opening)}. ${cap(monthName(state.months.closed))} fica como está — o histórico por mês é preservado.</p>
+      <p class="text-sm text-ink-mut mt-1 mb-2">Os limites valem para ${monthName(state.months.opening)}. ${capitalize(monthName(state.months.closed))} fica como está — o histórico por mês é preservado.</p>
       ${body || `<p class="text-ink-mut">Nenhuma categoria ativa ainda.</p>`}
     </section>`;
 }
@@ -2873,7 +2875,7 @@ function wireStep4() {
 Os dois imports do topo de `decidir.js` passam a ser:
 
 ```js
-import { addMonths, esc, formatBRL, monthName, parseReais } from './format.js';
+import { addMonths, capitalize, esc, formatBRL, monthName, parseReais } from './format.js';
 import { modelSummary, overspentFirst, reviewMonths, stepSubtitle, stepTrail } from './review.js';
 ```
 
@@ -3028,7 +3030,7 @@ function renderDone() {
 Os imports do topo de `decidir.js` passam a ser:
 
 ```js
-import { addMonths, esc, formatBRL, monthName, parseReais } from './format.js';
+import { addMonths, capitalize, esc, formatBRL, monthName, parseReais } from './format.js';
 import {
   modelSummary,
   overspentFirst,
