@@ -199,3 +199,32 @@ test('monthSubtitle says so when the month is already closed', async () => {
   const { monthSubtitle } = await import('../public/js/dashboard.js');
   assert.equal(monthSubtitle(configured, '2026-09-02'), 'Agosto de 2026 · mês fechado');
 });
+
+const fs = require('node:fs');
+const path = require('node:path');
+
+const read = (p) => fs.readFileSync(path.join(__dirname, '..', p), 'utf8');
+
+test('Acompanhar reserves a slot for the commitments panel', () => {
+  assert.match(read('public/index.html'), /id="commitments"/);
+});
+
+test('the dashboard mounts the panel instead of redrawing it', async () => {
+  const src = read('public/js/dashboard.js');
+  // desenhado por commitments.js, montado pelo dashboard: o render não é
+  // reimplementado aqui
+  assert.match(src, /from '\.\/commitments\.js'/);
+  assert.match(src, /renderCommitments\(buildCommitments\(/);
+  const mod = await import('../public/js/dashboard.js');
+  assert.equal(mod.renderCommitments, undefined);
+});
+
+test('the commitments panel is the same in both hero states', async () => {
+  const { buildCommitments, renderCommitments } = await import('../public/js/commitments.js');
+  const model = buildCommitments(
+    [],
+    [{ id: 1, description: 'Netflix', amount_cents: 4490, active: 1 }],
+  );
+  // independe de `configured`: é o mesmo painel nos dois estados do §6
+  assert.match(renderCommitments(model), /Compromissos futuros/);
+});

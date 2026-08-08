@@ -1,6 +1,7 @@
 import { renderAdvisor } from './advisor.js';
 import { api, showError } from './api.js';
 import { mountChrome } from './chrome.js';
+import { buildCommitments, renderCommitments } from './commitments.js';
 import { currentMonth, esc, formatBRL } from './format.js';
 import { meterBar, statusPill } from './ui.js';
 
@@ -150,6 +151,22 @@ export function renderReviewInvite() {
     </section>`;
 }
 
+// Duas chamadas que já existem; o painel é montado no cliente (design §B.4). Um
+// erro aqui não pode derrubar o Acompanhar inteiro — o painel some, o resto fica.
+async function loadCommitments(month) {
+  const el = document.getElementById('commitments');
+  if (!el) return;
+  try {
+    const [installments, recurring] = await Promise.all([
+      api.get(`/api/installment-groups?month=${month}`),
+      api.get('/api/recurring'),
+    ]);
+    el.innerHTML = renderCommitments(buildCommitments(installments, recurring));
+  } catch {
+    el.innerHTML = '';
+  }
+}
+
 async function load(month) {
   try {
     const d = await api.get(`/api/dashboard?month=${month}`);
@@ -168,6 +185,10 @@ if (typeof document !== 'undefined' && document.getElementById('hero')) {
   mountChrome('/');
   const monthEl = document.getElementById('month');
   monthEl.value = currentMonth();
-  monthEl.addEventListener('change', () => load(monthEl.value));
+  monthEl.addEventListener('change', () => {
+    load(monthEl.value);
+    loadCommitments(monthEl.value);
+  });
   load(monthEl.value);
+  loadCommitments(monthEl.value);
 }
