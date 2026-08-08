@@ -34,16 +34,33 @@ test('renderRows formats amount and installment chip', async () => {
 });
 
 const lookups = {
-  cats: new Map([[1, { name: 'Restaurantes', group_id: 2 }]]),
-  groups: new Map([[2, { name: 'Estilo de vida' }]]),
+  cats: new Map([[1, { name: 'Restaurantes' }]]),
   cards: new Map([[5, 'Nubank']]),
 };
 
-test('renderRows shows category tag and card name', async () => {
+test('renderRows shows category name and card name', async () => {
   const { renderRows } = await import('../public/js/transactions.js');
   const rowsWithRefs = rows.map((r) => ({ ...r, category_id: 1, card_id: 5 }));
   const html = renderRows(rowsWithRefs, lookups);
   assert.match(html, /Restaurantes/);
-  assert.match(html, /tag-gold/); // "Estilo de vida" → gold tag
   assert.match(html, /Nubank/);
+});
+
+test('renderRows shows the category name without any group chip', async () => {
+  const { renderRows } = await import('../public/js/transactions.js');
+  const html = renderRows(
+    [
+      {
+        id: 1,
+        date: '2026-08-03',
+        description: 'Assaí',
+        category_id: 1,
+        card_id: 1,
+        amount_cents: 12300,
+      },
+    ],
+    { cats: new Map([[1, { name: 'Mercado' }]]), cards: new Map([[1, 'Nubank']]) },
+  );
+  assert.match(html, /Mercado/);
+  assert.doesNotMatch(html, /tag-sage|tag-gold|tag-slate|tag-neutral/);
 });

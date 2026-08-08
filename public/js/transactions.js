@@ -1,25 +1,22 @@
 import { api, getPage, showError } from './api.js';
 import { mountChrome } from './chrome.js';
 import { centsToReais, currentMonth, esc, formatBRL, reaisToCents } from './format.js';
-import { groupTag } from './ui.js';
 
 const $ = (id) => document.getElementById(id);
 let editingId = null;
 let page = 1;
-const lookups = { cats: new Map(), groups: new Map(), cards: new Map() };
+const lookups = { cats: new Map(), cards: new Map() };
 
-export function renderRows(rows, refs = { cats: new Map(), groups: new Map(), cards: new Map() }) {
+export function renderRows(rows, refs = { cats: new Map(), cards: new Map() }) {
   return rows
     .map((r) => {
-      const cat = refs.cats.get(r.category_id);
-      const groupName = cat ? (refs.groups.get(cat.group_id)?.name ?? '') : '';
       const cardName = refs.cards.get(r.card_id) ?? '';
       return `
     <tr class="border-b border-line">
       <td class="py-3 font-mono text-sm text-ink-mut">${r.date}</td>
       <td class="py-3">${esc(r.description)}
         ${r.installment_no ? `<span class="tag tag-gold ml-2">${r.installment_no}/${r.installment_total}</span>` : ''}</td>
-      <td class="py-3">${groupName ? groupTag(groupName) : ''} <span class="text-sm">${esc(cat?.name ?? '')}</span></td>
+      <td class="py-3 text-sm">${esc(refs.cats.get(r.category_id)?.name ?? '')}</td>
       <td class="py-3 text-sm text-ink-mut">${esc(cardName)}</td>
       <td class="py-3 text-right font-mono">${formatBRL(r.amount_cents)}</td>
       <td class="py-3 text-right">
@@ -32,14 +29,9 @@ export function renderRows(rows, refs = { cats: new Map(), groups: new Map(), ca
 }
 
 async function loadSelectors() {
-  const [cats, cards, groups] = await Promise.all([
-    api.get('/api/categories'),
-    api.get('/api/cards'),
-    api.get('/api/groups'),
-  ]);
-  lookups.cats = new Map(cats.map((c) => [c.id, { name: c.name, group_id: c.group_id }]));
+  const [cats, cards] = await Promise.all([api.get('/api/categories'), api.get('/api/cards')]);
+  lookups.cats = new Map(cats.map((c) => [c.id, { name: c.name }]));
   lookups.cards = new Map(cards.map((c) => [c.id, c.name]));
-  lookups.groups = new Map(groups.map((g) => [g.id, { name: g.name }]));
   $('category').innerHTML = cats
     .filter((c) => c.active)
     .map((c) => `<option value="${c.id}">${esc(c.name)}</option>`)

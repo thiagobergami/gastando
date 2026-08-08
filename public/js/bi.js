@@ -1,15 +1,14 @@
 import { api, showError } from './api.js';
-import { aggregateSeries, barChart, lineChart, topSeries } from './charts.js';
+import { aggregateSeries, barChart, lineChart } from './charts.js';
 import { mountChrome } from './chrome.js';
 import { addMonths, currentMonth } from './format.js';
 
 async function run() {
   try {
     const qs = `from=${document.getElementById('from').value}&to=${document.getElementById('to').value}`;
-    const [trends, byCard, byGroup, bva, forecast, savings] = await Promise.all([
+    const [trends, byCard, bva, forecast, savings] = await Promise.all([
       api.get(`/api/bi/trends?${qs}`),
       api.get(`/api/bi/by-card?${qs}`),
-      api.get(`/api/bi/by-group?${qs}`),
       api.get(`/api/bi/budget-vs-actual?${qs}`),
       api.get(`/api/bi/installment-forecast?${qs}`),
       api.get(`/api/bi/savings-trend?${qs}`),
@@ -23,17 +22,6 @@ async function run() {
       cardAgg.map((s) => s.total),
       { horizontal: false },
     );
-
-    const groupAgg = aggregateSeries(byGroup.series);
-    barChart(
-      'byGroup',
-      groupAgg.map((s) => s.name),
-      groupAgg.map((s) => s.total),
-      { horizontal: true },
-    );
-    const top = topSeries(byGroup.series);
-    const impactEl = document.getElementById('byGroupImpact');
-    if (impactEl) impactEl.textContent = top ? `Maior impacto: ${top.name}` : '';
 
     lineChart('budgetVsActual', bva.months, bva.series, false);
     lineChart('installmentForecast', forecast.months, forecast.series, false);
