@@ -1,12 +1,31 @@
+// Ícones da barra inferior (Figma `Nav/Bottom`, 21:7): traço fino, `currentColor`,
+// para herdarem o sage do estado ativo sem CSS extra.
+const ICONS = {
+  plus: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  chart:
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 20V10M12 20V4M19 20v-6"/></svg>',
+  check:
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13l5 5L20 7"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg>',
+};
+
+// O loop da v0.3 (§3). `Decidir` aponta para `settings.html` enquanto a Fatia 3
+// não existe: é lá que hoje se define renda, custos fixos e limites — os passos
+// 3 e 4 do roteiro da revisão. A nav não muda de forma duas vezes.
 export const NAV_ITEMS = [
-  { href: '/', label: 'Dashboard', route: '/' },
-  { href: '/registrar.html', label: 'Transações', route: '/registrar.html' },
-  { href: '/parcelas.html', label: 'Parcelas', route: '/parcelas.html' },
-  { href: '/recurring.html', label: 'Recorrentes', route: '/recurring.html' },
-  { href: '/settings.html', label: 'Configurações', route: '/settings.html' },
-  { href: '/analise.html', label: 'BI', route: '/analise.html' },
-  { href: '/simulate.html', label: 'Simular', route: '/simulate.html' },
+  { href: '/registrar.html', label: 'Registrar', route: '/registrar.html', icon: ICONS.plus },
+  { href: '/', label: 'Acompanhar', route: '/', icon: ICONS.chart },
+  { href: '/settings.html', label: 'Decidir', route: '/settings.html', icon: ICONS.check },
 ];
+
+const gearLink = (extra) =>
+  `<a href="/settings.html" aria-label="Configurações" class="${extra} text-ink-mut hover:text-sage">${ICONS.gear}</a>`;
+
+// Ponte de uma task: o toggle sai do cabeçalho na Task 3, quando Configurações
+// ganha a opção que o substitui. Removê-lo antes disso deixaria o app sem
+// nenhuma forma de trocar de tema.
+const themeToggle = `<button id="theme-toggle" type="button" aria-label="Alternar tema"
+          class="text-ink-mut hover:text-sage text-lg leading-none">◐</button>`;
 
 export function renderNav(active) {
   const topLinks = NAV_ITEMS.map(
@@ -14,17 +33,20 @@ export function renderNav(active) {
       `<a href="${i.href}" class="px-1 ${i.route === active ? 'text-sage active font-semibold' : 'text-ink-mut'}">${i.label}</a>`,
   ).join('');
   const bottomLinks = NAV_ITEMS.map(
-    (i) => `<a href="${i.href}" class="${i.route === active ? 'active' : ''}">${i.label}</a>`,
+    (i) =>
+      `<a href="${i.href}" class="${i.route === active ? 'active' : ''}">${i.icon}<span>${i.label}</span></a>`,
   ).join('');
   return `
-    <header class="hidden md:flex items-center gap-6 max-w-5xl mx-auto px-6 py-5">
+    <header class="hidden md:flex items-center max-w-5xl mx-auto px-6 py-5">
       <a href="/" class="font-display text-2xl text-ink">Gastando</a>
-      <nav class="flex items-center gap-5 text-sm">${topLinks}</nav>
-      <div class="ml-auto flex items-center gap-3">
-        <button id="theme-toggle" type="button" aria-label="Alternar tema"
-          class="text-ink-mut hover:text-sage text-lg leading-none">◐</button>
-        <div id="nav-actions"></div>
-      </div>
+      <nav class="ml-auto flex items-center gap-6 text-sm">${topLinks}</nav>
+      <span class="ml-6">${themeToggle}</span>
+      ${gearLink('ml-4')}
+      <div id="nav-actions"></div>
+    </header>
+    <header class="flex md:hidden items-center px-5 py-4 border-b border-line">
+      <a href="/" class="font-display text-xl text-ink">Gastando</a>
+      ${gearLink('ml-auto')}
     </header>
     <nav class="bottom-nav">${bottomLinks}</nav>`;
 }

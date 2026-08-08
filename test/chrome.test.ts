@@ -1,27 +1,44 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 
-test('renderNav', async () => {
+test('renderNav ships the three verbs of the loop', async () => {
   const { renderNav, NAV_ITEMS } = await import('../public/js/chrome.js');
-  assert.equal(NAV_ITEMS.length, 7);
+  assert.equal(NAV_ITEMS.length, 3);
+  assert.deepEqual(
+    NAV_ITEMS.map((i) => i.label),
+    ['Registrar', 'Acompanhar', 'Decidir'],
+  );
 
   const html = renderNav('/registrar.html');
-  // all five labels present
   for (const item of NAV_ITEMS) assert.ok(html.includes(item.label), `missing ${item.label}`);
-  // wordmark present
   assert.match(html, /Gastando/);
-  // both a desktop header and a mobile bottom-nav exist
   assert.match(html, /<header/);
   assert.match(html, /bottom-nav/);
-  // active route marked
-  assert.match(html, /href="\/registrar.html"[^>]*class="[^"]*active/);
-  // pt-BR nav labels
-  assert.match(html, /Transações/);
-  assert.match(html, /Configurações/);
-  assert.match(html, /Recorrentes/);
-  assert.match(html, />Dashboard</); // stays English
-  // theme toggle button
+  // a engrenagem leva a Configurações, que saiu da navegação
+  assert.match(html, /href="\/settings.html"[^>]*aria-label="Configurações"/);
+  // o toggle de tema ainda está aqui — só sai na Task 3
   assert.match(html, /id="theme-toggle"/);
+});
+
+test('renderNav marks the active route on every entry', async () => {
+  const { renderNav, NAV_ITEMS } = await import('../public/js/chrome.js');
+  for (const item of NAV_ITEMS) {
+    const html = renderNav(item.route);
+    const escaped = item.route.replace(/\//g, '\\/');
+    assert.match(
+      html,
+      new RegExp(`href="${escaped}"[^>]*class="[^"]*active`),
+      `route ${item.route} not marked active`,
+    );
+  }
+});
+
+test('renderNav drops the screens that stopped being destinations', async () => {
+  const { renderNav } = await import('../public/js/chrome.js');
+  const html = renderNav('/');
+  for (const gone of ['Parcelas', 'Recorrentes', 'Simular', 'Dashboard', 'Transações', '>BI<']) {
+    assert.ok(!html.includes(gone), `nav still shows ${gone}`);
+  }
 });
 
 test('chrome no longer ships an onboarding guard', async () => {
