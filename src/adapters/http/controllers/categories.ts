@@ -1,6 +1,6 @@
 import express from 'express';
 import type { makeCategoryUseCases } from '../../../application/use-cases/categories';
-import { nameBodySchema } from '../schemas/common';
+import { categoryBodySchema } from '../schemas/categories';
 import { parse } from '../validate';
 
 type CategoryUseCases = ReturnType<typeof makeCategoryUseCases>;
@@ -11,12 +11,12 @@ export function makeCategoriesController(uc: CategoryUseCases): express.Router {
   router.get('/', (_req, res) => res.json(uc.list()));
 
   router.post('/', (req, res) => {
-    parse(nameBodySchema, req.body);
+    parse(categoryBodySchema, req.body);
     res.status(201).json(uc.create(req.body));
   });
 
   router.put('/:id', (req, res) => {
-    parse(nameBodySchema, req.body);
+    parse(categoryBodySchema, req.body);
     res.json(uc.update(Number(req.params.id), req.body));
   });
 

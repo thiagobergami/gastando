@@ -5,6 +5,10 @@ export interface Group {
   sort_order: number;
   active: number;
 }
+// categories.group_id continua NOT NULL REFERENCES groups(id) no schema, mas
+// grupos saíram da UI e da API na v0.3: toda categoria aponta para o sentinela.
+export const NO_GROUP_ID = 0;
+
 export interface Category {
   id: number;
   group_id: number;
@@ -12,6 +16,7 @@ export interface Category {
   examples: string;
   sort_order: number;
   active: number;
+  essential: number; // 0 | 1
 }
 export interface Card {
   id: number;

@@ -1,56 +1,45 @@
 import type { Category } from '../../domain/entities';
 import { AppError } from '../../domain/errors';
-import type { CategoryRepository, GroupRepository } from '../../domain/ports';
+import type { CategoryRepository } from '../../domain/ports';
 
 export interface CategoryUseCaseDeps {
   categories: CategoryRepository;
-  groups: GroupRepository;
 }
 
 export interface CreateCategoryInput {
-  group_id: number;
   name: string;
+  essential?: number;
   examples?: string;
   sort_order?: number;
 }
-export interface UpdateCategoryInput {
-  group_id: number;
-  name: string;
-  examples?: string;
-  sort_order?: number;
+export interface UpdateCategoryInput extends CreateCategoryInput {
   active?: number;
 }
 
-export function makeCategoryUseCases(deps: CategoryUseCaseDeps) {
-  const { categories, groups } = deps;
+const flag = (v: number | undefined): number => (v ? 1 : 0);
 
-  function assertGroup(groupId: number): void {
-    if (!groups.findActiveById(groupId)) throw new AppError(400, 'group_id does not exist');
-  }
+export function makeCategoryUseCases(deps: CategoryUseCaseDeps) {
+  const { categories } = deps;
 
   return {
     list(): Category[] {
       return categories.listAll();
     },
     create(input: CreateCategoryInput): Category {
-      assertGroup(input.group_id);
-      const sort_order = input.sort_order ?? categories.nextSortOrder();
       return categories.insert({
-        group_id: input.group_id,
         name: input.name,
         examples: input.examples ?? '',
-        sort_order,
+        sort_order: input.sort_order ?? categories.nextSortOrder(),
+        essential: flag(input.essential),
       });
     },
     update(id: number, input: UpdateCategoryInput): Category {
-      assertGroup(input.group_id);
-      const active = (input.active ?? 1) ? 1 : 0;
       const changes = categories.update(id, {
-        group_id: input.group_id,
         name: input.name,
         examples: input.examples ?? '',
         sort_order: input.sort_order ?? 0,
-        active,
+        active: (input.active ?? 1) ? 1 : 0,
+        essential: flag(input.essential),
       });
       if (changes === 0) throw new AppError(404, 'category not found');
       return categories.findById(id) as Category;

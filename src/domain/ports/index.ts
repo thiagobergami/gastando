@@ -25,10 +25,10 @@ export interface CategoryRepository {
   listActiveIds(): number[]; // SELECT id WHERE active=1 (insertion order; for GET /api/limits)
   findById(id: number): Category | undefined;
   nextSortOrder(): number; // MAX(sort_order)+1 WHERE active=1
-  insert(c: { group_id: number; name: string; examples: string; sort_order: number }): Category;
+  insert(c: { name: string; examples: string; sort_order: number; essential: number }): Category;
   update(
     id: number,
-    c: { group_id: number; name: string; examples: string; sort_order: number; active: number },
+    c: { name: string; examples: string; sort_order: number; active: number; essential: number },
   ): number;
   deactivate(id: number): number;
 }

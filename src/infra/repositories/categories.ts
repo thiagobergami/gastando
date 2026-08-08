@@ -1,4 +1,4 @@
-import type { Category } from '../../domain/entities';
+import { type Category, NO_GROUP_ID } from '../../domain/entities';
 import type { CategoryRepository } from '../../domain/ports';
 import type { Db } from '../db';
 
@@ -31,17 +31,17 @@ export function makeCategoryRepository(db: Db): CategoryRepository {
     insert(c) {
       const r = db
         .prepare(
-          'INSERT INTO categories (group_id, name, examples, sort_order) VALUES (?, ?, ?, ?)',
+          'INSERT INTO categories (group_id, name, examples, sort_order, essential) VALUES (?, ?, ?, ?, ?)',
         )
-        .run(c.group_id, c.name, c.examples, c.sort_order);
+        .run(NO_GROUP_ID, c.name, c.examples, c.sort_order, c.essential);
       return db.prepare('SELECT * FROM categories WHERE id=?').get(r.lastInsertRowid) as Category;
     },
     update(id, c) {
       return db
         .prepare(
-          'UPDATE categories SET group_id=?, name=?, examples=?, sort_order=?, active=? WHERE id=?',
+          'UPDATE categories SET name=?, examples=?, sort_order=?, active=?, essential=? WHERE id=?',
         )
-        .run(c.group_id, c.name, c.examples, c.sort_order, c.active, id).changes;
+        .run(c.name, c.examples, c.sort_order, c.active, c.essential, id).changes;
     },
     deactivate(id: number): number {
       return db.prepare('UPDATE categories SET active=0 WHERE id=?').run(id).changes;
