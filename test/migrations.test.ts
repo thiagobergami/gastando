@@ -9,7 +9,12 @@ const MIGRATIONS = path.join(__dirname, '..', 'migrations');
 // Roda as migrações, na ordem, num banco em memória — como o runner real.
 // `002_seed.sql` fica de fora pelo mesmo motivo que em test/helpers.ts: ele
 // semeia dados, e um teste de schema não deve depender de quantos.
-function migrate(seedFn?: (db: InstanceType<typeof Database>) => void) {
+// `seedBefore` diz em que ponto da fila o `seedFn` roda, para que cada teste
+// possa montar o estado que a sua migração encontra.
+function migrate(
+  seedFn?: (db: InstanceType<typeof Database>) => void,
+  seedBefore = '006_category_essential.sql',
+) {
   const db = new Database(':memory:');
   db.pragma('foreign_keys = ON');
   const files = fs
@@ -17,7 +22,7 @@ function migrate(seedFn?: (db: InstanceType<typeof Database>) => void) {
     .filter((f: string) => f.endsWith('.sql') && f !== '002_seed.sql')
     .sort();
   for (const f of files) {
-    if (f === '006_category_essential.sql' && seedFn) seedFn(db);
+    if (f === seedBefore && seedFn) seedFn(db);
     db.exec(fs.readFileSync(path.join(MIGRATIONS, f), 'utf8'));
   }
   return db;
@@ -94,4 +99,66 @@ test('the default seed never touches a database that already has categories', ()
   });
   const rows = db.prepare('SELECT name FROM categories').all();
   assert.deepEqual(rows, [{ name: 'Pet' }]);
+});
+
+test('008 creates monthly_model keyed by month', () => {
+  const db = migrate();
+  const cols = db.prepare('PRAGMA table_info(monthly_model)').all();
+  assert.deepEqual(
+    cols.map((c: { name: string }) => c.name),
+    ['month', 'income_cents', 'fixed_costs_cents', 'savings_goal_cents'],
+  );
+  assert.equal(cols.find((c: { name: string }) => c.name === 'month').pk, 1);
+});
+
+const CONFIGURED = (d: InstanceType<typeof Database>) => {
+  d.prepare("INSERT INTO settings (key, value) VALUES ('monthly_income', '1200000')").run();
+  d.prepare("INSERT INTO settings (key, value) VALUES ('fixed_costs', '386000')").run();
+  d.prepare("INSERT INTO settings (key, value) VALUES ('savings_goal', '250000')").run();
+};
+
+test('008 seeds the current model for whoever already configured one', () => {
+  const db = migrate(CONFIGURED, '008_monthly_model.sql');
+  const rows = db.prepare('SELECT * FROM monthly_model').all();
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].income_cents, 1200000);
+  assert.equal(rows[0].fixed_costs_cents, 386000);
+  assert.equal(rows[0].savings_goal_cents, 250000);
+  // Sem lançamentos, o primeiro mês registrado é o mês corrente.
+  assert.equal(rows[0].month, new Date().toISOString().slice(0, 7));
+});
+
+// O teste que justifica a âncora. Sem ele, todo mês anterior ao upgrade
+// continuaria resolvendo por `settings`, e mudar a renda hoje seguiria
+// reescrevendo o histórico — o bug do §A.2, vivo para quem já usa o app.
+test('008 anchors the seeded row at the first month the user ever recorded', () => {
+  const db = migrate((d) => {
+    CONFIGURED(d);
+    d.prepare("INSERT INTO cards (name) VALUES ('Nubank')").run();
+    for (const date of ['2026-01-10', '2026-04-02', '2026-07-30']) {
+      d.prepare(
+        'INSERT INTO transactions (date, category_id, card_id, amount_cents) VALUES (?, 1, 1, 5000)',
+      ).run(date);
+    }
+  }, '008_monthly_model.sql');
+  assert.equal(db.prepare('SELECT month FROM monthly_model').get().month, '2026-01');
+});
+
+test('008 never anchors in the future, even with a future-dated transaction', () => {
+  const db = migrate((d) => {
+    CONFIGURED(d);
+    d.prepare("INSERT INTO cards (name) VALUES ('Nubank')").run();
+    d.prepare(
+      "INSERT INTO transactions (date, category_id, card_id, amount_cents) VALUES ('2099-01-10', 1, 1, 5000)",
+    ).run();
+  }, '008_monthly_model.sql');
+  assert.equal(
+    db.prepare('SELECT month FROM monthly_model').get().month,
+    new Date().toISOString().slice(0, 7),
+  );
+});
+
+test('008 seeds nothing when the model was never configured', () => {
+  const db = migrate();
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM monthly_model').get().n, 0);
 });

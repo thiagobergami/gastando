@@ -16,6 +16,7 @@ import { makeCategoryUseCases } from '../application/use-cases/categories';
 import { makeDashboardUseCases } from '../application/use-cases/dashboard';
 import { makeInstallmentUseCases } from '../application/use-cases/installments';
 import { makeLimitUseCases } from '../application/use-cases/limits';
+import { makeModelUseCases } from '../application/use-cases/model';
 import { makeRecurringUseCases } from '../application/use-cases/recurring';
 import { makeSettingsUseCases } from '../application/use-cases/settings';
 import { makeSimulateUseCases } from '../application/use-cases/simulate';
@@ -25,6 +26,7 @@ import { makeCardRepository } from './repositories/cards';
 import { makeCategoryRepository } from './repositories/categories';
 import { makeInstallmentRepository } from './repositories/installments';
 import { makeLimitRepository } from './repositories/limits';
+import { makeMonthlyModelRepository } from './repositories/monthlyModel';
 import { makeRecurringRepository } from './repositories/recurring';
 import { makeReportRepository } from './repositories/reports';
 import { makeSettingsRepository } from './repositories/settings';
@@ -53,13 +55,22 @@ export function buildContainer(db: Db): Container {
     categories: makeCategoryRepository(db),
     cards: makeCardRepository(db),
     limits: makeLimitRepository(db),
+    monthlyModel: makeMonthlyModelRepository(db),
     installments: makeInstallmentRepository(db),
     settings: makeSettingsRepository(db),
     reports: makeReportRepository(db),
     recurring: makeRecurringRepository(db),
   };
 
+  // Nasce fora do objeto: o BI depende dele (Task 4), e `useCases.model` ainda
+  // não existe enquanto `useCases` está sendo construído.
+  const model = makeModelUseCases({
+    monthlyModel: repositories.monthlyModel,
+    settings: repositories.settings,
+  });
+
   const useCases = {
+    model,
     transactions: makeTransactionUseCases({
       transactions: repositories.transactions,
       categories: repositories.categories,

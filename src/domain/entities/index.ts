@@ -77,3 +77,18 @@ export interface RecurringTemplate {
   day_of_month: number;
   active: number;
 }
+
+// Uma linha por mês, espelhando `category_limits`: o modelo de poupança passa a
+// ter história (v0.3 §9 passo 3).
+export interface MonthlyModel {
+  month: string;
+  income_cents: number;
+  fixed_costs_cents: number;
+  savings_goal_cents: number;
+}
+
+// `source` diz de qual degrau da cadeia de fallback o valor veio. É o que torna
+// o teste dos três degraus legível, e o que permite à UI dizer "herdado de".
+export interface ResolvedModel extends MonthlyModel {
+  source: 'month' | 'carry' | 'settings' | 'none';
+}

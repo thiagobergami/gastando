@@ -3,6 +3,7 @@ import type {
   Category,
   Group,
   InstallmentProgress,
+  MonthlyModel,
   RecurringTemplate,
   Transaction,
 } from '../entities';
@@ -160,4 +161,10 @@ export interface ReportRepository {
   dashboardCategories(): Category[];
   countTransactions(month: string): number;
   spendByCardDateRange(cardId: number, startExclusive: string, endInclusive: string): number;
+}
+
+export interface MonthlyModelRepository {
+  findExact(month: string): MonthlyModel | undefined;
+  findAtOrBefore(month: string): MonthlyModel | undefined; // carry-forward pick
+  upsert(m: MonthlyModel): void;
 }
