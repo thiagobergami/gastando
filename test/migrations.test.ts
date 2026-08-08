@@ -57,3 +57,41 @@ test('006 creates the invisible sentinel group with id 0', () => {
   const g = db.prepare('SELECT id, name, active FROM groups WHERE id = 0').get();
   assert.deepEqual(g, { id: 0, name: 'Sem grupo', active: 0 });
 });
+
+const DEFAULTS = [
+  { name: 'Mercado', essential: 1 },
+  { name: 'Transporte', essential: 1 },
+  { name: 'Moradia & Contas', essential: 1 },
+  { name: 'Saúde', essential: 1 },
+  { name: 'Assinaturas', essential: 1 },
+  { name: 'Restaurantes & Delivery', essential: 0 },
+  { name: 'Lazer', essential: 0 },
+  { name: 'Outros', essential: 0 },
+];
+
+test('a fresh database gets exactly the eight default categories', () => {
+  const db = migrate();
+  const rows = db
+    .prepare('SELECT name, essential FROM categories WHERE active = 1 ORDER BY sort_order')
+    .all();
+  assert.deepEqual(rows, DEFAULTS);
+});
+
+test('the seed ships no personal data: no cards, no limits, no income', () => {
+  const db = migrate();
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM cards').get().n, 0);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM category_limits').get().n, 0);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM settings').get().n, 0);
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM categories WHERE examples <> ''").get().n, 0);
+});
+
+test('the default seed never touches a database that already has categories', () => {
+  const db = migrate((d) => {
+    d.prepare(
+      "INSERT INTO groups (id, name, color, sort_order) VALUES (7, 'Meu grupo', 'sage', 1)",
+    ).run();
+    d.prepare("INSERT INTO categories (group_id, name, sort_order) VALUES (7, 'Pet', 1)").run();
+  });
+  const rows = db.prepare('SELECT name FROM categories').all();
+  assert.deepEqual(rows, [{ name: 'Pet' }]);
+});
