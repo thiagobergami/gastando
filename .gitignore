@@ -4,3 +4,4 @@ coverage/
 *.log
 public/css/app.css
 dist/
+.superpowers/
