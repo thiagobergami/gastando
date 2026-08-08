@@ -19,6 +19,48 @@ export function addMonths(ym, n) {
   const total = y * 12 + (m - 1) + n;
   return `${Math.floor(total / 12)}-${String((total % 12) + 1).padStart(2, '0')}`;
 }
+// A linha rápida usa `type="text"`, não `type="number"`: o campo mostra
+// `R$ 248,90` em mono, como no Figma, e a pessoa digita com vírgula. Aceitar só
+// `Number()` transformaria o caso comum brasileiro em NaN.
+export function parseReais(input) {
+  if (input === null || input === undefined) return Number.NaN;
+  if (typeof input === 'number') return Math.round(input * 100);
+  const cleaned = String(input)
+    .replace(/[R$\s]/g, '')
+    .replace(/\.(?=\d{3}\b)/g, '') // separador de milhar
+    .replace(',', '.');
+  if (cleaned === '' || !/^-?\d*\.?\d+$/.test(cleaned)) return Number.NaN;
+  return Math.round(Number(cleaned) * 100);
+}
+
+const MONTHS_SHORT = [
+  'jan',
+  'fev',
+  'mar',
+  'abr',
+  'mai',
+  'jun',
+  'jul',
+  'ago',
+  'set',
+  'out',
+  'nov',
+  'dez',
+];
+
+// `'2026-08-06' → '06/08'`, como as linhas da lista no Figma (6:32).
+export function shortDate(iso) {
+  const [, m, d] = String(iso ?? '').split('-');
+  return m && d ? `${d}/${m}` : '';
+}
+
+// `'2027-03' → 'mar/2027'`, para o "até <mês>" dos compromissos.
+export function monthShort(ym) {
+  const [y, m] = String(ym ?? '').split('-');
+  const name = MONTHS_SHORT[Number(m) - 1];
+  return name ? `${name}/${y}` : '';
+}
+
 export function esc(s) {
   return String(s).replace(
     /[&<>"']/g,
