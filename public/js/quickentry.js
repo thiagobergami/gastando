@@ -8,10 +8,16 @@ const NOUN = {
   card: { article: 'o', word: 'cartão' },
 };
 
+// Só casa com o que está ativo — o mesmo conjunto que o `<datalist>` oferece.
+// Excluir é soft delete (`active=0`) e a listagem devolve os excluídos junto;
+// casar com um deles prenderia o lançamento a uma categoria que o Acompanhar
+// não agrega, e o valor sumiria do painel e do total do mês sem aviso. Nome
+// repetido não viola nada no schema, então recriar é seguro — e o usuário vê a
+// dica antes de salvar.
 export function resolveRef(name, items) {
   const typed = String(name ?? '').trim();
   if (!typed) return null;
-  const hit = items.find((i) => i.name.toLowerCase() === typed.toLowerCase());
+  const hit = items.find((i) => i.active && i.name.toLowerCase() === typed.toLowerCase());
   return hit ? { id: hit.id } : { create: typed };
 }
 

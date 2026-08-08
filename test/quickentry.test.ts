@@ -25,6 +25,24 @@ test('resolveRef asks for creation when the name is new', async () => {
   assert.deepEqual(resolveRef('  Farmácia  ', cats), { create: 'Farmácia' });
 });
 
+// Excluir uma categoria é soft delete: a linha continua no banco com `active=0`
+// e `GET /api/categories` continua devolvendo ela. Casar por nome contra uma
+// categoria excluída prenderia o lançamento a algo que o Acompanhar não agrega —
+// o dinheiro sumiria do painel e do total do mês, sem aviso nenhum.
+test('resolveRef never matches a deleted category or card', async () => {
+  const { resolveRef } = await import('../public/js/quickentry.js');
+  assert.deepEqual(resolveRef('Antiga', cats), { create: 'Antiga' });
+  assert.deepEqual(resolveRef('antiga', cats), { create: 'antiga' });
+  assert.deepEqual(resolveRef('Cancelado', [{ id: 9, name: 'Cancelado', active: 0 }]), {
+    create: 'Cancelado',
+  });
+});
+
+test('entryHint warns before reusing the name of a deleted category', async () => {
+  const { entryHint } = await import('../public/js/quickentry.js');
+  assert.equal(entryHint('Antiga', cats, 'category'), '↵ cria a categoria Antiga');
+});
+
 test('resolveRef returns null for an empty field', async () => {
   const { resolveRef } = await import('../public/js/quickentry.js');
   assert.equal(resolveRef('', cats), null);

@@ -33,14 +33,18 @@ export function renderRows(rows, refs = { cats: new Map(), cards: new Map() }) {
     .join('');
 }
 
+// Preencher um campo por código não dispara `input`, então a dica precisa ser
+// recalculada à mão — sem isso, editar um lançamento cuja categoria foi excluída
+// criaria uma categoria nova sem o usuário ver o aviso.
+function refreshHints() {
+  $('q-cat-hint').textContent = entryHint($('q-cat').value, state.cats, 'category');
+  $('q-card-hint').textContent = entryHint($('q-card').value, state.cards, 'card');
+}
+
 function mountEntryRow() {
   $('entryRow').innerHTML = renderEntryRow(state.cats, state.cards, sticky);
-  $('q-cat').addEventListener('input', () => {
-    $('q-cat-hint').textContent = entryHint($('q-cat').value, state.cats, 'category');
-  });
-  $('q-card').addEventListener('input', () => {
-    $('q-card-hint').textContent = entryHint($('q-card').value, state.cards, 'card');
-  });
+  $('q-cat').addEventListener('input', refreshHints);
+  $('q-card').addEventListener('input', refreshHints);
 }
 
 async function loadSelectors() {
@@ -135,6 +139,7 @@ function startEdit(r) {
   $('q-amount').value = (r.amount_cents / 100).toFixed(2).replace('.', ',');
   $('q-submit').textContent = 'Salvar';
   $('cancelEdit').style.display = 'inline';
+  refreshHints();
   $('q-desc').focus();
 }
 
