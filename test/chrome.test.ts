@@ -16,8 +16,6 @@ test('renderNav ships the three verbs of the loop', async () => {
   assert.match(html, /bottom-nav/);
   // a engrenagem leva a Configurações, que saiu da navegação
   assert.match(html, /href="\/settings.html"[^>]*aria-label="Configurações"/);
-  // o toggle de tema ainda está aqui — só sai na Task 3
-  assert.match(html, /id="theme-toggle"/);
 });
 
 test('renderNav marks the active route on every entry', async () => {

@@ -13,6 +13,18 @@ import { currentMonth, esc, formatBRL, reaisToCents } from './format.js';
 // Re-exported so existing importers (and tests) can keep reaching them here.
 export { canSpendText, renderCategoryRows };
 
+// Documento e storage entram por parâmetro: uma função que alcança `document`
+// por dentro não teria como ser testada sem DOM.
+export function applyTheme(next, doc, storage) {
+  doc.documentElement.setAttribute('data-theme', next);
+  try {
+    storage.setItem('theme', next);
+  } catch {
+    /* modo privado — ignorar */
+  }
+  return next;
+}
+
 const $ = (id) => document.getElementById(id);
 const state = { cats: [] };
 
@@ -286,6 +298,18 @@ if (typeof document !== 'undefined' && document.getElementById('limits')) {
   }
   $('useLastMonth').addEventListener('click', () => applySuggestions('last_month_cents'));
   $('useAvg3').addEventListener('click', () => applySuggestions('avg3_cents'));
+
+  // O tema saiu do cabeçalho (design §A.3) e vira manutenção, junto de cartões,
+  // categorias e backup.
+  const themeSel = $('theme');
+  if (themeSel) {
+    themeSel.value =
+      document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    themeSel.addEventListener('change', () => {
+      const next = applyTheme(themeSel.value, document, localStorage);
+      window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: next } }));
+    });
+  }
 
   loadSettings();
   loadLimits();

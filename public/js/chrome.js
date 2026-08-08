@@ -21,12 +21,6 @@ export const NAV_ITEMS = [
 const gearLink = (extra) =>
   `<a href="/settings.html" aria-label="Configurações" class="${extra} text-ink-mut hover:text-sage">${ICONS.gear}</a>`;
 
-// Ponte de uma task: o toggle sai do cabeçalho na Task 3, quando Configurações
-// ganha a opção que o substitui. Removê-lo antes disso deixaria o app sem
-// nenhuma forma de trocar de tema.
-const themeToggle = `<button id="theme-toggle" type="button" aria-label="Alternar tema"
-          class="text-ink-mut hover:text-sage text-lg leading-none">◐</button>`;
-
 export function renderNav(active) {
   const topLinks = NAV_ITEMS.map(
     (i) =>
@@ -40,8 +34,7 @@ export function renderNav(active) {
     <header class="hidden md:flex items-center max-w-5xl mx-auto px-6 py-5">
       <a href="/" class="font-display text-2xl text-ink">Gastando</a>
       <nav class="ml-auto flex items-center gap-6 text-sm">${topLinks}</nav>
-      <span class="ml-6">${themeToggle}</span>
-      ${gearLink('ml-4')}
+      ${gearLink('ml-6')}
       <div id="nav-actions"></div>
     </header>
     <header class="flex md:hidden items-center px-5 py-4 border-b border-line">
@@ -54,18 +47,4 @@ export function renderNav(active) {
 export function mountChrome(active) {
   const el = document.getElementById('nav');
   if (el) el.innerHTML = renderNav(active);
-  const toggle = document.getElementById('theme-toggle');
-  if (toggle) {
-    toggle.addEventListener('click', () => {
-      const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-      const next = cur === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      try {
-        localStorage.setItem('theme', next);
-      } catch {
-        /* ignore */
-      }
-      window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: next } }));
-    });
-  }
 }
