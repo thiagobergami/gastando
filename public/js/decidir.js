@@ -1,7 +1,7 @@
 import { api, showError } from './api.js';
 import { mountChrome } from './chrome.js';
 import { buildCommitments, renderCommitments } from './commitments.js';
-import { addMonths, capitalize, formatBRL, monthName } from './format.js';
+import { addMonths, capitalize, esc, formatBRL, monthName } from './format.js';
 import { changes, monthlyTotals, trendVerdict } from './pauta.js';
 import { reviewMonths, stepSubtitle, stepTrail } from './review.js';
 
@@ -16,11 +16,14 @@ const state = {
   decisions: { model: null, limits: [] },
 };
 
-const tile = (label, value, note, tone = 'text-ink') => `
+// `note` é o único campo que pode carregar texto do usuário (o nome da
+// categoria de maior mudança), então é o único que precisa escapar. `label`,
+// `value` e `tone` são sempre gerados pelo app.
+export const tile = (label, value, note, tone = 'text-ink') => `
   <div class="stat-tile">
     <div class="label-caps text-ink-mut">${label}</div>
     <div class="font-mono text-2xl ${tone} mt-1">${value}</div>
-    <div class="text-sm text-ink-mut mt-1">${note}</div>
+    <div class="text-sm text-ink-mut mt-1">${esc(note)}</div>
   </div>`;
 
 // Passo 1 — leitura, não ação. Três números e um link, como o frame 18:3: a
