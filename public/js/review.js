@@ -71,6 +71,12 @@ export function modelSummary(income, fixed, goal) {
 
 // O fim da revisão diz o que mudou, não o que existe. Sair sem decidir nada é um
 // resultado legítimo, e a frase reconhece isso em vez de repreender.
+//
+// Devolve TEXTO PURO, não HTML — quem renderiza escapa (`renderDone` em
+// decidir.js faz `esc(l)` em cada linha). Escapar aqui também faria dupla
+// escapada: `Restaurantes & Delivery` viraria `Restaurantes &amp; Delivery` na
+// tela. `stepTrail`, logo acima, devolve HTML e por isso escapa — a diferença
+// entre as duas é deliberada.
 export function summaryLines(decisions) {
   const lines = [];
   if (decisions.model) {

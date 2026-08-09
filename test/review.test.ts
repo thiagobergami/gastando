@@ -124,3 +124,16 @@ test('summaryLines admits when nothing was decided', async () => {
     'Você passou pela revisão sem mudar nada. Está tudo como estava.',
   ]);
 });
+
+test('summaryLines returns plain text — escaping belongs to whoever renders it', async () => {
+  const { summaryLines } = await import('../public/js/review.js');
+  const lines = summaryLines({
+    opening: '2026-09',
+    model: null,
+    limits: [{ name: 'Restaurantes & Delivery', from_cents: 60000, to_cents: 65000 }],
+  });
+  // O `&` chega cru: `renderDone` escapa na borda, e escapar duas vezes
+  // mostraria `&amp;` para a pessoa.
+  assert.equal(lines[0], 'Restaurantes & Delivery: R$ 600,00 → R$ 650,00');
+  assert.ok(!lines[0].includes('&amp;'));
+});
