@@ -132,7 +132,7 @@ export function renderReviewInvite() {
         <h2 class="font-display text-xl text-ink">Ainda sem tetos por categoria</h2>
         <p class="text-sm text-ink-mut mt-1">Definir renda, custos fixos e limites é o primeiro passo da revisão mensal.</p>
       </div>
-      <a href="settings.html" class="btn-ghost whitespace-nowrap self-start md:self-auto">Começar a revisão</a>
+      <a href="decidir.html" class="btn-ghost whitespace-nowrap self-start md:self-auto">Começar a revisão</a>
     </section>`;
 }
 

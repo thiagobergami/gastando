@@ -31,3 +31,9 @@ test('v0.3 redirects the old page names to the verbs', async () => {
   await request(app).get('/registrar.html').expect(200);
   await request(app).get('/analise.html').expect(200);
 });
+
+test('the review screen is served', async () => {
+  const { db } = makeTestDb();
+  const app = createApp(db);
+  await request(app).get('/decidir.html').expect(200);
+});

@@ -9,13 +9,13 @@ const ICONS = {
   gear: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg>',
 };
 
-// O loop da v0.3 (§3). `Decidir` aponta para `settings.html` enquanto a Fatia 3
-// não existe: é lá que hoje se define renda, custos fixos e limites — os passos
-// 3 e 4 do roteiro da revisão. A nav não muda de forma duas vezes.
+// O loop da v0.3 (§3). `Decidir` é a revisão mensal — não uma tela de
+// configurações com outro nome. `Configurações` continua alcançável só pela
+// engrenagem do cabeçalho.
 export const NAV_ITEMS = [
   { href: '/registrar.html', label: 'Registrar', route: '/registrar.html', icon: ICONS.plus },
   { href: '/', label: 'Acompanhar', route: '/', icon: ICONS.chart },
-  { href: '/settings.html', label: 'Decidir', route: '/settings.html', icon: ICONS.check },
+  { href: '/decidir.html', label: 'Decidir', route: '/decidir.html', icon: ICONS.check },
 ];
 
 const gearLink = (extra) =>

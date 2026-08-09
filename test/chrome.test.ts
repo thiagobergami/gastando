@@ -43,3 +43,14 @@ test('chrome no longer ships an onboarding guard', async () => {
   const mod = await import('../public/js/chrome.js');
   assert.equal(mod.enforceOnboarding, undefined);
 });
+
+test('Decidir now points at the review, not at settings', async () => {
+  const { NAV_ITEMS, renderNav } = await import('../public/js/chrome.js');
+  const decidir = NAV_ITEMS.find((i) => i.label === 'Decidir');
+  assert.equal(decidir.href, '/decidir.html');
+  assert.equal(decidir.route, '/decidir.html');
+  const html = renderNav('/decidir.html');
+  assert.match(html, /href="\/decidir.html"[^>]*class="[^"]*active/);
+  // a engrenagem continua sendo o único caminho para Configurações
+  assert.match(html, /href="\/settings.html"[^>]*aria-label="Configurações"/);
+});

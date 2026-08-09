@@ -177,7 +177,7 @@ test('renderReviewInvite points at the place where limits are set', async () => 
   const { renderReviewInvite } = await import('../public/js/dashboard.js');
   const html = renderReviewInvite();
   assert.match(html, /Ainda sem tetos por categoria/);
-  assert.match(html, /href="settings\.html"/);
+  assert.match(html, /href="decidir\.html"/);
 });
 
 // Linha de contexto sob o título (Figma 10:15 e 12:53). `today` é injetado para
