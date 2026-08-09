@@ -6,19 +6,6 @@ export function themeColor(varName) {
   return `rgb(${v})`;
 }
 
-export function aggregateSeries(series) {
-  return series.map((s) => ({
-    name: s.name,
-    total: s.spent_cents.reduce((a, b) => a + b, 0),
-  }));
-}
-
-export function topSeries(series) {
-  const agg = aggregateSeries(series);
-  if (agg.length === 0) return null;
-  return agg.reduce((best, cur) => (cur.total > best.total ? cur : best), agg[0]);
-}
-
 export function datasetsFor(series, onlyNonZero) {
   return series
     .filter((s) => !onlyNonZero || s.spent_cents.some((v) => v > 0))
@@ -78,6 +65,53 @@ export function barChart(canvasId, labels, data, { horizontal = false } = {}) {
       scales: {
         x: { ticks: { color: tick, font: { family: 'JetBrains Mono' } }, grid: { color: grid } },
         y: { ticks: { color: tick, font: { family: 'JetBrains Mono' } }, grid: { color: grid } },
+      },
+    },
+  });
+}
+
+// Colunas de poupança realizada com a meta como linha tracejada, como o frame
+// 15:3. A meta entra como série (não como anotação) porque ela varia de mês para
+// mês desde que `monthly_model` existe.
+export function savingsChart(canvasId, months, realized, goal) {
+  if (charts[canvasId]) charts[canvasId].destroy();
+  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: 'Poupança realizada',
+          data: realized.map((c) => c / 100),
+          backgroundColor: realized.map((c, i) => (c >= goal[i] ? PALETTE[0] : PALETTE[4])),
+          borderRadius: 6,
+          order: 2,
+        },
+        {
+          label: 'Meta',
+          type: 'line',
+          data: goal.map((c) => c / 100),
+          borderColor: PALETTE[2],
+          borderDash: [6, 4],
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false,
+          order: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter' } } } },
+      scales: {
+        x: {
+          ticks: { color: themeColor('--ink-mut'), font: { family: 'JetBrains Mono' } },
+          grid: { display: false },
+        },
+        y: {
+          ticks: { color: themeColor('--ink-mut'), font: { family: 'JetBrains Mono' } },
+          grid: { color: themeColor('--line') },
+        },
       },
     },
   });
