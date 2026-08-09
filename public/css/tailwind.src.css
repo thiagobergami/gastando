@@ -50,6 +50,7 @@
   .step-done { @apply text-ink; }
   .step-done .step-no { @apply text-sage; }
   .stat-tile { @apply flex-1 rounded border border-line bg-paper p-4; }
+  .chip-suggest { @apply rounded-full border border-dashed border-line px-3 py-1.5 text-sm font-mono text-ink-mut hover:border-sage hover:text-sage whitespace-nowrap; }
   .field { @apply flex flex-col gap-1 text-sm; }
   .field > span { @apply text-xs font-semibold uppercase tracking-wide text-ink-mut; }
   .field input, .field select { @apply rounded border border-line bg-card px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-sage; }
