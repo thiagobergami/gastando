@@ -2013,7 +2013,6 @@ function renderPauta({ trends, split, savings }) {
   const chg = changes(trends);
   const sp = splitAt(split);
   const months = trends.months;
-  const last = months[months.length - 1] ?? '';
   const previous = months.length > 1 ? months[months.length - 2] : '';
   const goal = savings.series[1].spent_cents;
   const lastGoal = goal[goal.length - 1] ?? 0;
