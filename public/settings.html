@@ -18,19 +18,8 @@
       <input type="month" id="month" class="rounded border border-line bg-card px-3 py-2" />
     </div>
     <section class="paper-card">
-      <h2 class="font-display text-xl mb-4">Modelo de poupança</h2>
-      <div class="grid sm:grid-cols-3 gap-3">
-        <label class="field"><span>Renda mensal (R$)</span><input type="number" id="monthly_income" step="0.01" /></label>
-        <label class="field"><span>Custos fixos (R$)</span><input type="number" id="fixed_costs" step="0.01" /></label>
-        <label class="field"><span>Meta de poupança (R$)</span><input type="number" id="savings_goal" step="0.01" /></label>
-      </div>
-      <div class="flex items-center gap-3 mt-4">
-        <span id="ceiling" class="pill pill-ok"></span>
-        <button id="saveSettings" class="btn-primary ml-auto">Salvar</button>
-      </div>
-    </section>
-    <section class="paper-card">
       <h2 class="font-display text-xl mb-4">Limites de <span id="monthLabel" class="font-mono text-base"></span></h2>
+      <p class="text-sm text-ink-mut mb-4">Renda, custos fixos e meta de poupança agora fazem parte da <a href="/decidir.html" class="text-sage hover:underline">revisão mensal</a>.</p>
       <div class="flex gap-2 mb-3">
         <button id="useLastMonth" class="btn-ghost text-sm">Usar mês anterior</button>
         <button id="useAvg3" class="btn-ghost text-sm">Usar média de 3 meses</button>
@@ -44,6 +33,9 @@
         </tr></thead>
         <tbody id="limits"></tbody>
       </table>
+      <div class="flex items-center gap-3 mt-4">
+        <span id="ceiling" class="pill pill-ok"></span>
+      </div>
     </section>
     <section class="paper-card">
       <h2 class="font-display text-xl mb-4">Cartões</h2>

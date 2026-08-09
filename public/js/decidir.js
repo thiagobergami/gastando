@@ -1,7 +1,7 @@
 import { api, showError } from './api.js';
 import { mountChrome } from './chrome.js';
 import { buildCommitments, renderCommitments } from './commitments.js';
-import { addMonths, capitalize, esc, formatBRL, monthName, parseReais } from './format.js';
+import { addMonths, capitalize, esc, formatBRL, MINUS, monthName, parseReais } from './format.js';
 import { changes, monthlyTotals, trendVerdict } from './pauta.js';
 import {
   modelSummary,
@@ -65,7 +65,7 @@ async function renderStep1() {
           top
             ? tile(
                 'MAIOR MUDANÇA',
-                `${top.delta_cents < 0 ? '−' : '+'} ${formatBRL(Math.abs(top.delta_cents))}`,
+                `${top.delta_cents < 0 ? MINUS : '+'} ${formatBRL(Math.abs(top.delta_cents))}`,
                 top.name,
                 top.delta_cents > 0 ? 'text-clay' : 'text-ink',
               )
@@ -352,9 +352,11 @@ async function render() {
 }
 
 // A trilha tem cinco botões, mas `go()` clampa no número de renderizadores
-// registrados: enquanto o passo 5 não existir, clicar nele para no 4. O passo 3
-// grava ao sair — inclusive para trás e inclusive pela trilha —, porque não há
-// botão "salvar": o passo é a gravação.
+// registrados (seis, contando o resumo final do passo 6) em vez de um número
+// fixo, para que "Concluir" no passo 5 chegue ao resumo mesmo sem botão
+// próprio na trilha. O passo 3 grava ao sair — inclusive para trás e
+// inclusive pela trilha —, porque não há botão "salvar": o passo é a
+// gravação.
 function go(step) {
   const leaving = state.step;
   const next = Math.max(1, Math.min(step, Object.keys(RENDERERS).length));

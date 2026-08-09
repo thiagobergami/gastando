@@ -28,12 +28,16 @@ export function applyTheme(next, doc, storage) {
 const $ = (id) => document.getElementById(id);
 const state = { cats: [] };
 
+// O modelo de poupança saiu de Configurações (agora é passo da revisão em
+// Decidir), mas o pill de alocação continua aqui: ele reconcilia os limites
+// contra o que a pessoa pode gastar, e esse número só existe no modelo. Em
+// vez de ler inputs que não existem mais, `loadSettings` guarda a resposta
+// da API neste cache de módulo e `updateAllocation` lê daqui.
+let modelCache = { monthly_income: 0, fixed_costs: 0, savings_goal: 0 };
+
 async function loadSettings() {
   try {
-    const s = await api.get('/api/settings');
-    $('monthly_income').value = s.monthly_income / 100;
-    $('fixed_costs').value = s.fixed_costs / 100;
-    $('savings_goal').value = s.savings_goal / 100;
+    modelCache = await api.get('/api/settings');
     updateAllocation();
   } catch (e) {
     showError(e.message);
@@ -49,9 +53,9 @@ function readLimitCents() {
 function updateAllocation() {
   const status = allocationStatus(
     readLimitCents(),
-    reaisToCents($('monthly_income').value || 0),
-    reaisToCents($('fixed_costs').value || 0),
-    reaisToCents($('savings_goal').value || 0),
+    modelCache.monthly_income || 0,
+    modelCache.fixed_costs || 0,
+    modelCache.savings_goal || 0,
   );
   const el = $('ceiling');
   el.textContent = allocationText(status);
@@ -254,21 +258,6 @@ if (typeof document !== 'undefined' && document.getElementById('limits')) {
     loadLimits();
   });
   $('limits').addEventListener('click', onLimitsClick);
-  ['monthly_income', 'fixed_costs', 'savings_goal'].forEach((id) => {
-    $(id).addEventListener('input', updateAllocation);
-  });
-  $('saveSettings').addEventListener('click', async () => {
-    try {
-      await api.put('/api/settings', {
-        monthly_income: reaisToCents($('monthly_income').value),
-        fixed_costs: reaisToCents($('fixed_costs').value),
-        savings_goal: reaisToCents($('savings_goal').value),
-      });
-      showError('Salvo');
-    } catch (e) {
-      showError(e.message);
-    }
-  });
   $('addCard').addEventListener('click', async () => {
     try {
       await api.post('/api/cards', { name: $('newCard').value });
