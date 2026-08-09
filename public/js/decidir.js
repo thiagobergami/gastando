@@ -3,7 +3,15 @@ import { mountChrome } from './chrome.js';
 import { buildCommitments, renderCommitments } from './commitments.js';
 import { addMonths, capitalize, esc, formatBRL, monthName, parseReais } from './format.js';
 import { changes, monthlyTotals, trendVerdict } from './pauta.js';
-import { modelSummary, overspentFirst, reviewMonths, stepSubtitle, stepTrail } from './review.js';
+import {
+  modelSummary,
+  overspentFirst,
+  reviewMonths,
+  stepSubtitle,
+  stepTrail,
+  summaryLines,
+} from './review.js';
+import { renderResult } from './simulate.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -243,15 +251,89 @@ function wireStep4() {
     });
 }
 
-const RENDERERS = { 1: renderStep1, 2: renderStep2, 3: renderStep3, 4: renderStep4 };
-const WIRERS = { 3: wireStep3, 4: wireStep4 };
+// Passo 5 — o formulário de `simulate.html` embutido. Contra os limites que
+// acabaram de ser definidos no passo 4, que é o que torna este passo a última
+// pergunta natural da revisão e não uma feature órfã.
+async function renderStep5() {
+  const cats = await api.get('/api/categories');
+  const options = cats
+    .filter((c) => c.active)
+    .map((c) => `<option value="${c.id}">${esc(c.name)}</option>`)
+    .join('');
+  return `
+    <section class="paper-card">
+      <h2 class="font-display text-2xl text-ink">Simular uma compra</h2>
+      <p class="text-sm text-ink-mut mt-1 mb-4">Opcional. Veja como uma compra parcelada caberia nos limites que você acabou de definir. Nada é salvo.</p>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <label class="field"><span>Categoria</span><select id="simCategory">${options}</select></label>
+        <label class="field"><span>Valor total</span><input type="text" id="simAmount" class="font-mono" placeholder="R$ 0,00" /></label>
+        <label class="field"><span># parcelas</span><input type="number" id="simCount" min="1" value="1" /></label>
+        <label class="field"><span>Primeiro mês</span><input type="month" id="simMonth" value="${state.months.opening}" /></label>
+      </div>
+      <button id="simRun" class="btn-primary mt-4">Simular</button>
+    </section>
+    <div id="simResult" class="mt-6"></div>`;
+}
+
+function wireStep5() {
+  $('simRun').addEventListener('click', async () => {
+    try {
+      const total_cents = parseReais($('simAmount').value);
+      if (!Number.isInteger(total_cents) || total_cents <= 0) {
+        showError('Informe um valor total');
+        return;
+      }
+      const params = new URLSearchParams({
+        category_id: $('simCategory').value,
+        total_cents,
+        count: Number($('simCount').value) || 1,
+        first_month: $('simMonth').value,
+      });
+      const d = await api.get(`/api/simulate?${params.toString()}`);
+      $('simResult').innerHTML = renderResult(d);
+    } catch (e) {
+      showError(e.message);
+    }
+  });
+}
+
+// Fim — o resumo do que mudou nesta sessão e a volta para o Acompanhar, agora
+// no estado completo. Não é um passo: a trilha aparece toda concluída.
+function renderDone() {
+  const lines = summaryLines({
+    opening: state.months.opening,
+    model: state.decisions.model,
+    limits: state.decisions.limits,
+  })
+    .map((l) => `<li class="py-2 border-b border-line last:border-0">${esc(l)}</li>`)
+    .join('');
+  return `
+    <section class="paper-card">
+      <h2 class="font-display text-2xl text-ink">Revisão de ${esc(monthName(state.months.closed))} concluída</h2>
+      <p class="text-sm text-ink-mut mt-1 mb-4">O que você decidiu para ${esc(monthName(state.months.opening))}:</p>
+      <ul>${lines}</ul>
+      <a href="/" class="btn-primary inline-block mt-5">Ver como estou este mês</a>
+    </section>`;
+}
+
+const RENDERERS = {
+  1: renderStep1,
+  2: renderStep2,
+  3: renderStep3,
+  4: renderStep4,
+  5: renderStep5,
+  6: async () => renderDone(),
+};
+const WIRERS = { 3: wireStep3, 4: wireStep4, 5: wireStep5 };
 
 function renderFooter() {
+  if (state.step === 6) return '';
   const back =
     state.step === 1
       ? `<a href="/" class="btn-ghost">Sair da revisão</a>`
       : `<button id="back" class="btn-ghost">Voltar</button>`;
-  return `${back}<button id="next" class="btn-primary">Continuar</button>`;
+  const label = state.step === 5 ? 'Concluir revisão' : 'Continuar';
+  return `${back}<button id="next" class="btn-primary">${label}</button>`;
 }
 
 async function render() {
