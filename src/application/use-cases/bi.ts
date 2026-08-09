@@ -54,8 +54,8 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
       return {
         months,
         series: [
-          { name: 'Limit', spent_cents: limit_cents },
-          { name: 'Spent', spent_cents },
+          { name: 'Limite', spent_cents: limit_cents },
+          { name: 'Gasto', spent_cents },
         ],
       };
     },
@@ -66,7 +66,7 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
         months,
         series: [
           {
-            name: 'Committed installments',
+            name: 'Parcelas comprometidas',
             spent_cents: months.map((m) => reports.installmentSpendMonth(m)),
           },
         ],
@@ -96,10 +96,10 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
         months,
         series: [
           {
-            name: 'Spent',
+            name: 'Gasto',
             spent_cents: months.map((m) => reports.spendByCategoryMonth(categoryId, m)),
           },
-          { name: 'Limit', spent_cents: months.map((m) => limits.resolve(categoryId, m)) },
+          { name: 'Limite', spent_cents: months.map((m) => limits.resolve(categoryId, m)) },
         ],
       };
     },
@@ -117,8 +117,8 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
       return {
         months,
         series: [
-          { name: 'Projected savings', spent_cents: projected },
-          { name: 'Goal', spent_cents: months.map(() => goal) },
+          { name: 'Poupança projetada', spent_cents: projected },
+          { name: 'Meta', spent_cents: months.map(() => goal) },
         ],
       };
     },

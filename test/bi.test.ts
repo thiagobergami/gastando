@@ -61,7 +61,7 @@ test('bi by-card sums spend per card', async () => {
   await request(app).get('/api/bi/by-card?from=2026-08&to=2026-06').expect(400);
 });
 
-test('bi budget-vs-actual returns Limit and Spent series', async () => {
+test('bi budget-vs-actual returns Limite and Gasto series', async () => {
   const ctx = makeTestDb();
   ctx.db
     .prepare(
@@ -79,8 +79,8 @@ test('bi budget-vs-actual returns Limit and Spent series', async () => {
     })
     .expect(201);
   const r = await request(app).get('/api/bi/budget-vs-actual?from=2026-06&to=2026-06').expect(200);
-  assert.equal(r.body.series.find((s) => s.name === 'Limit').spent_cents[0], 80000);
-  assert.equal(r.body.series.find((s) => s.name === 'Spent').spent_cents[0], 30000);
+  assert.equal(r.body.series.find((s) => s.name === 'Limite').spent_cents[0], 80000);
+  assert.equal(r.body.series.find((s) => s.name === 'Gasto').spent_cents[0], 30000);
 });
 
 test('bi installment-forecast counts only installment transactions', async () => {
@@ -111,7 +111,7 @@ test('bi installment-forecast counts only installment transactions', async () =>
   assert.deepEqual(r.body.series[0].spent_cents, [10000, 10000, 10000]);
 });
 
-test('bi category-trend returns Spent and Limit series for one category', async () => {
+test('bi category-trend returns Gasto and Limite series for one category', async () => {
   const ctx = makeTestDb();
   ctx.db
     .prepare(
@@ -142,8 +142,8 @@ test('bi category-trend returns Spent and Limit series for one category', async 
     .get(`/api/bi/category-trend?category_id=${ctx.categoryId}&from=2026-05&to=2026-06`)
     .expect(200);
   assert.deepEqual(r.body.months, ['2026-05', '2026-06']);
-  const spent = r.body.series.find((s) => s.name === 'Spent');
-  const limit = r.body.series.find((s) => s.name === 'Limit');
+  const spent = r.body.series.find((s) => s.name === 'Gasto');
+  const limit = r.body.series.find((s) => s.name === 'Limite');
   assert.deepEqual(spent.spent_cents, [0, 42000]); // no spend in May; 30000+12000 in June
   assert.deepEqual(limit.spent_cents, [0, 90000]); // no limit at/before May; 90000 in June
 });
@@ -181,8 +181,8 @@ test('savingsTrend = income - fixed - spend, vs goal', async () => {
     })
     .expect(201);
   const res = await request(app).get('/api/bi/savings-trend?from=2026-06&to=2026-06').expect(200);
-  const projected = res.body.series.find((s) => s.name === 'Projected savings');
-  const goal = res.body.series.find((s) => s.name === 'Goal');
+  const projected = res.body.series.find((s) => s.name === 'Poupança projetada');
+  const goal = res.body.series.find((s) => s.name === 'Meta');
   assert.equal(projected.spent_cents[0], 600000); // 1,000,000 - 300,000 - 100,000
   assert.equal(goal.spent_cents[0], 200000);
 });
@@ -350,4 +350,33 @@ test('savings-realized validates its range', async () => {
   const app = createApp(ctx.db);
   await request(app).get('/api/bi/savings-realized?from=2026-08&to=2026-06').expect(400);
   await request(app).get('/api/bi/savings-realized?from=2026-06&to=bad').expect(400);
+});
+
+test('every BI series name ships in pt-BR', async () => {
+  const ctx = makeTestDb();
+  const app = createApp(ctx.db);
+  const qs = 'from=2026-06&to=2026-06';
+  const paths = [
+    'budget-vs-actual',
+    'installment-forecast',
+    'savings-trend',
+    'savings-realized',
+    'committed-vs-discretionary',
+  ];
+  const expected = new Set([
+    'Limite',
+    'Gasto',
+    'Parcelas comprometidas',
+    'Poupança projetada',
+    'Poupança realizada',
+    'Meta',
+    'Comprometido',
+    'Discricionário',
+  ]);
+  for (const p of paths) {
+    const r = await request(app).get(`/api/bi/${p}?${qs}`).expect(200);
+    for (const s of r.body.series) {
+      assert.ok(expected.has(s.name), `${p} still ships "${s.name}"`);
+    }
+  }
 });

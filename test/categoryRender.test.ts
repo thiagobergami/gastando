@@ -35,7 +35,7 @@ test('category renderRows shows date/desc/amount + installment chip, view-only',
 
 test('category renderRows shows an empty state', async () => {
   const { renderRows } = await import('../public/js/category.js');
-  assert.match(renderRows([]), /No transactions/);
+  assert.match(renderRows([]), /Nenhum lançamento neste mês/);
 });
 
 test('category renderSummary shows spent/limit/left and status', async () => {

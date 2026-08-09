@@ -13,7 +13,7 @@ function params() {
 
 export function renderRows(rows) {
   if (!rows.length) {
-    return `<tr><td class="py-4 text-ink-mut" colspan="3">No transactions this month.</td></tr>`;
+    return `<tr><td class="py-4 text-ink-mut" colspan="3">Nenhum lançamento neste mês.</td></tr>`;
   }
   return rows
     .map(
@@ -33,9 +33,9 @@ export function renderSummary({ spent_cents, limit_cents }) {
   const status = spent_cents > limit_cents ? 'over' : 'ok';
   return `
     <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-mut mb-2">
-      <span>Spent <b class="text-ink font-mono">${formatBRL(spent_cents)}</b></span>
-      <span>Limit <b class="text-ink font-mono">${formatBRL(limit_cents)}</b></span>
-      <span>Left <b class="text-ink font-mono">${formatBRL(remaining)}</b></span>
+      <span>Gasto <b class="text-ink font-mono">${formatBRL(spent_cents)}</b></span>
+      <span>Limite <b class="text-ink font-mono">${formatBRL(limit_cents)}</b></span>
+      <span>Sobra <b class="text-ink font-mono">${formatBRL(remaining)}</b></span>
       ${statusPill(status)}
     </div>
     ${meterBar(spent_cents, limit_cents, status)}`;
@@ -49,7 +49,7 @@ async function load(id, month) {
       api.get(`/api/bi/category-trend?category_id=${id}&from=${from}&to=${month}`),
     ]);
     const spent_cents = rows.reduce((s, r) => s + r.amount_cents, 0);
-    const limitSeries = trend.series.find((s) => s.name === 'Limit');
+    const limitSeries = trend.series.find((s) => s.name === 'Limite');
     const limit_cents = limitSeries.spent_cents[limitSeries.spent_cents.length - 1];
     $('summary').innerHTML = renderSummary({ spent_cents, limit_cents });
     $('list').innerHTML = renderRows(rows);
