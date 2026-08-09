@@ -41,12 +41,16 @@
   .pill-over { @apply bg-clay-soft/20 text-clay; }
   .pill-warn { @apply bg-gold-accent/20 text-gold; }
   .label-caps { @apply text-xs font-semibold uppercase tracking-wide; }
-  .step-indicator { @apply flex flex-wrap gap-x-4 gap-y-2 my-3; }
-  .step { @apply flex items-center gap-2 text-sm text-ink-mut; }
-  .step-no { @apply w-6 h-6 rounded-full bg-line text-ink-mut text-xs font-semibold flex items-center justify-center; }
-  .step-active { @apply text-ink font-semibold; }
-  .step-active .step-no { @apply bg-sage text-white; }
-  .step-done .step-no { @apply bg-sage-soft text-white; }
+  .step-indicator { @apply hidden md:flex gap-3 my-6; }
+  .step-progress { @apply md:hidden my-5; }
+  .step { @apply flex-1 flex items-center gap-2 text-sm text-ink-mut rounded-full border border-line bg-card px-4 py-2.5 text-left; }
+  .step-no { @apply w-5 h-5 shrink-0 rounded-full text-xs font-semibold flex items-center justify-center; }
+  .step-active { @apply bg-sage border-sage text-white font-semibold; }
+  .step-active .step-no { @apply bg-white/25 text-white; }
+  .step-done { @apply text-ink; }
+  .step-done .step-no { @apply text-sage; }
+  .stat-tile { @apply flex-1 rounded border border-line bg-paper p-4; }
+  .chip-suggest { @apply rounded-full border border-dashed border-line px-3 py-1.5 text-sm font-mono text-ink-mut hover:border-sage hover:text-sage whitespace-nowrap; }
   .field { @apply flex flex-col gap-1 text-sm; }
   .field > span { @apply text-xs font-semibold uppercase tracking-wide text-ink-mut; }
   .field input, .field select { @apply rounded border border-line bg-card px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-sage; }

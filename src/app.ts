@@ -18,19 +18,23 @@ export function createApp(arg: Container | Db): express.Express {
 
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-  app.use('/api/groups', controllers.groups);
   app.use('/api/categories', controllers.categories);
   app.use('/api/cards', controllers.cards);
   app.use('/api/limits', controllers.limits);
+  app.use('/api/monthly-model', controllers.monthlyModel);
   app.use('/api/transactions', controllers.transactions);
   app.use('/api/installment-groups', controllers.installmentGroups);
   app.use('/api/settings', controllers.settings);
-  app.use('/api/onboarding', controllers.onboarding);
   app.use('/api/dashboard', controllers.dashboard);
   app.use('/api/bi', controllers.bi);
   app.use('/api/simulate', controllers.simulate);
   app.use('/api/recurring', controllers.recurring);
   app.use('/api/backup', controllers.backup);
+
+  // Os nomes antigos continuam funcionando: favoritos e links salvos não quebram
+  // quando o vocabulário do §5 chega às URLs.
+  app.get('/transactions.html', (_req, res) => res.redirect(301, '/registrar.html'));
+  app.get('/bi.html', (_req, res) => res.redirect(301, '/analise.html'));
 
   app.use(express.static(path.join(__dirname, '..', 'public')));
   app.use(errorHandler);

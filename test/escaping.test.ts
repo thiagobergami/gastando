@@ -1,39 +1,45 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 
-test('groupTag escapes the group name', async () => {
-  const { groupTag } = await import('../public/js/ui.js');
-  const html = groupTag('Casa & Jardim <x>');
-  assert.match(html, /Casa &amp; Jardim &lt;x&gt;/);
-  assert.doesNotMatch(html, /<x>/);
-});
-
-test('dashboard renderGroups escapes category name, examples and group header', async () => {
-  const { renderGroups } = await import('../public/js/dashboard.js');
+test('dashboard renderCategories escapes the category name', async () => {
+  const { renderCategories } = await import('../public/js/dashboard.js');
   const d = {
+    month: '2026-08',
     categories: [
       {
         category_id: 1,
         name: '<b>Boom</b>',
         examples: 'a & b',
-        group_id: 1,
-        group_name: 'G&G',
+        essential: 0,
         limit_cents: 100,
         spent_cents: 0,
+        carry_in_cents: 0,
+        effective_spent_cents: 0,
+        remaining_cents: 100,
         status: 'ok',
       },
     ],
-    groups: [{ group_id: 1, name: 'G&G', limit_cents: 100, spent_cents: 0 }],
     totals: {},
   };
-  const html = renderGroups(d);
+  const html = renderCategories(d);
   assert.doesNotMatch(html, /<b>Boom<\/b>/);
   assert.match(html, /&lt;b&gt;Boom/);
-  assert.match(html, /a &amp; b/);
+});
+
+test('dashboard renderHeroInitial escapes the category name', async () => {
+  const { renderHeroInitial } = await import('../public/js/dashboard.js');
+  const html = renderHeroInitial({
+    month: '2026-08',
+    configured: false,
+    categories: [{ category_id: 1, name: '<b>Boom</b>', spent_cents: 500 }],
+    totals: { spent_cents: 500 },
+  });
+  assert.doesNotMatch(html, /<b>Boom<\/b>/);
+  assert.match(html, /&lt;b&gt;Boom/);
 });
 
 test('transactions renderRows escapes the description', async () => {
-  const { renderRows } = await import('../public/js/transactions.js');
+  const { renderRows } = await import('../public/js/registrar.js');
   const html = renderRows([
     {
       id: 1,

@@ -3,6 +3,7 @@ import type {
   Category,
   Group,
   InstallmentProgress,
+  MonthlyModel,
   RecurringTemplate,
   Transaction,
 } from '../entities';
@@ -25,10 +26,10 @@ export interface CategoryRepository {
   listActiveIds(): number[]; // SELECT id WHERE active=1 (insertion order; for GET /api/limits)
   findById(id: number): Category | undefined;
   nextSortOrder(): number; // MAX(sort_order)+1 WHERE active=1
-  insert(c: { group_id: number; name: string; examples: string; sort_order: number }): Category;
+  insert(c: { name: string; examples: string; sort_order: number; essential: number }): Category;
   update(
     id: number,
-    c: { group_id: number; name: string; examples: string; sort_order: number; active: number },
+    c: { name: string; examples: string; sort_order: number; active: number; essential: number },
   ): number;
   deactivate(id: number): number;
 }
@@ -115,9 +116,6 @@ export interface SettingsRepository {
   get(key: string): string | undefined;
   set(key: string, value: string): void;
   setMany(entries: [string, string][]): void; // atomic
-  countTransactions(): number;
-  countInstallmentGroups(): number;
-  wipeCategoryData(): void; // atomic: delete limits, categories, groups
 }
 
 export interface RecurringRepository {
@@ -158,11 +156,16 @@ export interface RecurringRepository {
 export interface ReportRepository {
   spendByCategoryMonth(categoryId: number, month: string): number;
   spendByCardMonth(cardId: number, month: string): number;
-  spendByGroupMonth(groupId: number, month: string): number;
   spendAllMonth(month: string): number;
   installmentSpendMonth(month: string): number;
-  dashboardCategories(): Array<
-    Category & { group_name: string; group_color: string; group_sort: number }
-  >;
+  committedSpendMonth(month: string): number;
+  dashboardCategories(): Category[];
+  countTransactions(month: string): number;
   spendByCardDateRange(cardId: number, startExclusive: string, endInclusive: string): number;
+}
+
+export interface MonthlyModelRepository {
+  findExact(month: string): MonthlyModel | undefined;
+  findAtOrBefore(month: string): MonthlyModel | undefined; // carry-forward pick
+  upsert(m: MonthlyModel): void;
 }

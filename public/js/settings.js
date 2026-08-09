@@ -3,26 +3,41 @@ import {
   allocationPillClass,
   allocationStatus,
   allocationText,
-  ceilingText,
+  canSpendText,
   nameEditor,
-  renderGroupedLimitRows,
-  renderLimitRows,
+  renderCategoryRows,
 } from './budget.js';
 import { mountChrome } from './chrome.js';
 import { currentMonth, esc, formatBRL, reaisToCents } from './format.js';
 
 // Re-exported so existing importers (and tests) can keep reaching them here.
-export { ceilingText, renderGroupedLimitRows, renderLimitRows };
+export { canSpendText, renderCategoryRows };
+
+// Documento e storage entram por parâmetro: uma função que alcança `document`
+// por dentro não teria como ser testada sem DOM.
+export function applyTheme(next, doc, storage) {
+  doc.documentElement.setAttribute('data-theme', next);
+  try {
+    storage.setItem('theme', next);
+  } catch {
+    /* modo privado — ignorar */
+  }
+  return next;
+}
 
 const $ = (id) => document.getElementById(id);
-const state = { groups: [], cats: [] };
+const state = { cats: [] };
+
+// O modelo de poupança saiu de Configurações (agora é passo da revisão em
+// Decidir), mas o pill de alocação continua aqui: ele reconcilia os limites
+// contra o que a pessoa pode gastar, e esse número só existe no modelo. Em
+// vez de ler inputs que não existem mais, `loadSettings` guarda a resposta
+// da API neste cache de módulo e `updateAllocation` lê daqui.
+let modelCache = { monthly_income: 0, fixed_costs: 0, savings_goal: 0 };
 
 async function loadSettings() {
   try {
-    const s = await api.get('/api/settings');
-    $('monthly_income').value = s.monthly_income / 100;
-    $('fixed_costs').value = s.fixed_costs / 100;
-    $('savings_goal').value = s.savings_goal / 100;
+    modelCache = await api.get('/api/settings');
     updateAllocation();
   } catch (e) {
     showError(e.message);
@@ -38,9 +53,9 @@ function readLimitCents() {
 function updateAllocation() {
   const status = allocationStatus(
     readLimitCents(),
-    reaisToCents($('monthly_income').value || 0),
-    reaisToCents($('fixed_costs').value || 0),
-    reaisToCents($('savings_goal').value || 0),
+    modelCache.monthly_income || 0,
+    modelCache.fixed_costs || 0,
+    modelCache.savings_goal || 0,
   );
   const el = $('ceiling');
   el.textContent = allocationText(status);
@@ -66,18 +81,35 @@ function wireLimitInputs() {
     });
 }
 
+function wireEssentialToggles() {
+  $('limits')
+    .querySelectorAll('input[data-essential]')
+    .forEach((box) => {
+      box.addEventListener('change', async () => {
+        const id = Number(box.dataset.essential);
+        const c = state.cats.find((x) => x.id === id);
+        try {
+          await api.put(`/api/categories/${id}`, { ...c, essential: box.checked ? 1 : 0 });
+          c.essential = box.checked ? 1 : 0;
+        } catch (e) {
+          box.checked = !box.checked;
+          showError(e.message);
+        }
+      });
+    });
+}
+
 async function loadLimits() {
   try {
-    const [groups, cats, limits] = await Promise.all([
-      api.get('/api/groups'),
+    const [cats, limits] = await Promise.all([
       api.get('/api/categories'),
       api.get(`/api/limits?month=${$('month').value}`),
     ]);
-    state.groups = groups;
     state.cats = cats;
     const byCat = new Map(limits.map((l) => [l.category_id, l.limit_cents]));
-    $('limits').innerHTML = renderGroupedLimitRows(groups, cats, byCat);
+    $('limits').innerHTML = renderCategoryRows(cats, byCat);
     wireLimitInputs();
+    wireEssentialToggles();
     updateAllocation();
   } catch (e) {
     showError(e.message);
@@ -87,23 +119,17 @@ async function loadLimits() {
 function beginRename(kind, id) {
   const cell = $('limits').querySelector(`[data-name-cell="${kind}:${id}"]`);
   if (!cell) return;
-  const cur =
-    kind === 'cat'
-      ? state.cats.find((c) => c.id === id).name
-      : state.groups.find((g) => g.id === id).name;
+  const cur = state.cats.find((c) => c.id === id).name;
   cell.innerHTML = nameEditor(kind, id, cur);
   cell.querySelector('input').focus();
 }
 
-function beginAdd(kind, groupId) {
-  // For addcat: replace the "+ Add category" button cell content.
-  // For addgroup: replace the "+ Add group" button cell content.
-  const attr = kind === 'addcat' ? `data-add-cat="${groupId}"` : 'data-add-group';
-  const btn = $('limits').querySelector(`[${attr}]`);
+function beginAdd() {
+  const btn = $('limits').querySelector('[data-add-cat]');
   if (!btn) return;
   const cell = btn.closest('td');
   if (!cell) return;
-  cell.innerHTML = nameEditor(kind, groupId, '');
+  cell.innerHTML = nameEditor('addcat', 'new', '');
   cell.querySelector('input').focus();
 }
 
@@ -118,13 +144,8 @@ async function saveEdit(token) {
   if (kind === 'cat') {
     const c = state.cats.find((x) => x.id === Number(id));
     await api.put(`/api/categories/${id}`, { ...c, name: val });
-  } else if (kind === 'group') {
-    const g = state.groups.find((x) => x.id === Number(id));
-    await api.put(`/api/groups/${id}`, { ...g, name: val });
   } else if (kind === 'addcat') {
-    await api.post('/api/categories', { group_id: Number(id), name: val });
-  } else if (kind === 'addgroup') {
-    await api.post('/api/groups', { name: val });
+    await api.post('/api/categories', { name: val });
   }
   await loadLimits();
 }
@@ -137,31 +158,12 @@ async function onLimitsClick(e) {
       await loadLimits();
       return;
     }
-    if (d.groupDel) {
-      await api.del(`/api/groups/${d.groupDel}`);
-      await loadLimits();
-      return;
-    }
     if (d.catRename) {
       beginRename('cat', Number(d.catRename));
       return;
     }
-    if (d.groupRename) {
-      beginRename('group', Number(d.groupRename));
-      return;
-    }
-    if (d.groupColor) {
-      const g = state.groups.find((x) => x.id === Number(d.groupColor));
-      await api.put(`/api/groups/${d.groupColor}`, { ...g, color: d.color });
-      await loadLimits();
-      return;
-    }
-    if (d.addCat) {
-      beginAdd('addcat', d.addCat);
-      return;
-    }
-    if (e.target.hasAttribute('data-add-group')) {
-      beginAdd('addgroup', 'new');
+    if (e.target.hasAttribute('data-add-cat')) {
+      beginAdd();
       return;
     }
     if (d.save) {
@@ -256,21 +258,6 @@ if (typeof document !== 'undefined' && document.getElementById('limits')) {
     loadLimits();
   });
   $('limits').addEventListener('click', onLimitsClick);
-  ['monthly_income', 'fixed_costs', 'savings_goal'].forEach((id) => {
-    $(id).addEventListener('input', updateAllocation);
-  });
-  $('saveSettings').addEventListener('click', async () => {
-    try {
-      await api.put('/api/settings', {
-        monthly_income: reaisToCents($('monthly_income').value),
-        fixed_costs: reaisToCents($('fixed_costs').value),
-        savings_goal: reaisToCents($('savings_goal').value),
-      });
-      showError('Salvo');
-    } catch (e) {
-      showError(e.message);
-    }
-  });
   $('addCard').addEventListener('click', async () => {
     try {
       await api.post('/api/cards', { name: $('newCard').value });
@@ -300,6 +287,18 @@ if (typeof document !== 'undefined' && document.getElementById('limits')) {
   }
   $('useLastMonth').addEventListener('click', () => applySuggestions('last_month_cents'));
   $('useAvg3').addEventListener('click', () => applySuggestions('avg3_cents'));
+
+  // O tema saiu do cabeçalho (design §A.3) e vira manutenção, junto de cartões,
+  // categorias e backup.
+  const themeSel = $('theme');
+  if (themeSel) {
+    themeSel.value =
+      document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    themeSel.addEventListener('change', () => {
+      const next = applyTheme(themeSel.value, document, localStorage);
+      window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: next } }));
+    });
+  }
 
   loadSettings();
   loadLimits();

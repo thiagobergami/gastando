@@ -2,13 +2,16 @@
 
 A personal expense tracker for credit-card spending. Record every transaction by
 category, card and month; compare actual spend against editable per-category
-monthly limits; model installment purchases (*parcelas*); reproduce a full savings
-summary (income → fixed costs → savings goal → healthy ceiling → projected
-savings); and explore your history through BI views.
+monthly limits; model installment purchases (*parcelas*); and see, month by
+month, how much you can still spend ("posso gastar este mês") and how much you
+are on track to save.
 
 It runs entirely on your machine. There is no account, no cloud sync, and no
 telemetry — everything lives in a single SQLite file you control. The UI is in
-English; example data and currency are pt-BR (R$).
+pt-BR; currency is R$.
+
+On first run the app opens ready to use: eight generic Brazilian categories, no
+setup wizard, no sample data belonging to anyone else.
 
 Built with Node.js, Express and SQLite.
 
@@ -67,6 +70,25 @@ No Node.js, Docker, or any other install required — the binary bundles everyth
 Your data is stored in a `data/` folder created **next to the executable**. If you
 move the app, move that folder with it. To stop the app, close the console window
 (Windows) or press `Ctrl+C` in the terminal.
+
+### Updating to a new version
+
+Migrations run automatically — there is nothing to execute by hand. But the
+database lives in the `data/` folder **next to the executable**, so:
+
+1. Download the new binary for your OS from the Releases page.
+2. **Put it in the same folder as the one you are already running**, replacing it.
+   Keep the `data/` folder exactly where it is.
+3. Start it. Any pending schema changes are applied on startup, in order, each in
+   a transaction, and are recorded so they never run twice.
+
+> If you start the new binary from a *different* folder — your Downloads folder,
+> for example — it will not see your `data/` folder and will create a new, empty
+> database. Nothing is lost: move the executable next to your existing `data/`
+> folder and start it again.
+
+Back up before a major upgrade by copying `data/gastando.db`, or by using
+**Download backup** in Settings.
 
 ---
 

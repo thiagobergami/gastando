@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/theme-init.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gastando — Análise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body class="pb-24 md:pb-0">
+  <div id="nav"></div>
+  <main class="max-w-5xl mx-auto px-6 pt-2 space-y-6">
+    <div class="mb-2">
+      <h1 class="font-display text-3xl text-ink">Análise</h1>
+      <p id="range" class="text-ink-mut mt-1"></p>
+    </div>
+    <div class="paper-card flex flex-wrap items-end gap-3">
+      <label class="field"><span>De</span><input type="month" id="from" /></label>
+      <label class="field"><span>Até</span><input type="month" id="to" /></label>
+      <button id="run" class="btn-primary">Atualizar</button>
+    </div>
+    <div id="pauta" class="grid lg:grid-cols-2 gap-6"></div>
+  </main>
+  <script type="module" src="/js/analise.js"></script>
+</body>
+</html>

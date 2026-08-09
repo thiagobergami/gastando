@@ -25,12 +25,6 @@ test('ui helpers', async () => {
   // statusPill
   assert.match(ui.statusPill('ok'), /pill-ok/);
   assert.match(ui.statusPill('over'), /pill-over/);
-
-  // groupTag
-  assert.match(ui.groupTag('Essenciais / semi-fixos'), /tag-sage/);
-  assert.match(ui.groupTag('Estilo de vida'), /tag-gold/);
-  assert.match(ui.groupTag('Fundos'), /tag-slate/);
-  assert.match(ui.groupTag('Folga'), /tag-neutral/);
 });
 
 test('statusPill renders a warn pill when approaching', async () => {

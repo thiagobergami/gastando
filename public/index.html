@@ -4,7 +4,7 @@
   <script src="/js/theme-init.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gastando — Dashboard</title>
+  <title>Gastando — Acompanhar</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/app.css" />
@@ -12,11 +12,16 @@
 <body class="pb-24 md:pb-0">
   <div id="nav"></div>
   <main class="max-w-5xl mx-auto px-6 pt-2">
-    <div class="flex justify-end mb-4">
+    <div class="flex items-start justify-between gap-4 mb-6">
+      <div>
+        <h1 class="font-display text-3xl text-ink">Acompanhar</h1>
+        <p id="subtitle" class="text-ink-mut mt-2"></p>
+      </div>
       <input type="month" id="month" class="rounded border border-line bg-card px-3 py-2" />
     </div>
     <div id="hero"></div>
-    <div id="groups"></div>
+    <div id="body"></div>
+    <div id="commitments"></div>
   </main>
   <script type="module" src="/js/dashboard.js"></script>
 </body>

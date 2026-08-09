@@ -5,6 +5,10 @@ export interface Group {
   sort_order: number;
   active: number;
 }
+// categories.group_id continua NOT NULL REFERENCES groups(id) no schema, mas
+// grupos saíram da UI e da API na v0.3: toda categoria aponta para o sentinela.
+export const NO_GROUP_ID = 0;
+
 export interface Category {
   id: number;
   group_id: number;
@@ -12,6 +16,7 @@ export interface Category {
   examples: string;
   sort_order: number;
   active: number;
+  essential: number; // 0 | 1
 }
 export interface Card {
   id: number;
@@ -71,4 +76,19 @@ export interface RecurringTemplate {
   amount_cents: number;
   day_of_month: number;
   active: number;
+}
+
+// Uma linha por mês, espelhando `category_limits`: o modelo de poupança passa a
+// ter história (v0.3 §9 passo 3).
+export interface MonthlyModel {
+  month: string;
+  income_cents: number;
+  fixed_costs_cents: number;
+  savings_goal_cents: number;
+}
+
+// `source` diz de qual degrau da cadeia de fallback o valor veio. É o que torna
+// o teste dos três degraus legível, e o que permite à UI dizer "herdado de".
+export interface ResolvedModel extends MonthlyModel {
+  source: 'month' | 'carry' | 'settings' | 'none';
 }

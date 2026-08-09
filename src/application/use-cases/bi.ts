@@ -1,24 +1,27 @@
 import type {
   CardRepository,
   CategoryRepository,
-  GroupRepository,
   LimitRepository,
   ReportRepository,
   SettingsRepository,
 } from '../../domain/ports';
 import { monthRange } from '../../domain/services/dates';
+// A poupança realizada precisa do modelo de cada mês. Consumir o contrato
+// estreito `ModelResolver` — em vez de reimplementar a cadeia de fallback aqui —
+// é o que garante que o histórico e a revisão nunca discordem.
+import type { ModelResolver } from './model';
 
 export interface BiUseCaseDeps {
   reports: ReportRepository;
   limits: LimitRepository;
   categories: CategoryRepository;
   cards: CardRepository;
-  groups: GroupRepository;
   settings: SettingsRepository;
+  model: ModelResolver;
 }
 
 export function makeBiUseCases(deps: BiUseCaseDeps) {
-  const { reports, limits, categories, cards, groups, settings } = deps;
+  const { reports, limits, categories, cards, settings, model } = deps;
 
   return {
     trends(from: string, to: string) {
@@ -41,16 +44,6 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
       return { months, series };
     },
 
-    byGroup(from: string, to: string) {
-      const months = monthRange(from, to);
-      const series = groups.listAll().map((g) => ({
-        group_id: g.id,
-        name: g.name,
-        spent_cents: months.map((m) => reports.spendByGroupMonth(g.id, m)),
-      }));
-      return { months, series };
-    },
-
     budgetVsActual(from: string, to: string) {
       const months = monthRange(from, to);
       const cats = categories.listActive();
@@ -61,8 +54,8 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
       return {
         months,
         series: [
-          { name: 'Limit', spent_cents: limit_cents },
-          { name: 'Spent', spent_cents },
+          { name: 'Limite', spent_cents: limit_cents },
+          { name: 'Gasto', spent_cents },
         ],
       };
     },
@@ -73,8 +66,25 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
         months,
         series: [
           {
-            name: 'Committed installments',
+            name: 'Parcelas comprometidas',
             spent_cents: months.map((m) => reports.installmentSpendMonth(m)),
+          },
+        ],
+      };
+    },
+
+    // A ordem das séries é contratual: o card da Análise lê por índice, não por
+    // nome, para não quebrar se a tradução mudar.
+    committedVsDiscretionary(from: string, to: string) {
+      const months = monthRange(from, to);
+      const committed = months.map((m) => reports.committedSpendMonth(m));
+      return {
+        months,
+        series: [
+          { name: 'Comprometido', spent_cents: committed },
+          {
+            name: 'Discricionário',
+            spent_cents: months.map((m, i) => reports.spendAllMonth(m) - committed[i]),
           },
         ],
       };
@@ -86,10 +96,10 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
         months,
         series: [
           {
-            name: 'Spent',
+            name: 'Gasto',
             spent_cents: months.map((m) => reports.spendByCategoryMonth(categoryId, m)),
           },
-          { name: 'Limit', spent_cents: months.map((m) => limits.resolve(categoryId, m)) },
+          { name: 'Limite', spent_cents: months.map((m) => limits.resolve(categoryId, m)) },
         ],
       };
     },
@@ -107,8 +117,29 @@ export function makeBiUseCases(deps: BiUseCaseDeps) {
       return {
         months,
         series: [
-          { name: 'Projected savings', spent_cents: projected },
-          { name: 'Goal', spent_cents: months.map(() => goal) },
+          { name: 'Poupança projetada', spent_cents: projected },
+          { name: 'Meta', spent_cents: months.map(() => goal) },
+        ],
+      };
+    },
+
+    // A diferença para `savingsTrend` é inteira `model.resolve(m)` no lugar de
+    // `settings.get()`: cada mês usa o modelo que valia naquele mês, e mudar a
+    // renda de hoje não reescreve o passado (§A.2 do design).
+    savingsRealized(from: string, to: string) {
+      const months = monthRange(from, to);
+      const resolved = months.map((m) => model.resolve(m));
+      return {
+        months,
+        series: [
+          {
+            name: 'Poupança realizada',
+            spent_cents: months.map(
+              (m, i) =>
+                resolved[i].income_cents - resolved[i].fixed_costs_cents - reports.spendAllMonth(m),
+            ),
+          },
+          { name: 'Meta', spent_cents: resolved.map((r) => r.savings_goal_cents) },
         ],
       };
     },

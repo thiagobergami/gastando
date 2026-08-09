@@ -19,10 +19,6 @@ export function makeBiController(uc: BiUseCases): express.Router {
     const { from, to } = range(req);
     res.json(uc.byCard(from, to));
   });
-  router.get('/by-group', (req, res) => {
-    const { from, to } = range(req);
-    res.json(uc.byGroup(from, to));
-  });
   router.get('/budget-vs-actual', (req, res) => {
     const { from, to } = range(req);
     res.json(uc.budgetVsActual(from, to));
@@ -31,9 +27,17 @@ export function makeBiController(uc: BiUseCases): express.Router {
     const { from, to } = range(req);
     res.json(uc.installmentForecast(from, to));
   });
+  router.get('/committed-vs-discretionary', (req, res) => {
+    const { from, to } = range(req);
+    res.json(uc.committedVsDiscretionary(from, to));
+  });
   router.get('/savings-trend', (req, res) => {
     const { from, to } = range(req);
     res.json(uc.savingsTrend(from, to));
+  });
+  router.get('/savings-realized', (req, res) => {
+    const { from, to } = range(req);
+    res.json(uc.savingsRealized(from, to));
   });
 
   router.get('/category-trend', (req, res) => {

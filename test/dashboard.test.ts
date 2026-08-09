@@ -54,10 +54,10 @@ test('dashboard computes spend, status, teto and projected savings', async () =>
   assert.equal(cat.remaining_cents, -5000);
   assert.equal(cat.status, 'over');
 
-  assert.equal(d.body.totals.teto_cents, 1435000 - 377000 - 244000); // 814000
+  assert.equal(d.body.totals.can_spend_cents, 1435000 - 377000 - 244000); // 814000
   assert.equal(d.body.totals.spent_cents, 90000);
   assert.equal(d.body.totals.projected_savings_cents, 1435000 - 377000 - 90000); // 968000
-  assert.ok(Array.isArray(d.body.groups));
+  assert.equal(d.body.groups, undefined); // grupos saíram do payload na v0.3
 });
 
 test('dashboard: invalid month returns 400', async () => {
@@ -180,7 +180,7 @@ test('dashboard: no carry for a category without a limit', async () => {
   assert.equal(cat.effective_spent_cents, 5000);
 });
 
-test('dashboard: group rollup reflects carry via effective_spent_cents', async () => {
+test('dashboard: by_essential reflects actual spend, not carry', async () => {
   const ctx = makeTestDb();
   const app = createApp(ctx.db);
   await request(app)
@@ -207,7 +207,48 @@ test('dashboard: group rollup reflects carry via effective_spent_cents', async (
     .expect(201);
 
   const d = await request(app).get('/api/dashboard?month=2026-02').expect(200);
-  const g = d.body.groups.find((x) => x.group_id === ctx.groupId);
-  assert.equal(g.spent_cents, 8000); // actual
-  assert.equal(g.effective_spent_cents, 11000); // actual + 3000 carry
+  // by_essential soma o gasto do mês, sem carry — o carry é por categoria.
+  assert.equal(d.body.by_essential.essential_cents, 8000);
+  const c = d.body.categories.find((x) => x.category_id === ctx.categoryId);
+  assert.equal(c.effective_spent_cents, 11000); // 8000 + 3000 de carry
+});
+
+test('dashboard aggregates by essential and reports the unconfigured state', async () => {
+  const { db, categoryId, cardId } = makeTestDb();
+  const lazer = db
+    .prepare(
+      "INSERT INTO categories (group_id, name, sort_order, essential) VALUES (0, 'Lazer', 2, 0)",
+    )
+    .run().lastInsertRowid;
+  const tx = db.prepare(
+    'INSERT INTO transactions (date, category_id, card_id, amount_cents) VALUES (?,?,?,?)',
+  );
+  tx.run('2026-08-03', categoryId, cardId, 30000); // essencial
+  tx.run('2026-08-04', lazer, cardId, 12000); // não essencial
+
+  const res = await request(createApp(db)).get('/api/dashboard?month=2026-08').expect(200);
+  assert.equal(res.body.configured, false);
+  assert.equal(res.body.entry_count, 2);
+  assert.deepEqual(res.body.by_essential, { essential_cents: 30000, non_essential_cents: 12000 });
+  assert.equal(res.body.groups, undefined);
+  assert.equal(res.body.totals.teto_cents, undefined);
+  assert.equal(res.body.categories[0].essential, 1);
+});
+
+test('dashboard reports the configured state and "posso gastar"', async () => {
+  const { db, categoryId, cardId } = makeTestDb();
+  db.prepare(
+    'INSERT INTO transactions (date, category_id, card_id, amount_cents) VALUES (?,?,?,?)',
+  ).run('2026-08-03', categoryId, cardId, 386000);
+  const app = createApp(db);
+  await request(app)
+    .put('/api/settings')
+    .send({ monthly_income: 1200000, fixed_costs: 386000, savings_goal: 250000 })
+    .expect(200);
+
+  const res = await request(app).get('/api/dashboard?month=2026-08').expect(200);
+  assert.equal(res.body.configured, true);
+  assert.equal(res.body.totals.can_spend_cents, 564000); // 12.000 − 3.860 − 2.500
+  assert.equal(res.body.totals.left_to_spend_cents, 178000); // 5.640 − 3.860
+  assert.equal(res.body.totals.projected_savings_cents, 428000); // 12.000 − 3.860 − 3.860
 });
