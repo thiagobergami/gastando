@@ -2510,11 +2510,14 @@ const state = {
   decisions: { model: null, limits: [] },
 };
 
+// `note` é o único campo que pode carregar texto do usuário — o nome da
+// categoria de maior mudança —, então é o único que escapa. `label`, `value` e
+// `tone` são sempre gerados pelo app: literais, saída de `formatBRL` ou classe.
 const tile = (label, value, note, tone = 'text-ink') => `
   <div class="stat-tile">
     <div class="label-caps text-ink-mut">${label}</div>
     <div class="font-mono text-2xl ${tone} mt-1">${value}</div>
-    <div class="text-sm text-ink-mut mt-1">${note}</div>
+    <div class="text-sm text-ink-mut mt-1">${esc(note)}</div>
   </div>`;
 
 // Passo 1 — leitura, não ação. Três números e um link, como o frame 18:3: a
@@ -2638,7 +2641,7 @@ if (typeof document !== 'undefined' && $('trail')) {
 O import de `./format.js` no topo do arquivo é, portanto:
 
 ```js
-import { addMonths, capitalize, formatBRL, monthName } from './format.js';
+import { addMonths, capitalize, esc, formatBRL, monthName } from './format.js';
 ```
 
 - [ ] **Step 6: Apontar a navegação para a tela nova**
