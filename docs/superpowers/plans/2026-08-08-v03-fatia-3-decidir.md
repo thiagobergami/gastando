@@ -2630,9 +2630,14 @@ if (typeof document !== 'undefined' && $('trail')) {
   $('closed').addEventListener('change', () => {
     const closed = $('closed').value;
     if (!closed) return;
+    // Trocar de mês descarta o que estava em edição. Repõe o passo direto, sem
+    // passar por `go()`: `go()` grava ao sair do passo 3, e os valores no
+    // formulário são do mês ANTERIOR — gravá-los sob o mês novo seria escrever
+    // um número que a pessoa nunca afirmou sobre aquele mês.
     state.months = { closed, opening: addMonths(closed, 1) };
     state.decisions = { model: null, limits: [] };
-    go(1);
+    state.step = 1;
+    render();
   });
   render();
 }
