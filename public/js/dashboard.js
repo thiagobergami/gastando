@@ -2,27 +2,12 @@ import { renderAdvisor } from './advisor.js';
 import { api, showError } from './api.js';
 import { mountChrome } from './chrome.js';
 import { buildCommitments, renderCommitments } from './commitments.js';
-import { currentMonth, esc, formatBRL } from './format.js';
+import { currentMonth, esc, formatBRL, monthName } from './format.js';
 import { meterBar, statusPill } from './ui.js';
 
-const MONTHS = [
-  'janeiro',
-  'fevereiro',
-  'março',
-  'abril',
-  'maio',
-  'junho',
-  'julho',
-  'agosto',
-  'setembro',
-  'outubro',
-  'novembro',
-  'dezembro',
-];
-
 export function monthLabel(month) {
-  const [y, m] = String(month).split('-').map(Number);
-  return `${MONTHS[m - 1]} de ${y}`;
+  const [y] = String(month).split('-');
+  return `${monthName(month)} de ${Number(y)}`;
 }
 
 // Linha de contexto sob o título (Figma 10:15 / 12:53). `today` entra como

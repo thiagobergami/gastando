@@ -61,6 +61,39 @@ export function monthShort(ym) {
   return name ? `${name}/${y}` : '';
 }
 
+// O sinal aritmético do §Global Constraints é U+2212, não hífen: `− R$ 142,00`
+// alinha com `+ R$ 268,00` em fonte mono, e o hífen não alinha. Mora aqui para
+// que `pauta.js` e `review.js` não tenham cada um a sua cópia.
+export const MINUS = '−';
+
+// Os nomes de mês nascem em minúsculo, porque o mesmo nome aparece no meio de
+// frase e no começo dela. Quem precisa de caixa alta capitaliza na borda.
+export function capitalize(s) {
+  return String(s ?? '').replace(/^./, (c) => c.toUpperCase());
+}
+
+const MONTHS_LONG = [
+  'janeiro',
+  'fevereiro',
+  'março',
+  'abril',
+  'maio',
+  'junho',
+  'julho',
+  'agosto',
+  'setembro',
+  'outubro',
+  'novembro',
+  'dezembro',
+];
+
+// `'2026-08' → 'agosto'`. Minúsculo: quem precisa de caixa alta capitaliza na
+// borda, porque o mesmo nome aparece no meio de frase e no começo dela.
+export function monthName(ym) {
+  const [, m] = String(ym ?? '').split('-');
+  return MONTHS_LONG[Number(m) - 1] ?? '';
+}
+
 export function esc(s) {
   return String(s).replace(
     /[&<>"']/g,
