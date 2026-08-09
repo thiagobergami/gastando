@@ -71,6 +71,25 @@ Your data is stored in a `data/` folder created **next to the executable**. If y
 move the app, move that folder with it. To stop the app, close the console window
 (Windows) or press `Ctrl+C` in the terminal.
 
+### Updating to a new version
+
+Migrations run automatically — there is nothing to execute by hand. But the
+database lives in the `data/` folder **next to the executable**, so:
+
+1. Download the new binary for your OS from the Releases page.
+2. **Put it in the same folder as the one you are already running**, replacing it.
+   Keep the `data/` folder exactly where it is.
+3. Start it. Any pending schema changes are applied on startup, in order, each in
+   a transaction, and are recorded so they never run twice.
+
+> If you start the new binary from a *different* folder — your Downloads folder,
+> for example — it will not see your `data/` folder and will create a new, empty
+> database. Nothing is lost: move the executable next to your existing `data/`
+> folder and start it again.
+
+Back up before a major upgrade by copying `data/gastando.db`, or by using
+**Download backup** in Settings.
+
 ---
 
 ## 2. Run with Docker

@@ -45,6 +45,28 @@ function getStatus(url) {
   });
 }
 
+function getJson(url) {
+  return new Promise((resolve, reject) => {
+    http
+      .get(url, (res) => {
+        let body = '';
+        res.setEncoding('utf8');
+        res.on('data', (c) => {
+          body += c;
+        });
+        res.on('end', () => {
+          if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
+          try {
+            resolve(JSON.parse(body));
+          } catch (err) {
+            reject(err);
+          }
+        });
+      })
+      .on('error', reject);
+  });
+}
+
 async function pollReady() {
   const deadline = Date.now() + 30000;
   while (Date.now() < deadline) {
@@ -67,6 +89,23 @@ async function pollReady() {
   }
   if (!fs.existsSync(dbPath)) {
     console.error('SMOKE FAIL: db file was not created');
+    failed = true;
+  }
+  // The schema has to have been created INSIDE the packaged binary. `/` and the
+  // file's existence pass with an empty database; `/api/categories` only
+  // answers 8 if the 001→007 chain ran from the pkg snapshot.
+  try {
+    const cats = await getJson(`http://localhost:${PORT}/api/categories`);
+    if (!Array.isArray(cats) || cats.length !== 8) {
+      console.error(
+        `SMOKE FAIL: expected the 8 seeded categories, got ${
+          Array.isArray(cats) ? cats.length : typeof cats
+        } — migrations did not run inside the packaged binary`,
+      );
+      failed = true;
+    }
+  } catch (e) {
+    console.error(`SMOKE FAIL: /api/categories did not answer (${e.message})`);
     failed = true;
   }
   ready = true; // mark ready before kill so exit handler ignores normal shutdown
