@@ -269,10 +269,10 @@ async function render() {
   wire();
 }
 
-// A trilha tem cinco botões desde já, mas nem todos os passos existem ainda.
-// Clampar no número de renderizadores registrados mantém a tela navegável em
-// cada estado intermediário, e passa a valer sozinho quando as Tasks 10 e 11
-// registram os que faltam.
+// A trilha tem cinco botões, mas `go()` clampa no número de renderizadores
+// registrados: enquanto o passo 5 não existir, clicar nele para no 4. O passo 3
+// grava ao sair — inclusive para trás e inclusive pela trilha —, porque não há
+// botão "salvar": o passo é a gravação.
 function go(step) {
   const leaving = state.step;
   const next = Math.max(1, Math.min(step, Object.keys(RENDERERS).length));
@@ -314,9 +314,14 @@ if (typeof document !== 'undefined' && $('trail')) {
   $('closed').addEventListener('change', () => {
     const closed = $('closed').value;
     if (!closed) return;
+    // Trocar de mês descarta o que estava em edição. Repõe o passo direto, sem
+    // passar por `go()`: `go()` grava ao sair do passo 3, e os valores no
+    // formulário são do mês ANTERIOR — gravá-los sob o mês novo seria escrever
+    // um número que a pessoa nunca afirmou sobre aquele mês.
     state.months = { closed, opening: addMonths(closed, 1) };
     state.decisions = { model: null, limits: [] };
-    go(1);
+    state.step = 1;
+    render();
   });
   render();
 }
