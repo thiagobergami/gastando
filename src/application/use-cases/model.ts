@@ -1,14 +1,17 @@
 import type { ResolvedModel } from '../../domain/entities';
-import type { MonthlyModelRepository, SettingsRepository } from '../../domain/ports';
+import type {
+  ModelItemRepository,
+  MonthlyModelRepository,
+  SettingsRepository,
+} from '../../domain/ports';
 
 export interface ModelUseCaseDeps {
   monthlyModel: MonthlyModelRepository;
   settings: SettingsRepository;
+  modelItems: ModelItemRepository;
 }
 
 export interface ModelInput {
-  income_cents: number;
-  fixed_costs_cents: number;
   savings_goal_cents: number;
 }
 
@@ -27,7 +30,7 @@ const KEYS = {
 } as const;
 
 export function makeModelUseCases(deps: ModelUseCaseDeps) {
-  const { monthlyModel, settings } = deps;
+  const { monthlyModel, settings, modelItems } = deps;
 
   function num(key: string): number {
     const v = settings.get(key);
@@ -63,16 +66,26 @@ export function makeModelUseCases(deps: ModelUseCaseDeps) {
       };
     },
 
-    // Grava nos dois lugares numa ação só: o histórico cresce e o herói do
-    // Acompanhar continua mostrando o modelo vigente, sem flag nova.
+    // `income_cents`/`fixed_costs_cents` nunca vêm do cliente: são sempre a
+    // soma de `model_items` no instante da gravação. Isso garante que o total
+    // congelado no histórico nunca diverge da lista de itens que o gerou —
+    // não existe um segundo caminho pelo qual esses dois campos possam ser
+    // gravados com um valor que a lista de itens não sustenta.
     set(month: string, input: ModelInput): ResolvedModel {
-      monthlyModel.upsert({ month, ...input });
+      const income_cents = modelItems.sumByKind('income');
+      const fixed_costs_cents = modelItems.sumByKind('fixed_cost');
+      const full = {
+        income_cents,
+        fixed_costs_cents,
+        savings_goal_cents: input.savings_goal_cents,
+      };
+      monthlyModel.upsert({ month, ...full });
       settings.setMany([
-        [KEYS.income_cents, String(input.income_cents)],
-        [KEYS.fixed_costs_cents, String(input.fixed_costs_cents)],
+        [KEYS.income_cents, String(income_cents)],
+        [KEYS.fixed_costs_cents, String(fixed_costs_cents)],
         [KEYS.savings_goal_cents, String(input.savings_goal_cents)],
       ]);
-      return { month, ...input, source: 'month' };
+      return { month, ...full, source: 'month' };
     },
   };
 }

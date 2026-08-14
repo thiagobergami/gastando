@@ -74,6 +74,7 @@ export function buildContainer(db: Db): Container {
   const model = makeModelUseCases({
     monthlyModel: repositories.monthlyModel,
     settings: repositories.settings,
+    modelItems: repositories.modelItems,
   });
 
   const useCases = {
