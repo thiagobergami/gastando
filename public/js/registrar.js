@@ -152,6 +152,8 @@ function startEdit(r) {
     $('splitPercent').value = r.split_percent;
   } else {
     setAdvanced(null);
+    $('q-person').value = '';
+    $('splitPercent').value = '';
   }
   $('q-date').value = r.date;
   $('q-desc').value = r.description;
