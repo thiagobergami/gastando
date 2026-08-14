@@ -28,9 +28,7 @@ export function makeModelItemUseCases(deps: ModelItemUseCaseDeps) {
     // porque `listByKind` já dá tudo que é preciso para calcular o próximo.
     create(input: CreateModelItemInput): ModelItem {
       const existing = modelItems.listByKind(input.kind);
-      const sort_order = existing.length
-        ? Math.max(...existing.map((i) => i.sort_order)) + 1
-        : 0;
+      const sort_order = existing.length ? Math.max(...existing.map((i) => i.sort_order)) + 1 : 0;
       return modelItems.create({ ...input, sort_order });
     },
     update(id: number, input: UpdateModelItemInput): void {
