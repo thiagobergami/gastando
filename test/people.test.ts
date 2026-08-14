@@ -11,10 +11,7 @@ test('insert + listAll round-trips a person, active by default', () => {
   assert.equal(p.active, 1);
   const all = repo.listAll();
   // ctx já criou 'Fulano' no fixture — 'Ciclano' se soma a ele.
-  assert.deepEqual(
-    all.map((x) => x.name).sort(),
-    ['Ciclano', 'Fulano'],
-  );
+  assert.deepEqual(all.map((x) => x.name).sort(), ['Ciclano', 'Fulano']);
 });
 
 test('listAll includes inactive people — the client filters, same as categories/cards', () => {
@@ -78,4 +75,41 @@ test('use case update defaults active to 1 when omitted', () => {
   const p = uc.create({ name: 'Ciclano' });
   const updated = uc.update(p.id, { name: 'Ciclano' });
   assert.equal(updated.active, 1);
+});
+
+const request = require('supertest');
+const { createApp } = require('../src/app');
+
+test('GET /api/people lists everyone, active and inactive', async () => {
+  const { db } = makeTestDb();
+  const app = createApp(db);
+  const created = await request(app).post('/api/people').send({ name: 'Ciclano' }).expect(201);
+  await request(app)
+    .put(`/api/people/${created.body.id}`)
+    .send({ name: 'Ciclano', active: 0 })
+    .expect(200);
+  const list = await request(app).get('/api/people').expect(200);
+  // Fulano (fixture) + Ciclano, mesmo inativo — GET não filtra, como
+  // /api/categories e /api/cards hoje.
+  assert.equal(list.body.length, 2);
+});
+
+test('POST /api/people requires a name', async () => {
+  const { db } = makeTestDb();
+  const app = createApp(db);
+  await request(app).post('/api/people').send({}).expect(400);
+  await request(app).post('/api/people').send({ name: '' }).expect(400);
+});
+
+test('PUT /api/people/:id updates name and active, 404 on unknown id', async () => {
+  const { db } = makeTestDb();
+  const app = createApp(db);
+  const created = await request(app).post('/api/people').send({ name: 'Ciclano' }).expect(201);
+  const updated = await request(app)
+    .put(`/api/people/${created.body.id}`)
+    .send({ name: 'Beltrano', active: 0 })
+    .expect(200);
+  assert.equal(updated.body.name, 'Beltrano');
+  assert.equal(updated.body.active, 0);
+  await request(app).put('/api/people/99999').send({ name: 'x' }).expect(404);
 });
