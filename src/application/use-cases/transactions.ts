@@ -121,6 +121,21 @@ export function makeTransactionUseCases(deps: TransactionUseCaseDeps) {
       if (transactions.remove(id) === 0) throw new AppError(404, 'transaction not found');
     },
 
+    // Erro 400 sem split: não faz sentido "marcar recebido" numa transação que
+    // nunca teve dívida nenhuma (design "API").
+    setSplitReceived(id: number, received: boolean): void {
+      const tx = transactions.findById(id);
+      if (!tx) throw new AppError(404, 'transaction not found');
+      if (tx.split_person_id === null) throw new AppError(400, 'transaction has no split');
+      transactions.setSplitReceived(id, received);
+    },
+
+    // Sem filtro de mês: uma dívida de fevereiro continua valendo em abril
+    // (design "API").
+    listReceivables() {
+      return transactions.listReceivables();
+    },
+
     exportCsv(filter: {
       month?: string;
       categoryId?: number;

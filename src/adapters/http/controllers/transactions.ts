@@ -70,5 +70,19 @@ export function makeTransactionsController(uc: TransactionUseCases): express.Rou
     res.status(204).end();
   });
 
+  router.post('/:id/split-received', (req, res) => {
+    uc.setSplitReceived(Number(req.params.id), true);
+    res.status(204).end();
+  });
+
+  router.delete('/:id/split-received', (req, res) => {
+    uc.setSplitReceived(Number(req.params.id), false);
+    res.status(204).end();
+  });
+
+  router.get('/receivables', (_req, res) => {
+    res.json(uc.listReceivables());
+  });
+
   return router;
 }

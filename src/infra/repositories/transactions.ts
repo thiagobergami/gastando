@@ -88,5 +88,33 @@ export function makeTransactionRepository(db: Db): TransactionRepository {
         .prepare('SELECT * FROM transactions WHERE installment_group_id=? ORDER BY date LIMIT 1')
         .get(groupId) as Transaction | undefined;
     },
+    setSplitReceived(id, received) {
+      db.prepare('UPDATE transactions SET split_received=? WHERE id=?').run(received ? 1 : 0, id);
+    },
+    listReceivables() {
+      return db
+        .prepare(
+          `SELECT
+             t.id AS transaction_id,
+             t.split_person_id AS person_id,
+             p.name AS person_name,
+             t.description,
+             strftime('%Y-%m', t.date) AS month,
+             CAST(ROUND(t.amount_cents * t.split_percent / 100.0) AS INTEGER) AS amount_cents,
+             t.split_received AS received
+           FROM transactions t
+           JOIN people p ON p.id = t.split_person_id
+           ORDER BY t.date DESC, t.id DESC`,
+        )
+        .all() as Array<{
+        transaction_id: number;
+        person_id: number;
+        person_name: string;
+        description: string;
+        month: string;
+        amount_cents: number;
+        received: number;
+      }>;
+    },
   };
 }

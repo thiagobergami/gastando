@@ -83,6 +83,16 @@ export interface TransactionRepository {
   ): number;
   remove(id: number): number;
   firstByGroup(groupId: number): Transaction | undefined;
+  setSplitReceived(id: number, received: boolean): void;
+  listReceivables(): Array<{
+    transaction_id: number;
+    person_id: number;
+    person_name: string;
+    description: string;
+    month: string;
+    amount_cents: number; // amount_cents * split_percent / 100, calculado na leitura
+    received: number; // 0 | 1
+  }>;
 }
 
 export interface LimitRepository {
