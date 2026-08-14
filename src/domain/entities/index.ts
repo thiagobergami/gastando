@@ -104,3 +104,12 @@ export interface ModelItem {
   amount_cents: number;
   sort_order: number;
 }
+
+// Quem participa de um split de transação (design 2026-08-14 "Data model").
+// Soft-delete via `active`, como `categories`/`cards`: uma transação antiga
+// continua resolvendo o nome mesmo depois que a pessoa é removida.
+export interface Person {
+  id: number;
+  name: string;
+  active: number; // 0 | 1
+}

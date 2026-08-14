@@ -5,6 +5,7 @@ import type {
   InstallmentProgress,
   ModelItem,
   MonthlyModel,
+  Person,
   RecurringTemplate,
   Transaction,
 } from '../entities';
@@ -180,4 +181,15 @@ export interface ModelItemRepository {
   update(id: number, item: Omit<ModelItem, 'id' | 'kind' | 'sort_order'>): void;
   delete(id: number): void;
   sumByKind(kind: ModelItem['kind']): number; // amount_cents, 0 se vazio
+}
+
+export interface PersonRepository {
+  // Mesma forma de `CardRepository.listAll()` — todas as pessoas, ativas e
+  // inativas: o cliente já filtra por `active` para os seletores (o mesmo
+  // padrão de `GET /api/categories`/`GET /api/cards` hoje), e transações
+  // antigas precisam resolver o nome de uma pessoa mesmo depois de removida.
+  listAll(): Person[];
+  findById(id: number): Person | undefined;
+  insert(p: { name: string }): Person;
+  update(id: number, p: { name: string; active: number }): number; // changes
 }
