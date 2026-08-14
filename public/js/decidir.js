@@ -6,6 +6,7 @@ import { changes, monthlyTotals, trendVerdict } from './pauta.js';
 import {
   modelSummary,
   overspentFirst,
+  renderItemList,
   reviewMonths,
   stepSubtitle,
   stepTrail,
@@ -92,45 +93,69 @@ async function renderStep2() {
 }
 
 // Passo 3 — o único momento em que o app pergunta números sobre a pessoa.
-// Grava `monthly_model[opening]` E `settings` numa ação só (§B.1 do design),
-// que é o que faz o herói do Acompanhar e a Análise nunca discordarem.
+// Renda e custos fixos viram duas listas de `model_items` (design
+// 2026-08-14): cada linha soma para o total que o servidor congela em
+// `monthly_model[opening]` ao sair do passo (§B.1). Adicionar/editar/remover
+// uma linha grava na hora — sem esperar o "Continuar", mesma filosofia de
+// "sem modal, some direto" do resto do app.
 async function renderStep3() {
-  const m = await api.get(`/api/monthly-model?month=${state.months.opening}`);
-  const field = (id, label, cents) => `
-    <label class="field">
-      <span>${label}</span>
-      <input type="text" id="${id}" value="${formatBRL(cents)}" class="font-mono" />
-    </label>`;
+  const [income, fixed, m] = await Promise.all([
+    api.get('/api/model-items?kind=income'),
+    api.get('/api/model-items?kind=fixed_cost'),
+    api.get(`/api/monthly-model?month=${state.months.opening}`),
+  ]);
+  state.items = { income, fixed_cost: fixed };
   return `
     <section class="paper-card">
       <h2 class="font-display text-2xl text-ink">Seu modelo</h2>
       <p class="text-sm text-ink-mut mt-1 mb-4">Renda, custos fixos e quanto você quer guardar. É daqui que sai o "posso gastar".</p>
-      <div class="grid sm:grid-cols-3 gap-3">
-        ${field('income', 'Renda mensal', m.income_cents)}
-        ${field('fixed', 'Custos fixos', m.fixed_costs_cents)}
-        ${field('goal', 'Meta de poupança', m.savings_goal_cents)}
+      <div class="grid sm:grid-cols-2 gap-6">
+        <div>
+          <h3 class="label-caps text-ink-mut mb-2">Renda</h3>
+          ${renderItemList('income', income)}
+        </div>
+        <div>
+          <h3 class="label-caps text-ink-mut mb-2">Custos fixos</h3>
+          ${renderItemList('fixed_cost', fixed)}
+        </div>
       </div>
+      <label class="field mt-4 max-w-xs">
+        <span>Meta de poupança</span>
+        <input type="text" id="goal" value="${formatBRL(m.savings_goal_cents)}" class="font-mono" />
+      </label>
       <div id="canSpend" class="mt-4 rounded border border-sage/40 bg-sage-soft/10 p-4 flex flex-col md:flex-row md:items-center gap-2"></div>
       <p class="text-sm text-ink-mut mt-4">Antes deste passo o app funciona normalmente — só sem projeção de poupança. Nada aqui é obrigatório.</p>
       <p class="text-sm text-ink-mut mt-2">Custos fixos são o que sai todo mês sem passar pelo seu julgamento: aluguel, condomínio, mensalidades. <b>Não lance esses valores também como transação</b> — se lançar, eles seriam descontados duas vezes da sua poupança.</p>
     </section>`;
 }
 
-function readModelFields() {
-  const cents = (id) => {
-    const v = parseReais($(id).value);
-    return Number.isNaN(v) || v < 0 ? 0 : v;
-  };
-  return {
-    income_cents: cents('income'),
-    fixed_costs_cents: cents('fixed'),
-    savings_goal_cents: cents('goal'),
-  };
+function readGoalCents() {
+  const v = parseReais($('goal').value);
+  return Number.isNaN(v) || v < 0 ? 0 : v;
+}
+
+// Soma AO VIVO os valores que estão na tela agora — inclusive os que ainda
+// não foram salvos (cada campo grava no `blur`, não no `input`). É o que dá
+// o feedback imediato que o design pede: o "posso gastar" e os dois
+// subtotais reagem a cada tecla, sem esperar a viagem de rede.
+function liveItemCents(kind) {
+  return [...document.querySelectorAll(`[data-list="${kind}"] input[data-item-amount]`)]
+    .map((inp) => {
+      const v = parseReais(inp.value);
+      return Number.isNaN(v) || v < 0 ? 0 : v;
+    })
+    .reduce((sum, v) => sum + v, 0);
 }
 
 function paintCanSpend() {
-  const v = readModelFields();
-  const s = modelSummary(v.income_cents, v.fixed_costs_cents, v.savings_goal_cents);
+  const income = liveItemCents('income');
+  const fixed = liveItemCents('fixed_cost');
+  const goal = readGoalCents();
+  const incomeSubtotal = $('step').querySelector('[data-subtotal="income"]');
+  if (incomeSubtotal) incomeSubtotal.textContent = formatBRL(income);
+  const fixedSubtotal = $('step').querySelector('[data-subtotal="fixed_cost"]');
+  if (fixedSubtotal) fixedSubtotal.textContent = formatBRL(fixed);
+  const s = modelSummary(income, fixed, goal);
   $('canSpend').innerHTML = `
     <div>
       <div class="label-caps text-ink-mut">POSSO GASTAR ESTE MÊS</div>
@@ -139,25 +164,82 @@ function paintCanSpend() {
     <div class="md:ml-auto font-mono text-3xl ${s.can_spend_cents >= 0 ? 'text-sage' : 'text-clay'}">${formatBRL(s.can_spend_cents)}</div>`;
 }
 
+async function saveItem(id) {
+  const name = $('step').querySelector(`input[data-item-name="${id}"]`);
+  const amount = $('step').querySelector(`input[data-item-amount="${id}"]`);
+  const parsed = parseReais(amount.value);
+  const amount_cents = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed;
+  amount.value = formatBRL(amount_cents);
+  await api.put(`/api/model-items/${id}`, { name: name.value, amount_cents });
+}
+
+// Refaz só a lista que mudou (não o passo inteiro): busca de novo do
+// servidor, redesenha o container e prende os listeners de novo — o mesmo
+// padrão que `recurring.js` usa depois de um POST/DELETE.
+async function refreshList(kind) {
+  const items = await api.get(`/api/model-items?kind=${kind}`);
+  state.items[kind] = items;
+  const container = $('step').querySelector(`[data-list="${kind}"]`);
+  container.outerHTML = renderItemList(kind, items);
+  wireList(kind);
+  paintCanSpend();
+}
+
+function wireList(kind) {
+  const container = $('step').querySelector(`[data-list="${kind}"]`);
+  container.querySelectorAll('input[data-item-amount], input[data-item-name]').forEach((inp) => {
+    inp.addEventListener('input', paintCanSpend);
+  });
+  container.querySelectorAll('input[data-item-amount]').forEach((inp) => {
+    inp.addEventListener('blur', () => {
+      saveItem(Number(inp.dataset.itemAmount))
+        .then(paintCanSpend)
+        .catch((e) => showError(e.message));
+    });
+  });
+  container.querySelectorAll('input[data-item-name]').forEach((inp) => {
+    inp.addEventListener('blur', () => {
+      saveItem(Number(inp.dataset.itemName)).catch((e) => showError(e.message));
+    });
+  });
+  container.querySelectorAll('button[data-item-del]').forEach((b) => {
+    b.addEventListener('click', () => {
+      api
+        .del(`/api/model-items/${b.dataset.itemDel}`)
+        .then(() => refreshList(kind))
+        .catch((e) => showError(e.message));
+    });
+  });
+  container.querySelector('button[data-item-add]').addEventListener('click', () => {
+    api
+      .post('/api/model-items', { kind, name: 'Novo item', amount_cents: 0 })
+      .then(() => refreshList(kind))
+      .catch((e) => showError(e.message));
+  });
+}
+
+// Grava só a meta: renda e custos fixos já vivem em `model_items` e o
+// servidor recalcula a soma ao gravar `monthly_model[opening]` (design
+// "Cálculo do total no servidor").
 async function saveModel() {
-  const v = readModelFields();
-  await api.put('/api/monthly-model', { month: state.months.opening, ...v });
-  state.decisions.model = v;
+  const savings_goal_cents = readGoalCents();
+  const resolved = await api.put('/api/monthly-model', {
+    month: state.months.opening,
+    savings_goal_cents,
+  });
+  state.decisions.model = resolved;
 }
 
 function wireStep3() {
+  wireList('income');
+  wireList('fixed_cost');
   paintCanSpend();
-  for (const id of ['income', 'fixed', 'goal']) {
-    $(id).addEventListener('input', paintCanSpend);
-    // Reescreve o campo em `R$ 1.234,56` quando a pessoa sai dele: digitar é
-    // livre (`parseReais` aceita vírgula, ponto de milhar e o prefixo), ler é
-    // formatado.
-    $(id).addEventListener('blur', () => {
-      const v = parseReais($(id).value);
-      $(id).value = formatBRL(Number.isNaN(v) || v < 0 ? 0 : v);
-      paintCanSpend();
-    });
-  }
+  $('goal').addEventListener('input', paintCanSpend);
+  $('goal').addEventListener('blur', () => {
+    const v = parseReais($('goal').value);
+    $('goal').value = formatBRL(Number.isNaN(v) || v < 0 ? 0 : v);
+    paintCanSpend();
+  });
 }
 
 // Passo 4 — categorias que estouraram no mês fechado aparecem primeiro. O
@@ -360,7 +442,7 @@ async function render() {
 function go(step) {
   const leaving = state.step;
   const next = Math.max(1, Math.min(step, Object.keys(RENDERERS).length));
-  if (leaving === 3 && next !== 3 && $('income')) {
+  if (leaving === 3 && next !== 3 && $('goal')) {
     // Sair do passo 3 grava — inclusive pela trilha, inclusive para trás. Não
     // existe botão "salvar": o passo é a gravação.
     saveModel()
