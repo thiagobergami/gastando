@@ -162,3 +162,35 @@ test('008 seeds nothing when the model was never configured', () => {
   const db = migrate();
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM monthly_model').get().n, 0);
 });
+
+test('009 creates model_items with a kind check constraint', () => {
+  const db = migrate();
+  const cols = db.prepare('PRAGMA table_info(model_items)').all();
+  assert.deepEqual(
+    cols.map((c: { name: string }) => c.name),
+    ['id', 'kind', 'name', 'amount_cents', 'sort_order'],
+  );
+  assert.throws(() => {
+    db.prepare("INSERT INTO model_items (kind, name, amount_cents) VALUES ('bogus', 'x', 0)").run();
+  }, /CHECK constraint failed/);
+});
+
+test('009 accepts income and fixed_cost rows', () => {
+  const db = migrate();
+  db.prepare(
+    "INSERT INTO model_items (kind, name, amount_cents, sort_order) VALUES ('income', 'Salário', 500000, 0)",
+  ).run();
+  db.prepare(
+    "INSERT INTO model_items (kind, name, amount_cents, sort_order) VALUES ('fixed_cost', 'Aluguel', 200000, 0)",
+  ).run();
+  const rows = db.prepare('SELECT kind, name FROM model_items ORDER BY kind').all();
+  assert.deepEqual(rows, [
+    { kind: 'fixed_cost', name: 'Aluguel' },
+    { kind: 'income', name: 'Salário' },
+  ]);
+});
+
+test('009 starts empty, even for a database that already had a configured model', () => {
+  const db = migrate(CONFIGURED, '008_monthly_model.sql');
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM model_items').get().n, 0);
+});
