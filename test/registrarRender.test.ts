@@ -89,3 +89,53 @@ test('renderRows keeps edit and delete affordances', async () => {
   assert.match(html, /data-edit="42"/);
   assert.match(html, /data-del="42"/);
 });
+
+test('renderRows shows a split tag with percent and person name', async () => {
+  const { renderRows } = await import('../public/js/registrar.js');
+  const html = renderRows(
+    [
+      {
+        id: 20,
+        date: '2026-06-15',
+        description: 'Jantar',
+        category_id: 1,
+        card_id: 1,
+        amount_cents: 10000,
+        split_person_id: 3,
+        split_percent: 50,
+      },
+    ],
+    {
+      cats: new Map([[1, { name: 'Restaurantes' }]]),
+      cards: new Map([[1, 'Nubank']]),
+      people: new Map([[3, 'Fulano']]),
+    },
+  );
+  assert.match(html, /50% Fulano/);
+  assert.match(html, /tag-sage/);
+});
+
+test('renderRows escapes the split person name', async () => {
+  const { renderRows } = await import('../public/js/registrar.js');
+  const html = renderRows(
+    [
+      {
+        id: 21,
+        date: '2026-06-15',
+        description: 'Jantar',
+        category_id: 1,
+        card_id: 1,
+        amount_cents: 10000,
+        split_person_id: 3,
+        split_percent: 50,
+      },
+    ],
+    {
+      cats: new Map([[1, { name: 'Restaurantes' }]]),
+      cards: new Map([[1, 'Nubank']]),
+      people: new Map([[3, '<b>Fulano</b>']]),
+    },
+  );
+  assert.match(html, /&lt;b&gt;Fulano&lt;\/b&gt;/);
+  assert.doesNotMatch(html, /<b>Fulano/);
+});

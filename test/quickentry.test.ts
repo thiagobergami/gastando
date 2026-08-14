@@ -113,3 +113,9 @@ test('renderEntryRow has a hint slot under each creatable field', async () => {
   assert.match(html, /id="q-cat-hint"/);
   assert.match(html, /id="q-card-hint"/);
 });
+
+test('entryHint knows the noun for a person', async () => {
+  const { entryHint } = await import('../public/js/quickentry.js');
+  const people = [{ id: 1, name: 'Fulano', active: 1 }];
+  assert.equal(entryHint('Ciclano', people, 'person'), '↵ cria a pessoa Ciclano');
+});

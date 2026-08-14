@@ -6,6 +6,7 @@ import { esc } from './format.js';
 const NOUN = {
   category: { article: 'a', word: 'categoria' },
   card: { article: 'o', word: 'cartão' },
+  person: { article: 'a', word: 'pessoa' },
 };
 
 // Só casa com o que está ativo — o mesmo conjunto que o `<datalist>` oferece.
