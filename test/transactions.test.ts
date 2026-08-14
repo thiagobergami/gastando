@@ -203,3 +203,115 @@ test('transaction repository update overwrites split fields, including clearing 
   assert.equal(updated.split_person_id, null);
   assert.equal(updated.split_percent, null);
 });
+
+test('create with split_person_id + split_percent stores all three split fields', async () => {
+  const { app, ctx } = appWith();
+  const t = await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 10000,
+      description: 'Jantar',
+      split_person_id: ctx.personId,
+      split_percent: 50,
+    })
+    .expect(201);
+  assert.equal(t.body.split_person_id, ctx.personId);
+  assert.equal(t.body.split_percent, 50);
+  assert.equal(t.body.split_received, 0);
+});
+
+test('split_person_id and split_percent must be sent together', async () => {
+  const { app, ctx } = appWith();
+  await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 10000,
+      split_person_id: ctx.personId,
+    })
+    .expect(400);
+  await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 10000,
+      split_percent: 50,
+    })
+    .expect(400);
+});
+
+test('split_percent must be an integer 1..99', async () => {
+  const { app, ctx } = appWith();
+  await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 10000,
+      split_person_id: ctx.personId,
+      split_percent: 0,
+    })
+    .expect(400);
+  await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 10000,
+      split_person_id: ctx.personId,
+      split_percent: 100,
+    })
+    .expect(400);
+});
+
+test('split_person_id must reference an existing person', async () => {
+  const { app, ctx } = appWith();
+  await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 10000,
+      split_person_id: 99999,
+      split_percent: 50,
+    })
+    .expect(400);
+});
+
+test('editing a transaction to remove the split sends both fields as null', async () => {
+  const { app, ctx } = appWith();
+  const created = await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 10000,
+      split_person_id: ctx.personId,
+      split_percent: 50,
+    })
+    .expect(201);
+  const updated = await request(app)
+    .put(`/api/transactions/${created.body.id}`)
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 10000,
+      split_person_id: null,
+      split_percent: null,
+    })
+    .expect(200);
+  assert.equal(updated.body.split_person_id, null);
+  assert.equal(updated.body.split_percent, null);
+});
