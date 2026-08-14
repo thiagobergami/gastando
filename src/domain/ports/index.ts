@@ -66,6 +66,8 @@ export interface TransactionRepository {
     card_id: number;
     amount_cents: number;
     description: string;
+    split_person_id?: number | null;
+    split_percent?: number | null;
   }): Transaction;
   update(
     id: number,
@@ -75,6 +77,8 @@ export interface TransactionRepository {
       card_id: number;
       amount_cents: number;
       description: string;
+      split_person_id?: number | null;
+      split_percent?: number | null;
     },
   ): number;
   remove(id: number): number;

@@ -48,10 +48,18 @@ export function makeTransactionRepository(db: Db): TransactionRepository {
     insert(t) {
       const r = db
         .prepare(
-          `INSERT INTO transactions (date, category_id, card_id, amount_cents, description)
-         VALUES (?, ?, ?, ?, ?)`,
+          `INSERT INTO transactions (date, category_id, card_id, amount_cents, description, split_person_id, split_percent)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
         )
-        .run(t.date, t.category_id, t.card_id, t.amount_cents, t.description);
+        .run(
+          t.date,
+          t.category_id,
+          t.card_id,
+          t.amount_cents,
+          t.description,
+          t.split_person_id ?? null,
+          t.split_percent ?? null,
+        );
       return db
         .prepare('SELECT * FROM transactions WHERE id=?')
         .get(r.lastInsertRowid) as Transaction;
@@ -59,9 +67,18 @@ export function makeTransactionRepository(db: Db): TransactionRepository {
     update(id, t) {
       return db
         .prepare(
-          `UPDATE transactions SET date=?, category_id=?, card_id=?, amount_cents=?, description=? WHERE id=?`,
+          `UPDATE transactions SET date=?, category_id=?, card_id=?, amount_cents=?, description=?, split_person_id=?, split_percent=? WHERE id=?`,
         )
-        .run(t.date, t.category_id, t.card_id, t.amount_cents, t.description, id).changes;
+        .run(
+          t.date,
+          t.category_id,
+          t.card_id,
+          t.amount_cents,
+          t.description,
+          t.split_person_id ?? null,
+          t.split_percent ?? null,
+          id,
+        ).changes;
     },
     remove(id: number): number {
       return db.prepare('DELETE FROM transactions WHERE id=?').run(id).changes;

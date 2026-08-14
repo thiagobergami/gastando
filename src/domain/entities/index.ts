@@ -67,6 +67,9 @@ export interface Transaction {
   installment_group_id: number | null;
   installment_no: number | null;
   installment_total: number | null;
+  split_person_id: number | null;
+  split_percent: number | null;
+  split_received: number; // 0 | 1
 }
 export interface RecurringTemplate {
   id: number;

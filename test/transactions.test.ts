@@ -144,3 +144,62 @@ test('GET /api/transactions/export.csv returns a CSV with a header and rows', as
   assert.match(res.text, /Supermercado/);
   assert.match(res.text, /"Coffee, hot"/); // comma-containing field is quoted
 });
+
+const { makeTransactionRepository } = require('../src/infra/repositories/transactions');
+
+test('transaction repository stores and reads split fields', () => {
+  const ctx = makeTestDb();
+  const repo = makeTransactionRepository(ctx.db);
+  const t = repo.insert({
+    date: '2026-06-10',
+    category_id: ctx.categoryId,
+    card_id: ctx.cardId,
+    amount_cents: 10000,
+    description: 'Jantar',
+    split_person_id: ctx.personId,
+    split_percent: 50,
+  });
+  assert.equal(t.split_person_id, ctx.personId);
+  assert.equal(t.split_percent, 50);
+  assert.equal(t.split_received, 0);
+});
+
+test('transaction repository defaults split fields to null when omitted', () => {
+  const ctx = makeTestDb();
+  const repo = makeTransactionRepository(ctx.db);
+  const t = repo.insert({
+    date: '2026-06-10',
+    category_id: ctx.categoryId,
+    card_id: ctx.cardId,
+    amount_cents: 10000,
+    description: 'Jantar',
+  });
+  assert.equal(t.split_person_id, null);
+  assert.equal(t.split_percent, null);
+});
+
+test('transaction repository update overwrites split fields, including clearing them', () => {
+  const ctx = makeTestDb();
+  const repo = makeTransactionRepository(ctx.db);
+  const t = repo.insert({
+    date: '2026-06-10',
+    category_id: ctx.categoryId,
+    card_id: ctx.cardId,
+    amount_cents: 10000,
+    description: 'Jantar',
+    split_person_id: ctx.personId,
+    split_percent: 50,
+  });
+  repo.update(t.id, {
+    date: t.date,
+    category_id: ctx.categoryId,
+    card_id: ctx.cardId,
+    amount_cents: 10000,
+    description: 'Jantar',
+    split_person_id: null,
+    split_percent: null,
+  });
+  const updated = repo.findById(t.id);
+  assert.equal(updated.split_person_id, null);
+  assert.equal(updated.split_percent, null);
+});
