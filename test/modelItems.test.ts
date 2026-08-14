@@ -108,3 +108,76 @@ test('use case remove deletes the item', () => {
   uc.remove(item.id);
   assert.equal(uc.list('income').length, 0);
 });
+
+const request = require('supertest');
+const { createApp } = require('../src/app');
+
+test('POST /api/model-items creates and GET lists by kind', async () => {
+  const { db } = makeTestDb();
+  const app = createApp(db);
+  await request(app)
+    .post('/api/model-items')
+    .send({ kind: 'income', name: 'Salário', amount_cents: 500000 })
+    .expect(201);
+  await request(app)
+    .post('/api/model-items')
+    .send({ kind: 'fixed_cost', name: 'Aluguel', amount_cents: 200000 })
+    .expect(201);
+  const income = await request(app).get('/api/model-items?kind=income').expect(200);
+  assert.equal(income.body.length, 1);
+  assert.equal(income.body[0].name, 'Salário');
+  const fixed = await request(app).get('/api/model-items?kind=fixed_cost').expect(200);
+  assert.equal(fixed.body.length, 1);
+});
+
+test('GET /api/model-items requires a valid kind', async () => {
+  const { db } = makeTestDb();
+  const app = createApp(db);
+  await request(app).get('/api/model-items').expect(400);
+  await request(app).get('/api/model-items?kind=bogus').expect(400);
+});
+
+test('POST /api/model-items validates name, amount_cents, and kind', async () => {
+  const { db } = makeTestDb();
+  const app = createApp(db);
+  await request(app)
+    .post('/api/model-items')
+    .send({ kind: 'income', name: '', amount_cents: 100 })
+    .expect(400);
+  await request(app)
+    .post('/api/model-items')
+    .send({ kind: 'income', name: 'Salário', amount_cents: -1 })
+    .expect(400);
+  await request(app)
+    .post('/api/model-items')
+    .send({ kind: 'bogus', name: 'x', amount_cents: 100 })
+    .expect(400);
+});
+
+test('PUT /api/model-items/:id edits name and amount', async () => {
+  const { db } = makeTestDb();
+  const app = createApp(db);
+  const created = await request(app)
+    .post('/api/model-items')
+    .send({ kind: 'fixed_cost', name: 'Aluguel', amount_cents: 200000 })
+    .expect(201);
+  await request(app)
+    .put(`/api/model-items/${created.body.id}`)
+    .send({ name: 'Aluguel + condomínio', amount_cents: 250000 })
+    .expect(204);
+  const fixed = await request(app).get('/api/model-items?kind=fixed_cost').expect(200);
+  assert.equal(fixed.body[0].name, 'Aluguel + condomínio');
+  assert.equal(fixed.body[0].amount_cents, 250000);
+});
+
+test('DELETE /api/model-items/:id removes it', async () => {
+  const { db } = makeTestDb();
+  const app = createApp(db);
+  const created = await request(app)
+    .post('/api/model-items')
+    .send({ kind: 'income', name: 'Salário', amount_cents: 500000 })
+    .expect(201);
+  await request(app).delete(`/api/model-items/${created.body.id}`).expect(204);
+  const income = await request(app).get('/api/model-items?kind=income').expect(200);
+  assert.equal(income.body.length, 0);
+});

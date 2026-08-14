@@ -6,6 +6,7 @@ import { makeCategoriesController } from '../adapters/http/controllers/categorie
 import { makeDashboardController } from '../adapters/http/controllers/dashboard';
 import { makeInstallmentGroupsController } from '../adapters/http/controllers/installmentGroups';
 import { makeLimitsController } from '../adapters/http/controllers/limits';
+import { makeModelItemsController } from '../adapters/http/controllers/modelItems';
 import { makeMonthlyModelController } from '../adapters/http/controllers/monthlyModel';
 import { makeRecurringController } from '../adapters/http/controllers/recurring';
 import { makeSettingsController } from '../adapters/http/controllers/settings';
@@ -18,6 +19,7 @@ import { makeDashboardUseCases } from '../application/use-cases/dashboard';
 import { makeInstallmentUseCases } from '../application/use-cases/installments';
 import { makeLimitUseCases } from '../application/use-cases/limits';
 import { makeModelUseCases } from '../application/use-cases/model';
+import { makeModelItemUseCases } from '../application/use-cases/modelItems';
 import { makeRecurringUseCases } from '../application/use-cases/recurring';
 import { makeSettingsUseCases } from '../application/use-cases/settings';
 import { makeSimulateUseCases } from '../application/use-cases/simulate';
@@ -27,6 +29,7 @@ import { makeCardRepository } from './repositories/cards';
 import { makeCategoryRepository } from './repositories/categories';
 import { makeInstallmentRepository } from './repositories/installments';
 import { makeLimitRepository } from './repositories/limits';
+import { makeModelItemRepository } from './repositories/modelItems';
 import { makeMonthlyModelRepository } from './repositories/monthlyModel';
 import { makeRecurringRepository } from './repositories/recurring';
 import { makeReportRepository } from './repositories/reports';
@@ -40,6 +43,7 @@ export interface Container {
     cards: express.Router;
     limits: express.Router;
     monthlyModel: express.Router;
+    modelItems: express.Router;
     transactions: express.Router;
     installmentGroups: express.Router;
     settings: express.Router;
@@ -58,6 +62,7 @@ export function buildContainer(db: Db): Container {
     cards: makeCardRepository(db),
     limits: makeLimitRepository(db),
     monthlyModel: makeMonthlyModelRepository(db),
+    modelItems: makeModelItemRepository(db),
     installments: makeInstallmentRepository(db),
     settings: makeSettingsRepository(db),
     reports: makeReportRepository(db),
@@ -73,6 +78,7 @@ export function buildContainer(db: Db): Container {
 
   const useCases = {
     model,
+    modelItems: makeModelItemUseCases({ modelItems: repositories.modelItems }),
     transactions: makeTransactionUseCases({
       transactions: repositories.transactions,
       categories: repositories.categories,
@@ -121,6 +127,7 @@ export function buildContainer(db: Db): Container {
     cards: makeCardsController(useCases.cards),
     limits: makeLimitsController(useCases.limits),
     monthlyModel: makeMonthlyModelController(useCases.model),
+    modelItems: makeModelItemsController(useCases.modelItems),
     transactions: makeTransactionsController(useCases.transactions),
     installmentGroups: makeInstallmentGroupsController(useCases.installments),
     settings: makeSettingsController(useCases.settings),
