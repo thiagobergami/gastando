@@ -73,3 +73,38 @@ test('sumByKind reflects a delete on the next call', () => {
   repo.delete(a.id);
   assert.equal(repo.sumByKind('income'), 150000);
 });
+
+const { makeModelItemUseCases } = require('../src/application/use-cases/modelItems');
+
+function ucFor(ctx) {
+  return makeModelItemUseCases({ modelItems: makeModelItemRepository(ctx.db) });
+}
+
+test('use case create appends to the end of the sort order, per kind', () => {
+  const ctx = makeTestDb();
+  const uc = ucFor(ctx);
+  const a = uc.create({ kind: 'income', name: 'Salário', amount_cents: 500000 });
+  const b = uc.create({ kind: 'income', name: 'Freelas', amount_cents: 150000 });
+  assert.equal(a.sort_order, 0);
+  assert.equal(b.sort_order, 1);
+  assert.deepEqual(
+    uc.list('income').map((i) => i.name),
+    ['Salário', 'Freelas'],
+  );
+});
+
+test('use case update edits the item in place', () => {
+  const ctx = makeTestDb();
+  const uc = ucFor(ctx);
+  const item = uc.create({ kind: 'fixed_cost', name: 'Aluguel', amount_cents: 200000 });
+  uc.update(item.id, { name: 'Aluguel', amount_cents: 210000 });
+  assert.equal(uc.list('fixed_cost')[0].amount_cents, 210000);
+});
+
+test('use case remove deletes the item', () => {
+  const ctx = makeTestDb();
+  const uc = ucFor(ctx);
+  const item = uc.create({ kind: 'income', name: 'Salário', amount_cents: 500000 });
+  uc.remove(item.id);
+  assert.equal(uc.list('income').length, 0);
+});
