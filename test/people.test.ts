@@ -47,3 +47,35 @@ test('findById resolves an inactive person — an old transaction still shows th
   assert.equal(found.name, 'Ciclano');
   assert.equal(found.active, 0);
 });
+
+const { makePersonUseCases } = require('../src/application/use-cases/people');
+
+function ucFor(ctx) {
+  return makePersonUseCases({ people: makePersonRepository(ctx.db) });
+}
+
+test('use case create makes a new active person', () => {
+  const ctx = makeTestDb();
+  const uc = ucFor(ctx);
+  const p = uc.create({ name: 'Ciclano' });
+  assert.equal(p.name, 'Ciclano');
+  assert.equal(p.active, 1);
+});
+
+test('use case update edits the person and 404s on an unknown id', () => {
+  const ctx = makeTestDb();
+  const uc = ucFor(ctx);
+  const p = uc.create({ name: 'Ciclano' });
+  const updated = uc.update(p.id, { name: 'Beltrano', active: 0 });
+  assert.equal(updated.name, 'Beltrano');
+  assert.equal(updated.active, 0);
+  assert.throws(() => uc.update(99999, { name: 'x' }), /person not found/);
+});
+
+test('use case update defaults active to 1 when omitted', () => {
+  const ctx = makeTestDb();
+  const uc = ucFor(ctx);
+  const p = uc.create({ name: 'Ciclano' });
+  const updated = uc.update(p.id, { name: 'Ciclano' });
+  assert.equal(updated.active, 1);
+});
