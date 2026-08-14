@@ -92,3 +92,15 @@ export interface MonthlyModel {
 export interface ResolvedModel extends MonthlyModel {
   source: 'month' | 'carry' | 'settings' | 'none';
 }
+
+// Duas listas paralelas, desconectadas de `recurring_templates`/`transactions`
+// (design 2026-08-14 "Summary"): o total gravado em `monthly_model` na
+// revisão mensal passa a ser a soma dos itens de cada `kind`, não mais um
+// número solto digitado à mão.
+export interface ModelItem {
+  id: number;
+  kind: 'income' | 'fixed_cost';
+  name: string;
+  amount_cents: number;
+  sort_order: number;
+}

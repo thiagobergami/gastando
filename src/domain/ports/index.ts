@@ -3,6 +3,7 @@ import type {
   Category,
   Group,
   InstallmentProgress,
+  ModelItem,
   MonthlyModel,
   RecurringTemplate,
   Transaction,
@@ -168,4 +169,15 @@ export interface MonthlyModelRepository {
   findExact(month: string): MonthlyModel | undefined;
   findAtOrBefore(month: string): MonthlyModel | undefined; // carry-forward pick
   upsert(m: MonthlyModel): void;
+}
+
+export interface ModelItemRepository {
+  listByKind(kind: ModelItem['kind']): ModelItem[];
+  create(item: Omit<ModelItem, 'id'>): ModelItem;
+  // `sort_order` sai do payload de edição: o design (§API) só expõe
+  // `{name, amount_cents}` no PUT — reordenar não é um caso de uso desta
+  // fatia, e deixar o campo aqui só convidaria a escrever nele por engano.
+  update(id: number, item: Omit<ModelItem, 'id' | 'kind' | 'sort_order'>): void;
+  delete(id: number): void;
+  sumByKind(kind: ModelItem['kind']): number; // amount_cents, 0 se vazio
 }
