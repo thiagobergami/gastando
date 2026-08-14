@@ -77,6 +77,12 @@ export function makeTransactionUseCases(deps: TransactionUseCaseDeps) {
       assertRefs(input.category_id, input.card_id);
 
       if (isInstallment) {
+        if (
+          (input.split_person_id !== undefined && input.split_person_id !== null) ||
+          (input.split_percent !== undefined && input.split_percent !== null)
+        ) {
+          throw new AppError(400, 'split cannot be combined with an installment purchase');
+        }
         const groupId = installments.createPurchase({
           category_id: input.category_id,
           card_id: input.card_id,

@@ -438,6 +438,55 @@ test('GET /api/transactions/receivables spans months and needs no month filter',
   assert.equal(r.body[0].person_name, 'Fulano');
 });
 
+test('editing a received split transaction resets split_received to pending', async () => {
+  const { app, ctx } = appWith();
+  const created = await request(app)
+    .post('/api/transactions')
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 10000,
+      split_person_id: ctx.personId,
+      split_percent: 50,
+    })
+    .expect(201);
+  await request(app).post(`/api/transactions/${created.body.id}/split-received`).expect(204);
+
+  await request(app)
+    .put(`/api/transactions/${created.body.id}`)
+    .send({
+      date: '2026-06-10',
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      amount_cents: 12000,
+      split_person_id: ctx.personId,
+      split_percent: 30,
+    })
+    .expect(200);
+
+  const receivables = await request(app).get('/api/transactions/receivables').expect(200);
+  assert.equal(receivables.body.length, 1);
+  assert.equal(receivables.body[0].received, 0);
+  assert.equal(receivables.body[0].amount_cents, 3600); // 12000 * 30 / 100
+});
+
+test('POST /api/transactions with both installment and split fields -> 400', async () => {
+  const { app, ctx } = appWith();
+  await request(app)
+    .post('/api/transactions')
+    .send({
+      category_id: ctx.categoryId,
+      card_id: ctx.cardId,
+      installment_count: 3,
+      installment_total_cents: 30000,
+      first_month: '2026-06',
+      split_person_id: ctx.personId,
+      split_percent: 50,
+    })
+    .expect(400);
+});
+
 test('GET /api/transactions/receivables excludes transactions without a split', async () => {
   const { app, ctx } = appWith();
   await request(app)

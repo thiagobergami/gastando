@@ -65,9 +65,13 @@ export function makeTransactionRepository(db: Db): TransactionRepository {
         .get(r.lastInsertRowid) as Transaction;
     },
     update(id, t) {
+      // split_received is unconditionally reset to 0: any edit to a transaction
+      // invalidates a prior "received" confirmation, since the debt it was
+      // confirmed against may no longer match (amount/percent/person changed).
+      // Harmless for transactions with no split — the field is irrelevant there.
       return db
         .prepare(
-          `UPDATE transactions SET date=?, category_id=?, card_id=?, amount_cents=?, description=?, split_person_id=?, split_percent=? WHERE id=?`,
+          `UPDATE transactions SET date=?, category_id=?, card_id=?, amount_cents=?, description=?, split_person_id=?, split_percent=?, split_received=0 WHERE id=?`,
         )
         .run(
           t.date,
