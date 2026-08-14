@@ -94,3 +94,35 @@ export function summaryLines(decisions) {
   }
   return lines;
 }
+
+export function sumItemsCents(items) {
+  return items.reduce((sum, i) => sum + i.amount_cents, 0);
+}
+
+// Uma linha por item: nome editável, valor editável, remover. `data-item-*`
+// carrega o id em cada controle para que o wiring em `decidir.js` saiba qual
+// item mexer sem precisar caminhar o DOM a partir de um `data-row` pai.
+export function renderItemRow(kind, item) {
+  return `
+    <div class="flex items-center gap-2 py-1" data-row="${item.id}">
+      <input type="text" class="flex-1 rounded border border-line bg-card px-2 py-1 text-sm"
+             data-item-name="${item.id}" value="${esc(item.name)}" />
+      <input type="text" class="w-28 rounded border border-line bg-card px-2 py-1 text-right font-mono text-sm"
+             data-item-amount="${item.id}" value="${formatBRL(item.amount_cents)}" />
+      <button type="button" data-item-del="${item.id}" class="text-clay text-sm" aria-label="Remover">×</button>
+    </div>`;
+}
+
+// Uma lista inteira — linhas + "+ adicionar" + subtotal. O subtotal aqui é o
+// valor GRAVADO (`item.amount_cents`, na carga inicial); o feedback ao
+// digitar é responsabilidade de quem chama (`paintCanSpend` em decidir.js
+// recalcula ao vivo a partir dos inputs, não deste HTML estático).
+export function renderItemList(kind, items) {
+  const rows = items.map((i) => renderItemRow(kind, i)).join('');
+  return `
+    <div data-list="${kind}">
+      ${rows}
+      <button type="button" data-item-add="${kind}" class="text-sage text-sm mt-1">+ adicionar</button>
+      <div class="text-sm text-ink-mut mt-2">Subtotal <span class="font-mono" data-subtotal="${kind}">${formatBRL(sumItemsCents(items))}</span></div>
+    </div>`;
+}
