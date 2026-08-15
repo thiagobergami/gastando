@@ -67,6 +67,9 @@ export interface Transaction {
   installment_group_id: number | null;
   installment_no: number | null;
   installment_total: number | null;
+  split_person_id: number | null;
+  split_percent: number | null;
+  split_received: number; // 0 | 1
 }
 export interface RecurringTemplate {
   id: number;
@@ -103,4 +106,13 @@ export interface ModelItem {
   name: string;
   amount_cents: number;
   sort_order: number;
+}
+
+// Quem participa de um split de transação (design 2026-08-14 "Data model").
+// Soft-delete via `active`, como `categories`/`cards`: uma transação antiga
+// continua resolvendo o nome mesmo depois que a pessoa é removida.
+export interface Person {
+  id: number;
+  name: string;
+  active: number; // 0 | 1
 }

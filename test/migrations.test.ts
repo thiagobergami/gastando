@@ -194,3 +194,47 @@ test('009 starts empty, even for a database that already had a configured model'
   const db = migrate(CONFIGURED, '008_monthly_model.sql');
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM model_items').get().n, 0);
 });
+
+test('010 creates people with active defaulting to 1', () => {
+  const db = migrate();
+  const cols = db.prepare('PRAGMA table_info(people)').all();
+  assert.deepEqual(
+    cols.map((c: { name: string }) => c.name),
+    ['id', 'name', 'active'],
+  );
+  const active = cols.find((c: { name: string }) => c.name === 'active');
+  assert.equal(active.notnull, 1);
+  assert.equal(active.dflt_value, '1');
+});
+
+test('010 adds split columns to transactions, split_received defaulting to 0', () => {
+  const db = migrate();
+  const cols = db.prepare('PRAGMA table_info(transactions)').all();
+  const names = cols.map((c: { name: string }) => c.name);
+  assert.ok(names.includes('split_person_id'));
+  assert.ok(names.includes('split_percent'));
+  assert.ok(names.includes('split_received'));
+  const received = cols.find((c: { name: string }) => c.name === 'split_received');
+  assert.equal(received.notnull, 1);
+  assert.equal(received.dflt_value, '0');
+});
+
+test('010 a transaction can reference a person as its split', () => {
+  const db = migrate();
+  db.prepare("INSERT INTO groups (name, sort_order) VALUES ('Test', 0)").run();
+  db.prepare("INSERT INTO categories (group_id, name, sort_order) VALUES (1, 'Mercado', 0)").run();
+  db.prepare("INSERT INTO cards (name) VALUES ('Nubank')").run();
+  const p = db.prepare("INSERT INTO people (name) VALUES ('Fulano')").run();
+  db.prepare(
+    `INSERT INTO transactions (date, category_id, card_id, amount_cents, description, split_person_id, split_percent)
+     VALUES ('2026-06-10', 1, 1, 10000, 'Jantar', ?, 50)`,
+  ).run(p.lastInsertRowid);
+  const row = db
+    .prepare('SELECT split_person_id, split_percent, split_received FROM transactions WHERE id=1')
+    .get();
+  assert.deepEqual(row, {
+    split_person_id: Number(p.lastInsertRowid),
+    split_percent: 50,
+    split_received: 0,
+  });
+});

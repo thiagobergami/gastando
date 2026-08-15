@@ -6,21 +6,24 @@ import { entryHint, renderEntryRow, resolveRef } from './quickentry.js';
 const $ = (id) => document.getElementById(id);
 let editingId = null;
 let page = 1;
-const lookups = { cats: new Map(), cards: new Map() };
+const lookups = { cats: new Map(), cards: new Map(), people: new Map() };
 // Data e cartão persistem entre lançamentos: o caso comum é lançar vários gastos
 // do mesmo cartão, no mesmo dia (spec §7).
 const sticky = { date: new Date().toISOString().slice(0, 10), card: '' };
-const state = { cats: [], cards: [] };
+const state = { cats: [], cards: [], people: [] };
 
-export function renderRows(rows, refs = { cats: new Map(), cards: new Map() }) {
+export function renderRows(rows, refs = { cats: new Map(), cards: new Map(), people: new Map() }) {
   return rows
     .map((r) => {
       const cardName = refs.cards.get(r.card_id) ?? '';
+      const splitTag = r.split_person_id
+        ? `<span class="tag tag-sage ml-2">${r.split_percent}% ${esc(refs.people?.get(r.split_person_id) ?? '')}</span>`
+        : '';
       return `
     <tr class="border-b border-line">
       <td class="py-3 font-mono text-sm text-ink-mut">${shortDate(r.date)}</td>
       <td class="py-3">${esc(r.description)}
-        ${r.installment_no ? `<span class="tag tag-gold ml-2">${r.installment_no}/${r.installment_total}</span>` : ''}</td>
+        ${r.installment_no ? `<span class="tag tag-gold ml-2">${r.installment_no}/${r.installment_total}</span>` : ''}${splitTag}</td>
       <td class="py-3 text-sm">${esc(refs.cats.get(r.category_id)?.name ?? '')}</td>
       <td class="py-3 text-sm text-ink-mut">${esc(cardName)}</td>
       <td class="py-3 text-right font-mono">${formatBRL(r.amount_cents)}</td>
@@ -48,11 +51,17 @@ function mountEntryRow() {
 }
 
 async function loadSelectors() {
-  const [cats, cards] = await Promise.all([api.get('/api/categories'), api.get('/api/cards')]);
+  const [cats, cards, people] = await Promise.all([
+    api.get('/api/categories'),
+    api.get('/api/cards'),
+    api.get('/api/people'),
+  ]);
   state.cats = cats;
   state.cards = cards;
+  state.people = people;
   lookups.cats = new Map(cats.map((c) => [c.id, { name: c.name }]));
   lookups.cards = new Map(cards.map((c) => [c.id, c.name]));
+  lookups.people = new Map(people.map((p) => [p.id, p.name]));
   mountEntryRow();
   const opt = (c) => `<option value="${c.id}">${esc(c.name)}</option>`;
   const active = (list) =>
@@ -62,6 +71,10 @@ async function loadSelectors() {
       .join('');
   $('filterCategory').innerHTML = `<option value="">Todas as categorias</option>${active(cats)}`;
   $('filterCard').innerHTML = `<option value="">Todos os cartões</option>${active(cards)}`;
+  $('person-list').innerHTML = people
+    .filter((p) => p.active)
+    .map((p) => `<option value="${esc(p.name)}"></option>`)
+    .join('');
 }
 
 async function loadList() {
@@ -120,18 +133,28 @@ function updatePager(total, perPage, totalPages) {
 function setAdvanced(which) {
   $('installmentFields').style.display = which === 'installment' ? 'flex' : 'none';
   $('recurringFields').style.display = which === 'recurring' ? 'flex' : 'none';
+  $('splitFields').style.display = which === 'split' ? 'flex' : 'none';
 }
 
 function advancedMode() {
   if ($('installmentFields').style.display === 'flex') return 'installment';
   if ($('recurringFields').style.display === 'flex') return 'recurring';
+  if ($('splitFields').style.display === 'flex') return 'split';
   return null;
 }
 
 function startEdit(r) {
   if (!r) return;
   editingId = r.id;
-  setAdvanced(null);
+  if (r.split_person_id) {
+    setAdvanced('split');
+    $('q-person').value = lookups.people.get(r.split_person_id) ?? '';
+    $('splitPercent').value = r.split_percent;
+  } else {
+    setAdvanced(null);
+    $('q-person').value = '';
+    $('splitPercent').value = '';
+  }
   $('q-date').value = r.date;
   $('q-desc').value = r.description;
   $('q-cat').value = lookups.cats.get(r.category_id)?.name ?? '';
@@ -151,6 +174,9 @@ function resetForm() {
   $('q-amount').value = '';
   $('q-cat-hint').textContent = '';
   $('q-card-hint').textContent = '';
+  $('q-person').value = '';
+  $('splitPercent').value = '';
+  $('q-person-hint').textContent = '';
   $('q-submit').textContent = 'Adicionar';
   $('cancelEdit').style.display = 'none';
 }
@@ -189,6 +215,7 @@ async function onSubmit(e) {
   e.preventDefault();
   $('q-cat-hint').textContent = '';
   $('q-card-hint').textContent = '';
+  $('q-person-hint').textContent = '';
   try {
     const catRef = resolveRef($('q-cat').value, state.cats);
     if (!catRef) return fieldError('q-cat-hint', 'q-cat', 'Informe uma categoria');
@@ -199,16 +226,31 @@ async function onSubmit(e) {
       return fieldError('q-cat-hint', 'q-amount', 'Valor inválido');
     }
 
+    const mode = advancedMode();
+    let personRef = null;
+    let splitPercent = null;
+    if (mode === 'split') {
+      personRef = resolveRef($('q-person').value, state.people);
+      if (!personRef) return fieldError('q-person-hint', 'q-person', 'Informe uma pessoa');
+      splitPercent = Number($('splitPercent').value);
+      if (!Number.isInteger(splitPercent) || splitPercent < 1 || splitPercent > 99) {
+        return fieldError('q-person-hint', 'splitPercent', 'Porcentagem inválida (1 a 99)');
+      }
+    }
+
     const category_id = await ensureId(catRef, '/api/categories');
     const card_id = await ensureId(cardRef, '/api/cards');
+    const split_person_id = personRef ? await ensureId(personRef, '/api/people') : null;
+    const split_percent = mode === 'split' ? splitPercent : null;
     const base = { category_id, card_id, description: $('q-desc').value };
-    const mode = advancedMode();
 
     if (editingId !== null) {
       await api.put(`/api/transactions/${editingId}`, {
         ...base,
         date: $('q-date').value,
         amount_cents: amount,
+        split_person_id,
+        split_percent,
       });
     } else if (mode === 'installment') {
       await api.post('/api/transactions', {
@@ -228,6 +270,8 @@ async function onSubmit(e) {
         ...base,
         date: $('q-date').value,
         amount_cents: amount,
+        split_person_id,
+        split_percent,
       });
     }
 
@@ -237,8 +281,9 @@ async function onSubmit(e) {
     sticky.card = $('q-card').value;
     const catCreated = catRef.create !== undefined;
     const cardCreated = cardRef.create !== undefined;
+    const personCreated = personRef ? personRef.create !== undefined : false;
     resetForm();
-    if (catCreated || cardCreated) await loadSelectors();
+    if (catCreated || cardCreated || personCreated) await loadSelectors();
     $('q-desc').focus();
     await loadList();
   } catch (err) {
@@ -255,6 +300,12 @@ if (typeof document !== 'undefined' && document.getElementById('list')) {
   $('toggleRecurring').addEventListener('click', () =>
     setAdvanced(advancedMode() === 'recurring' ? null : 'recurring'),
   );
+  $('toggleSplit').addEventListener('click', () =>
+    setAdvanced(advancedMode() === 'split' ? null : 'split'),
+  );
+  $('q-person').addEventListener('input', () => {
+    $('q-person-hint').textContent = entryHint($('q-person').value, state.people, 'person');
+  });
   $('month').addEventListener('change', () => {
     page = 1;
     loadList();

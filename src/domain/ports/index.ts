@@ -5,6 +5,7 @@ import type {
   InstallmentProgress,
   ModelItem,
   MonthlyModel,
+  Person,
   RecurringTemplate,
   Transaction,
 } from '../entities';
@@ -65,6 +66,8 @@ export interface TransactionRepository {
     card_id: number;
     amount_cents: number;
     description: string;
+    split_person_id?: number | null;
+    split_percent?: number | null;
   }): Transaction;
   update(
     id: number,
@@ -74,10 +77,22 @@ export interface TransactionRepository {
       card_id: number;
       amount_cents: number;
       description: string;
+      split_person_id?: number | null;
+      split_percent?: number | null;
     },
   ): number;
   remove(id: number): number;
   firstByGroup(groupId: number): Transaction | undefined;
+  setSplitReceived(id: number, received: boolean): void;
+  listReceivables(): Array<{
+    transaction_id: number;
+    person_id: number;
+    person_name: string;
+    description: string;
+    month: string;
+    amount_cents: number; // amount_cents * split_percent / 100, calculado na leitura
+    received: number; // 0 | 1
+  }>;
 }
 
 export interface LimitRepository {
@@ -180,4 +195,15 @@ export interface ModelItemRepository {
   update(id: number, item: Omit<ModelItem, 'id' | 'kind' | 'sort_order'>): void;
   delete(id: number): void;
   sumByKind(kind: ModelItem['kind']): number; // amount_cents, 0 se vazio
+}
+
+export interface PersonRepository {
+  // Mesma forma de `CardRepository.listAll()` — todas as pessoas, ativas e
+  // inativas: o cliente já filtra por `active` para os seletores (o mesmo
+  // padrão de `GET /api/categories`/`GET /api/cards` hoje), e transações
+  // antigas precisam resolver o nome de uma pessoa mesmo depois de removida.
+  listAll(): Person[];
+  findById(id: number): Person | undefined;
+  insert(p: { name: string }): Person;
+  update(id: number, p: { name: string; active: number }): number; // changes
 }

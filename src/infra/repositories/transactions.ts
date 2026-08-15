@@ -48,20 +48,41 @@ export function makeTransactionRepository(db: Db): TransactionRepository {
     insert(t) {
       const r = db
         .prepare(
-          `INSERT INTO transactions (date, category_id, card_id, amount_cents, description)
-         VALUES (?, ?, ?, ?, ?)`,
+          `INSERT INTO transactions (date, category_id, card_id, amount_cents, description, split_person_id, split_percent)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
         )
-        .run(t.date, t.category_id, t.card_id, t.amount_cents, t.description);
+        .run(
+          t.date,
+          t.category_id,
+          t.card_id,
+          t.amount_cents,
+          t.description,
+          t.split_person_id ?? null,
+          t.split_percent ?? null,
+        );
       return db
         .prepare('SELECT * FROM transactions WHERE id=?')
         .get(r.lastInsertRowid) as Transaction;
     },
     update(id, t) {
+      // split_received is unconditionally reset to 0: any edit to a transaction
+      // invalidates a prior "received" confirmation, since the debt it was
+      // confirmed against may no longer match (amount/percent/person changed).
+      // Harmless for transactions with no split — the field is irrelevant there.
       return db
         .prepare(
-          `UPDATE transactions SET date=?, category_id=?, card_id=?, amount_cents=?, description=? WHERE id=?`,
+          `UPDATE transactions SET date=?, category_id=?, card_id=?, amount_cents=?, description=?, split_person_id=?, split_percent=?, split_received=0 WHERE id=?`,
         )
-        .run(t.date, t.category_id, t.card_id, t.amount_cents, t.description, id).changes;
+        .run(
+          t.date,
+          t.category_id,
+          t.card_id,
+          t.amount_cents,
+          t.description,
+          t.split_person_id ?? null,
+          t.split_percent ?? null,
+          id,
+        ).changes;
     },
     remove(id: number): number {
       return db.prepare('DELETE FROM transactions WHERE id=?').run(id).changes;
@@ -70,6 +91,34 @@ export function makeTransactionRepository(db: Db): TransactionRepository {
       return db
         .prepare('SELECT * FROM transactions WHERE installment_group_id=? ORDER BY date LIMIT 1')
         .get(groupId) as Transaction | undefined;
+    },
+    setSplitReceived(id, received) {
+      db.prepare('UPDATE transactions SET split_received=? WHERE id=?').run(received ? 1 : 0, id);
+    },
+    listReceivables() {
+      return db
+        .prepare(
+          `SELECT
+             t.id AS transaction_id,
+             t.split_person_id AS person_id,
+             p.name AS person_name,
+             t.description,
+             strftime('%Y-%m', t.date) AS month,
+             CAST(ROUND(t.amount_cents * t.split_percent / 100.0) AS INTEGER) AS amount_cents,
+             t.split_received AS received
+           FROM transactions t
+           JOIN people p ON p.id = t.split_person_id
+           ORDER BY t.date DESC, t.id DESC`,
+        )
+        .all() as Array<{
+        transaction_id: number;
+        person_id: number;
+        person_name: string;
+        description: string;
+        month: string;
+        amount_cents: number;
+        received: number;
+      }>;
     },
   };
 }

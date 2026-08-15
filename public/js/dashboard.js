@@ -3,6 +3,7 @@ import { api, showError } from './api.js';
 import { mountChrome } from './chrome.js';
 import { buildCommitments, renderCommitments } from './commitments.js';
 import { currentMonth, esc, formatBRL, monthName } from './format.js';
+import { renderReceivables } from './receivables.js';
 import { meterBar, statusPill } from './ui.js';
 
 export function monthLabel(month) {
@@ -152,6 +153,31 @@ async function loadCommitments(month) {
   }
 }
 
+// Painel novo, carregado à parte do resto (mesmo padrão de `loadCommitments`):
+// chamada assíncrona própria, erro não derruba o resto da tela. Sem filtro de
+// mês — uma dívida de fevereiro continua valendo em abril (design "API"), então
+// ao contrário de `load`/`loadCommitments` este painel não reage à troca de mês.
+async function loadReceivables() {
+  const el = document.getElementById('receivables');
+  if (!el) return;
+  try {
+    const rows = await api.get('/api/transactions/receivables');
+    el.innerHTML = renderReceivables(rows);
+    el.querySelectorAll('button[data-receive]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        try {
+          await api.post(`/api/transactions/${b.dataset.receive}/split-received`);
+          loadReceivables();
+        } catch (e) {
+          showError(e.message);
+        }
+      });
+    });
+  } catch {
+    el.innerHTML = '';
+  }
+}
+
 async function load(month) {
   try {
     const d = await api.get(`/api/dashboard?month=${month}`);
@@ -176,4 +202,5 @@ if (typeof document !== 'undefined' && document.getElementById('hero')) {
   });
   load(monthEl.value);
   loadCommitments(monthEl.value);
+  loadReceivables();
 }

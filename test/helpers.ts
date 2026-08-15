@@ -8,6 +8,7 @@ export interface TestContext {
   groupId: number;
   categoryId: number;
   cardId: number;
+  personId: number;
 }
 
 export function makeTestDb(): TestContext {
@@ -28,10 +29,12 @@ export function makeTestDb(): TestContext {
     )
     .run(g.lastInsertRowid);
   const card = db.prepare("INSERT INTO cards (name) VALUES ('Nubank')").run();
+  const person = db.prepare("INSERT INTO people (name) VALUES ('Fulano')").run();
   return {
     db,
     groupId: Number(g.lastInsertRowid),
     categoryId: Number(c.lastInsertRowid),
     cardId: Number(card.lastInsertRowid),
+    personId: Number(person.lastInsertRowid),
   };
 }

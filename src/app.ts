@@ -20,6 +20,7 @@ export function createApp(arg: Container | Db): express.Express {
 
   app.use('/api/categories', controllers.categories);
   app.use('/api/cards', controllers.cards);
+  app.use('/api/people', controllers.people);
   app.use('/api/limits', controllers.limits);
   app.use('/api/monthly-model', controllers.monthlyModel);
   app.use('/api/model-items', controllers.modelItems);
