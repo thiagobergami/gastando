@@ -137,3 +137,40 @@ test('summaryLines returns plain text — escaping belongs to whoever renders it
   assert.equal(lines[0], 'Restaurantes & Delivery: R$ 600,00 → R$ 650,00');
   assert.ok(!lines[0].includes('&amp;'));
 });
+
+test('sumItemsCents adds up amount_cents, 0 for an empty list', async () => {
+  const { sumItemsCents } = await import('../public/js/review.js');
+  assert.equal(sumItemsCents([]), 0);
+  assert.equal(sumItemsCents([{ amount_cents: 500000 }, { amount_cents: 150000 }]), 650000);
+});
+
+test('renderItemRow escapes the item name and shows the formatted amount', async () => {
+  const { renderItemRow } = await import('../public/js/review.js');
+  const html = renderItemRow('income', { id: 7, name: '<b>Salário</b>', amount_cents: 500000 });
+  assert.match(html, /&lt;b&gt;Salário&lt;\/b&gt;/);
+  assert.doesNotMatch(html, /<b>Salário/);
+  assert.match(html, /R\$ 5\.000,00/);
+  assert.match(html, /data-item-name="7"/);
+  assert.match(html, /data-item-amount="7"/);
+  assert.match(html, /data-item-del="7"/);
+});
+
+test('renderItemList renders one row per item plus an add button and the subtotal', async () => {
+  const { renderItemList } = await import('../public/js/review.js');
+  const html = renderItemList('fixed_cost', [
+    { id: 1, name: 'Aluguel', amount_cents: 200000 },
+    { id: 2, name: 'Condomínio', amount_cents: 50000 },
+  ]);
+  assert.match(html, /data-list="fixed_cost"/);
+  assert.match(html, /data-row="1"/);
+  assert.match(html, /data-row="2"/);
+  assert.match(html, /data-item-add="fixed_cost"/);
+  assert.match(html, /R\$ 2\.500,00/); // subtotal
+});
+
+test('renderItemList handles an empty list — just the add button and a zero subtotal', async () => {
+  const { renderItemList } = await import('../public/js/review.js');
+  const html = renderItemList('income', []);
+  assert.doesNotMatch(html, /data-row=/);
+  assert.match(html, /R\$ 0,00/);
+});

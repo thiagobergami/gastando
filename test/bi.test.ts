@@ -263,24 +263,31 @@ test('committed-vs-discretionary validates its range', async () => {
 test('savings-realized uses the model that was in force each month', async () => {
   const ctx = makeTestDb();
   const app = createApp(ctx.db);
+  const income = (
+    await request(app)
+      .post('/api/model-items')
+      .send({ kind: 'income', name: 'Salário', amount_cents: 1000000 })
+      .expect(201)
+  ).body;
+  await request(app)
+    .post('/api/model-items')
+    .send({ kind: 'fixed_cost', name: 'Aluguel', amount_cents: 300000 })
+    .expect(201);
   await request(app)
     .put('/api/monthly-model')
-    .send({
-      month: '2026-06',
-      income_cents: 1000000,
-      fixed_costs_cents: 300000,
-      savings_goal_cents: 200000,
-    })
+    .send({ month: '2026-06', savings_goal_cents: 200000 })
     .expect(200);
+
+  // Renda sobe para julho — o custo fixo fica como está, como na revisão real.
+  await request(app)
+    .put(`/api/model-items/${income.id}`)
+    .send({ name: 'Salário', amount_cents: 1400000 })
+    .expect(204);
   await request(app)
     .put('/api/monthly-model')
-    .send({
-      month: '2026-07',
-      income_cents: 1400000,
-      fixed_costs_cents: 300000,
-      savings_goal_cents: 250000,
-    })
+    .send({ month: '2026-07', savings_goal_cents: 250000 })
     .expect(200);
+
   await request(app)
     .post('/api/transactions')
     .send({
@@ -305,13 +312,16 @@ test('changing income today does not rewrite a month that already has a model', 
   const ctx = makeTestDb();
   const app = createApp(ctx.db);
   await request(app)
+    .post('/api/model-items')
+    .send({ kind: 'income', name: 'Salário', amount_cents: 1000000 })
+    .expect(201);
+  await request(app)
+    .post('/api/model-items')
+    .send({ kind: 'fixed_cost', name: 'Aluguel', amount_cents: 300000 })
+    .expect(201);
+  await request(app)
     .put('/api/monthly-model')
-    .send({
-      month: '2026-06',
-      income_cents: 1000000,
-      fixed_costs_cents: 300000,
-      savings_goal_cents: 200000,
-    })
+    .send({ month: '2026-06', savings_goal_cents: 200000 })
     .expect(200);
 
   const before = await request(app)
