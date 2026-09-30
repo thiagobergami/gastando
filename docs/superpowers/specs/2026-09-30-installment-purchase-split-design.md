@@ -1,7 +1,7 @@
 # Divisão de compra parcelada com outra pessoa
 
 Data: 2026-09-30
-Status: desenho em conversa aprovado; especificação aguardando revisão.
+Status: aprovado pelo usuário em 2026-09-30.
 
 ## Objetivo e escopo
 

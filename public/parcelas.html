@@ -19,7 +19,7 @@
     <div id="list" class="space-y-4"></div>
 
     <div id="editCard" class="paper-card mt-8" style="display:none">
-      <h2 class="font-display text-xl mb-4">Editar parcela</h2>
+      <h2 class="font-display text-xl mb-4">Editar compra parcelada</h2>
       <form id="editForm" class="grid gap-3 md:grid-cols-2">
         <input type="hidden" id="editId" />
         <label class="block">Descrição <input id="e_description" class="w-full rounded border border-line px-2 py-1" /></label>
@@ -28,6 +28,10 @@
         <label class="block">Total (R$) <input id="e_total" type="number" step="0.01" class="w-full rounded border border-line px-2 py-1" /></label>
         <label class="block">Parcelas <input id="e_count" type="number" min="1" class="w-full rounded border border-line px-2 py-1" /></label>
         <label class="block">Primeiro mês <input id="e_firstMonth" type="month" class="w-full rounded border border-line px-2 py-1" /></label>
+        <label class="block">Pessoa <input id="e_person" list="e_people" autocomplete="off" class="w-full rounded border border-line px-2 py-1" /></label>
+        <datalist id="e_people"></datalist>
+        <label class="block">Parte da outra pessoa (%) <input id="e_percent" type="number" min="1" max="99" class="w-full rounded border border-line px-2 py-1" /></label>
+        <p id="e_split_hint" class="md:col-span-2 text-sm text-ink-mut">A divisão se aplica a todas as parcelas, inclusive as de meses anteriores. Limpe pessoa e porcentagem para remover.</p>
         <div class="md:col-span-2 text-right"><button class="btn-primary">Salvar</button></div>
       </form>
     </div>

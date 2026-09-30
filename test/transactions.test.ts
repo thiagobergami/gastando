@@ -471,7 +471,7 @@ test('editing a received split transaction resets split_received to pending', as
   assert.equal(receivables.body[0].amount_cents, 3600); // 12000 * 30 / 100
 });
 
-test('POST /api/transactions with both installment and split fields -> 400', async () => {
+test('POST /api/transactions with both installment and split fields -> 201', async () => {
   const { app, ctx } = appWith();
   await request(app)
     .post('/api/transactions')
@@ -484,7 +484,7 @@ test('POST /api/transactions with both installment and split fields -> 400', asy
       split_person_id: ctx.personId,
       split_percent: 50,
     })
-    .expect(400);
+    .expect(201);
 });
 
 test('GET /api/transactions/receivables excludes transactions without a split', async () => {

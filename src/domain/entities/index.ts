@@ -31,7 +31,33 @@ export interface CategoryLimit {
   month: string;
   limit_cents: number;
 }
-export interface InstallmentGroup {
+export interface SplitConfig {
+  split_person_id: number | null;
+  split_percent: number | null;
+}
+export interface InstallmentPurchaseInput {
+  category_id: number;
+  card_id: number;
+  description?: string;
+  total_cents: number;
+  count: number;
+  first_month: string;
+  split_person_id?: number | null;
+  split_percent?: number | null;
+}
+export interface Receivable {
+  transaction_id: number;
+  person_id: number;
+  person_name: string;
+  description: string;
+  month: string;
+  amount_cents: number;
+  received: number;
+  installment_group_id: number | null;
+  installment_no: number | null;
+  installment_total: number | null;
+}
+export interface InstallmentGroup extends SplitConfig {
   id: number;
   description: string;
   total_cents: number;
@@ -40,7 +66,9 @@ export interface InstallmentGroup {
   category_id: number;
   card_id: number;
 }
-export interface InstallmentProgress {
+export interface InstallmentProgress extends SplitConfig {
+  split_person_name: string | null;
+  has_individual_splits: boolean;
   id: number;
   description: string;
   category_id: number;
@@ -58,6 +86,7 @@ export interface InstallmentProgress {
   next_month: string | null;
 }
 export interface Transaction {
+  shared_installment?: boolean; // effective group split; distinguishes legacy individual splits
   id: number;
   date: string;
   category_id: number;

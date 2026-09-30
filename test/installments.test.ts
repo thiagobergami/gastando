@@ -176,6 +176,7 @@ test('use-case list returns progress rows', () => {
     installments: repo,
     categories: makeCategoryRepository(ctx.db),
     cards: makeCardRepository(ctx.db),
+    people: require('../src/infra/repositories/people').makePersonRepository(ctx.db),
   });
   assert.equal(uc.list('2026-06').length, 1);
 });

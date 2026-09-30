@@ -40,3 +40,11 @@ test('renderGroups shows an empty state', async () => {
   const { renderGroups } = await import('../public/js/parcelas.js');
   assert.match(renderGroups([]), /Nenhum parcelamento/);
 });
+
+test('shared purchase shows escaped person and percentage', async () => {
+  const { renderGroups } = await import('../public/js/parcelas.js');
+  const html = renderGroups([
+    { ...row, split_person_id: 3, split_percent: 50, split_person_name: '<Ana>' },
+  ]);
+  assert.match(html, /50% &lt;Ana&gt;/);
+});

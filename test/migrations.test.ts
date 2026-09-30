@@ -238,3 +238,40 @@ test('010 a transaction can reference a person as its split', () => {
     split_received: 0,
   });
 });
+
+test('012 adds a constrained group split and preserves existing transactions', () => {
+  const { db, categoryId, cardId, personId } = require('./helpers').makeTestDb();
+  const cols = db.prepare('PRAGMA table_info(installment_groups)').all();
+  assert.ok(cols.some((c) => c.name === 'split_person_id'));
+  const id = db
+    .prepare(
+      'INSERT INTO installment_groups (description,total_cents,total_count,first_month,category_id,card_id) VALUES (?,?,?,?,?,?)',
+    )
+    .run('TV', 100, 3, '2026-09', categoryId, cardId).lastInsertRowid;
+  assert.equal(
+    db.prepare('SELECT split_percent FROM installment_groups WHERE id=?').get(id).split_percent,
+    null,
+  );
+  assert.throws(() =>
+    db.prepare('UPDATE installment_groups SET split_percent=50 WHERE id=?').run(id),
+  );
+  assert.throws(() =>
+    db
+      .prepare('UPDATE installment_groups SET split_person_id=?,split_percent=100 WHERE id=?')
+      .run(personId, id),
+  );
+  assert.throws(() =>
+    db
+      .prepare('UPDATE installment_groups SET split_person_id=?,split_percent=50.5 WHERE id=?')
+      .run(personId, id),
+  );
+  assert.throws(() =>
+    db
+      .prepare('UPDATE installment_groups SET split_person_id=999,split_percent=50 WHERE id=?')
+      .run(id),
+  );
+  db.prepare('UPDATE installment_groups SET split_person_id=?,split_percent=50 WHERE id=?').run(
+    personId,
+    id,
+  );
+});

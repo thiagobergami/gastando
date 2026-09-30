@@ -3,7 +3,7 @@ import { api, showError } from './api.js';
 import { mountChrome } from './chrome.js';
 import { buildCommitments, renderCommitments } from './commitments.js';
 import { currentMonth, esc, formatBRL, monthName } from './format.js';
-import { renderReceivables } from './receivables.js';
+import { localCurrentMonth, renderReceivables } from './receivables.js';
 import { meterBar, statusPill } from './ui.js';
 
 export function monthLabel(month) {
@@ -162,7 +162,17 @@ async function loadReceivables() {
   if (!el) return;
   try {
     const rows = await api.get('/api/transactions/receivables');
-    el.innerHTML = renderReceivables(rows);
+    el.innerHTML = renderReceivables(rows, localCurrentMonth());
+    el.querySelectorAll('button[data-unreceive]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        try {
+          await api.del(`/api/transactions/${b.dataset.unreceive}/split-received`);
+          loadReceivables();
+        } catch (e) {
+          showError(e.message);
+        }
+      });
+    });
     el.querySelectorAll('button[data-receive]').forEach((b) => {
       b.addEventListener('click', async () => {
         try {

@@ -97,6 +97,7 @@ export function buildContainer(db: Db): Container {
       installments: repositories.installments,
       categories: repositories.categories,
       cards: repositories.cards,
+      people: repositories.people,
     }),
     categories: makeCategoryUseCases({ categories: repositories.categories }),
     cards: makeCardUseCases({ cards: repositories.cards, reports: repositories.reports }),

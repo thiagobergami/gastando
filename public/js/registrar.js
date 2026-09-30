@@ -1,10 +1,26 @@
 import { api, getPage, showError } from './api.js';
 import { mountChrome } from './chrome.js';
 import { currentMonth, esc, formatBRL, parseReais, shortDate } from './format.js';
+import {
+  createSplitPreviewLoader,
+  formatSplitPreview,
+  resolvePurchasePerson,
+  toggleEntryOption,
+} from './installmentEntry.js';
 import { entryHint, renderEntryRow, resolveRef } from './quickentry.js';
 
 const $ = (id) => document.getElementById(id);
 let editingId = null;
+let editingPersonId = null;
+let entryOptions = { installment: false, recurring: false, split: false };
+let previewTimer;
+const previewLoader = createSplitPreviewLoader(
+  (input) => api.post('/api/installment-groups/preview', input),
+  (preview) => {
+    const target = $('splitPreview');
+    if (target) target.textContent = formatSplitPreview(preview, $('q-person')?.value);
+  },
+);
 let page = 1;
 const lookups = { cats: new Map(), cards: new Map(), people: new Map() };
 // Data e cartão persistem entre lançamentos: o caso comum é lançar vários gastos
@@ -28,7 +44,7 @@ export function renderRows(rows, refs = { cats: new Map(), cards: new Map(), peo
       <td class="py-3 text-sm text-ink-mut">${esc(cardName)}</td>
       <td class="py-3 text-right font-mono">${formatBRL(r.amount_cents)}</td>
       <td class="py-3 text-right">
-        <button data-edit="${r.id}" class="text-sage text-sm mr-2">Editar</button>
+        ${r.shared_installment ? `<a href="/parcelas.html?group=${r.installment_group_id}" class="text-sage text-sm mr-2">Editar compra</a>` : `<button data-edit="${r.id}" class="text-sage text-sm mr-2">Editar</button>`}
         <button data-del="${r.id}" data-group="${r.installment_group_id || ''}" class="text-clay text-sm">Excluir</button>
       </td>
     </tr>`;
@@ -48,6 +64,7 @@ function mountEntryRow() {
   $('entryRow').innerHTML = renderEntryRow(state.cats, state.cards, sticky);
   $('q-cat').addEventListener('input', refreshHints);
   $('q-card').addEventListener('input', refreshHints);
+  $('q-amount').addEventListener('input', updatePreview);
 }
 
 async function loadSelectors() {
@@ -130,22 +147,62 @@ function updatePager(total, perPage, totalPages) {
   $('nextPage').disabled = page >= totalPages;
 }
 
+function showAdvanced() {
+  for (const option of ['installment', 'recurring', 'split']) {
+    $(`${option}Fields`).style.display = entryOptions[option] ? 'flex' : 'none';
+  }
+  if (!entryOptions.split) {
+    $('q-person').value = '';
+    $('splitPercent').value = '';
+  }
+  updatePreview();
+}
+
 function setAdvanced(which) {
-  $('installmentFields').style.display = which === 'installment' ? 'flex' : 'none';
-  $('recurringFields').style.display = which === 'recurring' ? 'flex' : 'none';
-  $('splitFields').style.display = which === 'split' ? 'flex' : 'none';
+  entryOptions = {
+    installment: which === 'installment',
+    recurring: which === 'recurring',
+    split: which === 'split',
+  };
+  showAdvanced();
+}
+
+function toggleAdvanced(which) {
+  entryOptions = toggleEntryOption(entryOptions, which);
+  showAdvanced();
 }
 
 function advancedMode() {
-  if ($('installmentFields').style.display === 'flex') return 'installment';
-  if ($('recurringFields').style.display === 'flex') return 'recurring';
-  if ($('splitFields').style.display === 'flex') return 'split';
-  return null;
+  if (entryOptions.installment) return 'installment';
+  if (entryOptions.recurring) return 'recurring';
+  return entryOptions.split ? 'split' : null;
+}
+
+function updatePreview() {
+  clearTimeout(previewTimer);
+  previewLoader.clear();
+  if (!entryOptions.installment || !entryOptions.split || editingId !== null) return;
+  const total_cents = parseReais($('q-amount')?.value ?? '');
+  const count = Number($('count').value);
+  const split_percent = Number($('splitPercent').value);
+  if (
+    !Number.isSafeInteger(total_cents) ||
+    total_cents < 1 ||
+    !Number.isInteger(count) ||
+    count < 1 ||
+    count > total_cents ||
+    !Number.isInteger(split_percent) ||
+    split_percent < 1 ||
+    split_percent > 99
+  )
+    return;
+  previewTimer = setTimeout(() => previewLoader.load({ total_cents, count, split_percent }), 200);
 }
 
 function startEdit(r) {
   if (!r) return;
   editingId = r.id;
+  editingPersonId = r.split_person_id ?? null;
   if (r.split_person_id) {
     setAdvanced('split');
     $('q-person').value = lookups.people.get(r.split_person_id) ?? '';
@@ -168,6 +225,7 @@ function startEdit(r) {
 
 function resetForm() {
   editingId = null;
+  editingPersonId = null;
   setAdvanced(null);
   $('q-desc').value = '';
   $('q-cat').value = '';
@@ -184,7 +242,7 @@ function resetForm() {
 async function onDelete(id, groupId) {
   try {
     if (groupId) {
-      if (!confirm('Excluir todo o parcelamento (todas as parcelas)?')) return;
+      if (!confirm('Excluir esta compra, todas as parcelas e os valores a receber?')) return;
       await api.del(`/api/installment-groups/${groupId}`);
     } else {
       await api.del(`/api/transactions/${id}`);
@@ -229,8 +287,8 @@ async function onSubmit(e) {
     const mode = advancedMode();
     let personRef = null;
     let splitPercent = null;
-    if (mode === 'split') {
-      personRef = resolveRef($('q-person').value, state.people);
+    if (entryOptions.split) {
+      personRef = resolvePurchasePerson($('q-person').value, state.people, editingPersonId);
       if (!personRef) return fieldError('q-person-hint', 'q-person', 'Informe uma pessoa');
       splitPercent = Number($('splitPercent').value);
       if (!Number.isInteger(splitPercent) || splitPercent < 1 || splitPercent > 99) {
@@ -241,7 +299,7 @@ async function onSubmit(e) {
     const category_id = await ensureId(catRef, '/api/categories');
     const card_id = await ensureId(cardRef, '/api/cards');
     const split_person_id = personRef ? await ensureId(personRef, '/api/people') : null;
-    const split_percent = mode === 'split' ? splitPercent : null;
+    const split_percent = entryOptions.split ? splitPercent : null;
     const base = { category_id, card_id, description: $('q-desc').value };
 
     if (editingId !== null) {
@@ -255,6 +313,8 @@ async function onSubmit(e) {
     } else if (mode === 'installment') {
       await api.post('/api/transactions', {
         ...base,
+        split_person_id,
+        split_percent,
         installment_total_cents: amount,
         installment_count: Number($('count').value),
         first_month: $('firstMonth').value || $('q-date').value.slice(0, 7),
@@ -294,17 +354,16 @@ async function onSubmit(e) {
 if (typeof document !== 'undefined' && document.getElementById('list')) {
   mountChrome('/registrar.html');
   $('month').value = currentMonth();
-  $('toggleInstallment').addEventListener('click', () =>
-    setAdvanced(advancedMode() === 'installment' ? null : 'installment'),
-  );
-  $('toggleRecurring').addEventListener('click', () =>
-    setAdvanced(advancedMode() === 'recurring' ? null : 'recurring'),
-  );
-  $('toggleSplit').addEventListener('click', () =>
-    setAdvanced(advancedMode() === 'split' ? null : 'split'),
-  );
+  $('toggleInstallment').addEventListener('click', () => toggleAdvanced('installment'));
+  $('toggleRecurring').addEventListener('click', () => toggleAdvanced('recurring'));
+  $('toggleSplit').addEventListener('click', () => toggleAdvanced('split'));
+  for (const id of ['count', 'splitPercent']) $(id).addEventListener('input', updatePreview);
   $('q-person').addEventListener('input', () => {
-    $('q-person-hint').textContent = entryHint($('q-person').value, state.people, 'person');
+    updatePreview();
+    const ref = resolvePurchasePerson($('q-person').value, state.people, editingPersonId);
+    $('q-person-hint').textContent = ref?.id
+      ? ''
+      : entryHint($('q-person').value, state.people, 'person');
   });
   $('month').addEventListener('change', () => {
     page = 1;
