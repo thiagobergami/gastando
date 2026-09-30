@@ -120,6 +120,12 @@ Months are stored as `TEXT` in `YYYY-MM` format.
 Unique on `(category_id, month)`. When the dashboard needs a limit for a month with
 no explicit row, it falls back to the most recent prior month's limit (carry-forward).
 
+### `category_carry_decisions`
+Stores the user's decision to carry an exceeded category balance forward, keyed
+by `(category_id, month)`. An absent decision means no carry. The decision applies
+to the excess at the end of that month; a later exceeded month needs its own
+decision. Editing transactions or limits recalculates the excess from current data.
+
 ### `cards`
 | column | type | notes |
 |---|---|---|
@@ -180,7 +186,8 @@ re-expands (delete + recreate child transactions). Deleting the group deletes it
 ### Dashboard aggregation (`services/dashboard.js`)
 For a given month, returns:
 - Per category: resolved `limit_cents` (with carry-forward), `spent_cents` (sum of
-  transactions in that month), `remaining_cents`, and `status` (`ok` | `over`).
+  transactions in that month), chosen `carry_in_cents`, `remaining_cents`, and
+  `status` (`ok` | `approaching` | `over`). Unchosen excess stays in its source month.
 - Per group: subtotals of limit and spend.
 - Totals: sum of all limits, sum of all spend, `teto_cents`, `projected_savings_cents`,
   `savings_goal_cents`, and delta vs goal.
@@ -203,8 +210,9 @@ For a given month, returns:
 | PUT/DELETE | `/api/groups/:id` | update / delete |
 | GET/POST | `/api/categories` | list / create categories |
 | PUT/DELETE | `/api/categories/:id` | update / soft-delete |
-| GET | `/api/limits?month=YYYY-MM` | resolved limits for a month |
+| GET | `/api/limits?month=YYYY-MM` | resolved limits, incoming and outgoing excess, and carry choice per category |
 | PUT | `/api/limits` | set a category's limit for a month |
+| PUT | `/api/limits/carry` | set `{category_id, month, carry_forward}` for one category and source month |
 | GET/POST | `/api/cards` | list / create cards |
 | PUT/DELETE | `/api/cards/:id` | update / soft-delete |
 | GET | `/api/transactions?month=&category_id=&card_id=` | filtered list |
@@ -243,8 +251,7 @@ gitignored and must be regenerated after checkout.
   parcelas + first month); rows from an installment group are visually marked
   (e.g. "3/6") and link back to their group.
 - **Settings (`settings.html`)** — manage groups, categories (name, examples, group,
-  active), per-month limits, cards, and the savings-model values (income, fixed costs,
-  savings goal).
+  active), per-month limits and excess carry choices, cards, and appearance.
 - **BI (`bi.html`)** — Chart.js charts restyled to the Serene Ledger palette: spend per
   category across months (line/stacked bar), over/under-limit history, biggest categories.
 - **Simulate (`simulate.html`)** — what-if simulator: pick a category and amount to see

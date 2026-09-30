@@ -1,7 +1,7 @@
 import express from 'express';
 import type { makeLimitUseCases } from '../../../application/use-cases/limits';
 import { monthQuerySchema } from '../schemas/common';
-import { upsertLimitSchema } from '../schemas/limits';
+import { carryDecisionSchema, upsertLimitSchema } from '../schemas/limits';
 import { parse } from '../validate';
 
 type LimitUseCases = ReturnType<typeof makeLimitUseCases>;
@@ -22,6 +22,11 @@ export function makeLimitsController(uc: LimitUseCases): express.Router {
   router.put('/', (req, res) => {
     const { month, limit_cents } = parse(upsertLimitSchema, req.body);
     res.json(uc.upsert({ category_id: req.body.category_id, month, limit_cents }));
+  });
+
+  router.put('/carry', (req, res) => {
+    const { month, carry_forward } = parse(carryDecisionSchema, req.body);
+    res.json(uc.setCarryForward({ category_id: req.body.category_id, month, carry_forward }));
   });
 
   return router;

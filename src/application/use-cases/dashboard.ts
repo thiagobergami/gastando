@@ -1,6 +1,6 @@
 import type { LimitRepository, ReportRepository, SettingsRepository } from '../../domain/ports';
 import { budgetStatus } from '../../domain/services/budget';
-import { addMonths } from '../../domain/services/dates';
+import { carryIntoMonth } from '../../domain/services/limitCarry';
 
 export interface DashboardUseCaseDeps {
   reports: ReportRepository;
@@ -10,18 +10,6 @@ export interface DashboardUseCaseDeps {
 
 export function makeDashboardUseCases(deps: DashboardUseCaseDeps) {
   const { reports, limits, settings } = deps;
-
-  function computeCarryIn(categoryId: number, month: string): number {
-    const first = limits.firstTxMonth(categoryId);
-    if (!first || first >= month) return 0;
-    let carry = 0;
-    for (let m = first; m < month; m = addMonths(m, 1)) {
-      const limit = limits.resolve(categoryId, m);
-      const actual = limits.sumSpend(categoryId, m);
-      carry = limit > 0 ? Math.max(0, actual + carry - limit) : 0;
-    }
-    return carry;
-  }
 
   function num(key: string): number {
     const v = settings.get(key);
@@ -33,7 +21,7 @@ export function makeDashboardUseCases(deps: DashboardUseCaseDeps) {
       const categories = reports.dashboardCategories().map((c) => {
         const limit_cents = limits.resolve(c.id, month);
         const spent_cents = limits.sumSpend(c.id, month);
-        const carry_in_cents = computeCarryIn(c.id, month);
+        const carry_in_cents = carryIntoMonth(limits, c.id, month);
         const effective_spent_cents = spent_cents + carry_in_cents;
         return {
           category_id: c.id,

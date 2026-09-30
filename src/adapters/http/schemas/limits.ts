@@ -7,3 +7,8 @@ export const upsertLimitSchema = z.object({
   month: zMonth('month must be YYYY-MM'),
   limit_cents: zNonNegInt('limit_cents must be a non-negative integer'),
 });
+
+export const carryDecisionSchema = z.object({
+  month: zMonth('month must be YYYY-MM'),
+  carry_forward: z.boolean(),
+});

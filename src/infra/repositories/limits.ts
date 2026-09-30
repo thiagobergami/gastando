@@ -35,5 +35,20 @@ export function makeLimitRepository(db: Db): LimitRepository {
           .get(categoryId) as { m: string | null }
       ).m;
     },
+    carriesForward(categoryId: number, month: string): boolean {
+      const row = db
+        .prepare(
+          'SELECT carry_forward FROM category_carry_decisions WHERE category_id=? AND month=?',
+        )
+        .get(categoryId, month) as { carry_forward: number } | undefined;
+      return row?.carry_forward === 1;
+    },
+    setCarryForward(categoryId: number, month: string, enabled: boolean): void {
+      db.prepare(
+        `INSERT INTO category_carry_decisions (category_id, month, carry_forward)
+         VALUES (?, ?, ?)
+         ON CONFLICT(category_id, month) DO UPDATE SET carry_forward=excluded.carry_forward`,
+      ).run(categoryId, month, enabled ? 1 : 0);
+    },
   };
 }

@@ -74,7 +74,28 @@ function wireLimitInputs() {
             month: $('month').value,
             limit_cents: reaisToCents(inp.value),
           });
+          await loadLimits();
         } catch (e) {
+          showError(e.message);
+        }
+      });
+    });
+}
+
+function wireCarryToggles() {
+  $('limits')
+    .querySelectorAll('input[data-carry]')
+    .forEach((box) => {
+      box.addEventListener('change', async () => {
+        try {
+          await api.put('/api/limits/carry', {
+            category_id: Number(box.dataset.carry),
+            month: $('month').value,
+            carry_forward: box.checked,
+          });
+          await loadLimits();
+        } catch (e) {
+          box.checked = !box.checked;
           showError(e.message);
         }
       });
@@ -107,8 +128,10 @@ async function loadLimits() {
     ]);
     state.cats = cats;
     const byCat = new Map(limits.map((l) => [l.category_id, l.limit_cents]));
-    $('limits').innerHTML = renderCategoryRows(cats, byCat);
+    const carryByCat = new Map(limits.map((l) => [l.category_id, l]));
+    $('limits').innerHTML = renderCategoryRows(cats, byCat, carryByCat);
     wireLimitInputs();
+    wireCarryToggles();
     wireEssentialToggles();
     updateAllocation();
   } catch (e) {
@@ -271,16 +294,19 @@ if (typeof document !== 'undefined' && document.getElementById('limits')) {
     try {
       const sugg = await api.get(`/api/limits/suggestions?month=${$('month').value}`);
       const byCat = new Map(sugg.map((s) => [s.category_id, s[field]]));
-      $('limits')
-        .querySelectorAll('input[data-cat]')
-        .forEach((inp) => {
-          const v = byCat.get(Number(inp.dataset.cat));
-          if (v !== undefined) {
-            inp.value = (v / 100).toFixed(2);
-            inp.dispatchEvent(new Event('change'));
-          }
-        });
-      updateAllocation();
+      await Promise.all(
+        [...$('limits').querySelectorAll('input[data-cat]')].map((inp) => {
+          const category_id = Number(inp.dataset.cat);
+          const limit_cents = byCat.get(category_id);
+          if (limit_cents === undefined) return Promise.resolve();
+          return api.put('/api/limits', {
+            category_id,
+            month: $('month').value,
+            limit_cents,
+          });
+        }),
+      );
+      await loadLimits();
     } catch (e) {
       showError(e.message);
     }

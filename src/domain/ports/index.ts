@@ -94,6 +94,8 @@ export interface LimitRepository {
   upsert(categoryId: number, month: string, limitCents: number): void;
   sumSpend(categoryId: number, month: string): number;
   firstTxMonth(categoryId: number): string | null;
+  carriesForward(categoryId: number, month: string): boolean;
+  setCarryForward(categoryId: number, month: string, enabled: boolean): void;
 }
 
 export interface InstallmentRepository {
