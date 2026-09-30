@@ -139,3 +139,28 @@ test('renderRows escapes the split person name', async () => {
   assert.match(html, /&lt;b&gt;Fulano&lt;\/b&gt;/);
   assert.doesNotMatch(html, /<b>Fulano/);
 });
+
+test('shared installment row links to its purchase and shows both tags', async () => {
+  const { renderRows } = await import('../public/js/registrar.js');
+  const html = renderRows(
+    [
+      {
+        id: 3,
+        date: '2026-09-01',
+        description: 'TV',
+        amount_cents: 20000,
+        shared_installment: true,
+        installment_group_id: 7,
+        installment_no: 2,
+        installment_total: 6,
+        split_person_id: 1,
+        split_percent: 50,
+      },
+    ],
+    { cats: new Map(), cards: new Map(), people: new Map([[1, 'Ana']]) },
+  );
+  assert.match(html, /2\/6/);
+  assert.match(html, /50% Ana/);
+  assert.match(html, /parcelas\.html\?group=7/);
+  assert.doesNotMatch(html, /data-edit="3"/);
+});

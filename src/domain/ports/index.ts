@@ -3,9 +3,11 @@ import type {
   Category,
   Group,
   InstallmentProgress,
+  InstallmentPurchaseInput,
   ModelItem,
   MonthlyModel,
   Person,
+  Receivable,
   RecurringTemplate,
   Transaction,
 } from '../entities';
@@ -84,15 +86,7 @@ export interface TransactionRepository {
   remove(id: number): number;
   firstByGroup(groupId: number): Transaction | undefined;
   setSplitReceived(id: number, received: boolean): void;
-  listReceivables(): Array<{
-    transaction_id: number;
-    person_id: number;
-    person_name: string;
-    description: string;
-    month: string;
-    amount_cents: number; // amount_cents * split_percent / 100, calculado na leitura
-    received: number; // 0 | 1
-  }>;
+  listReceivables(): Receivable[];
 }
 
 export interface LimitRepository {
@@ -100,31 +94,16 @@ export interface LimitRepository {
   upsert(categoryId: number, month: string, limitCents: number): void;
   sumSpend(categoryId: number, month: string): number;
   firstTxMonth(categoryId: number): string | null;
+  carriesForward(categoryId: number, month: string): boolean;
+  setCarryForward(categoryId: number, month: string, enabled: boolean): void;
 }
 
 export interface InstallmentRepository {
   // atomic: insert group + N child transactions; returns new group id
-  createPurchase(p: {
-    category_id: number;
-    card_id: number;
-    description: string;
-    total_cents: number;
-    count: number;
-    first_month: string;
-  }): number;
-  remove(id: number): void; // throws AppError(404) if absent
+  createPurchase(p: InstallmentPurchaseInput): number;
+  remove(id: number): void;
   listWithProgress(asOfMonth: string): InstallmentProgress[];
-  update(
-    id: number,
-    p: {
-      category_id: number;
-      card_id: number;
-      description?: string;
-      total_cents: number;
-      count: number;
-      first_month: string;
-    },
-  ): void; // atomic re-expand; throws AppError(404) if absent
+  update(id: number, p: InstallmentPurchaseInput): void;
   payOffEarly(id: number, asOfMonth: string): void; // re-date remaining parcelas to asOf; 404/400
 }
 

@@ -20,19 +20,21 @@
     <section class="paper-card">
       <h2 class="font-display text-xl mb-4">Limites de <span id="monthLabel" class="font-mono text-base"></span></h2>
       <p class="text-sm text-ink-mut mb-4">Renda, custos fixos e meta de poupança agora fazem parte da <a href="/decidir.html" class="text-sage hover:underline">revisão mensal</a>.</p>
+      <p class="text-sm text-ink-mut mb-4">Se uma categoria estourou, escolha aqui se o excedente entra no mês seguinte. A escolha vale para o mês selecionado.</p>
       <div class="flex gap-2 mb-3">
         <button id="useLastMonth" class="btn-ghost text-sm">Usar mês anterior</button>
         <button id="useAvg3" class="btn-ghost text-sm">Usar média de 3 meses</button>
       </div>
-      <table class="w-full text-left">
+      <div class="overflow-x-auto"><table class="w-full min-w-[760px] text-left">
         <thead><tr class="text-xs uppercase tracking-wide text-ink-mut border-b border-line">
           <th class="py-2 font-semibold">Categoria</th>
           <th class="py-2 text-center font-semibold">Essencial</th>
           <th class="py-2 text-right font-semibold">Limite</th>
+          <th class="py-2 pl-4 font-semibold">Excedente</th>
           <th class="py-2"></th>
         </tr></thead>
         <tbody id="limits"></tbody>
-      </table>
+      </table></div>
       <div class="flex items-center gap-3 mt-4">
         <span id="ceiling" class="pill pill-ok"></span>
       </div>

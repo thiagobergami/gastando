@@ -1,7 +1,7 @@
 import express from 'express';
 import type { makeInstallmentUseCases } from '../../../application/use-cases/installments';
 import { MONTH_RE } from '../schemas/common';
-import { updateInstallmentSchema } from '../schemas/installments';
+import { installmentPreviewSchema, updateInstallmentSchema } from '../schemas/installments';
 import { parse } from '../validate';
 
 type InstallmentUseCases = ReturnType<typeof makeInstallmentUseCases>;
@@ -14,6 +14,10 @@ export function makeInstallmentGroupsController(uc: InstallmentUseCases): expres
     const month =
       typeof q === 'string' && MONTH_RE.test(q) ? q : new Date().toISOString().slice(0, 7);
     res.json(uc.list(month));
+  });
+
+  router.post('/preview', (req, res) => {
+    res.json(uc.preview(parse(installmentPreviewSchema, req.body)));
   });
 
   router.put('/:id', (req, res) => {

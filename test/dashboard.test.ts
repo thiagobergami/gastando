@@ -100,6 +100,12 @@ test('dashboard carries overage forward and self-corrects', async () => {
   await spend('2026-02', 8000); // 30 + 80 = 110 -> over by 10
   await spend('2026-03', 5000); // 10 + 50 = 60  -> under, clears
   await spend('2026-04', 5000); // 0 + 50 = 50   -> under
+  for (const month of ['2026-01', '2026-02']) {
+    await request(app)
+      .put('/api/limits/carry')
+      .send({ category_id: ctx.categoryId, month, carry_forward: true })
+      .expect(200);
+  }
 
   const catFor = async (month) => {
     const d = await request(app).get(`/api/dashboard?month=${month}`).expect(200);
@@ -153,6 +159,12 @@ test('dashboard: carry keeps accumulating when debt never clears', async () => {
       })
       .expect(201); // 130 vs 100 -> +30 carry each month
   }
+  for (const month of ['2026-01', '2026-02']) {
+    await request(app)
+      .put('/api/limits/carry')
+      .send({ category_id: ctx.categoryId, month, carry_forward: true })
+      .expect(200);
+  }
   const d = await request(app).get('/api/dashboard?month=2026-03').expect(200);
   const cat = d.body.categories.find((c) => c.category_id === ctx.categoryId);
   assert.equal(cat.carry_in_cents, 6000); // 3000 (Jan) + 3000 (Feb)
@@ -205,6 +217,11 @@ test('dashboard: by_essential reflects actual spend, not carry', async () => {
       amount_cents: 8000,
     })
     .expect(201);
+
+  await request(app)
+    .put('/api/limits/carry')
+    .send({ category_id: ctx.categoryId, month: '2026-01', carry_forward: true })
+    .expect(200);
 
   const d = await request(app).get('/api/dashboard?month=2026-02').expect(200);
   // by_essential soma o gasto do mês, sem carry — o carry é por categoria.
